@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SteelWolf Empire — plugin.json schema",
+  "description": "Anthropic 2026 plugin manifest schema",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Plugin name kebab-case (lowercase, no spaces)"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic versioning"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 30
+    },
+    "author": {
+      "type": "object",
+      "properties": {
+        "name": {"type": "string"},
+        "email": {"type": "string", "format": "email"},
+        "url": {"type": "string", "format": "uri"}
+      },
+      "required": ["name"]
+    },
+    "homepage": {"type": "string", "format": "uri"},
+    "repository": {"type": "string"},
+    "license": {"type": "string"},
+    "keywords": {
+      "type": "array",
+      "items": {"type": "string"}
+    }
+  },
+  "required": ["name", "version", "description", "author"],
+  "additionalProperties": true
+}

@@ -1,0 +1,55 @@
+SteelWolf Empire Plugins — Proprietary License
+================================================
+
+Copyright © 2026 Luke SteelWolf (lucatrading21-debug). All Rights Reserved.
+
+This repository contains the SteelWolf Empire plugins marketplace and is
+provided publicly on GitHub for the sole purpose of enabling Anthropic Claude
+plugin marketplace integration (Claude Code CLI, Claude Cowork desktop,
+Claude.ai web).
+
+NO LICENSE GRANT
+----------------
+
+No license, express or implied, is granted under this notice. All rights are
+reserved by the copyright holder. The source code, documentation, skill
+definitions, command files, hooks, schemas, and related artifacts in this
+repository may NOT be:
+
+  * copied, modified, merged, published, distributed, sublicensed, or sold;
+  * used as the basis for derivative works;
+  * incorporated into other projects, products, or services;
+  * used commercially in any form;
+
+without the prior written consent of the copyright holder.
+
+PERMITTED USE
+-------------
+
+Users of Anthropic Claude products are permitted to:
+
+  * VIEW the contents of this repository on GitHub;
+  * INSTALL the plugins via the standard Anthropic plugin marketplace mechanism
+    (i.e., `/plugin marketplace add lucatrading21-debug/steelwolf-empire-plugins`
+    and `/plugin install <plugin>@steelwolf-empire-plugins`) for personal use
+    inside their own Claude session;
+  * REPORT bugs or compatibility issues via GitHub Issues.
+
+Any other use is prohibited without explicit written permission from the
+copyright holder.
+
+NO WARRANTY
+-----------
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+CONTACT
+-------
+
+For licensing inquiries: Luke SteelWolf via GitHub https://github.com/lucatrading21-debug

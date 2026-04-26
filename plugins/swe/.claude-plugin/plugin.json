@@ -1,0 +1,24 @@
+{
+  "name": "swe",
+  "version": "1.0.0",
+  "description": "SteelWolf Empire workflow plugin per Claude (Code CLI + Cowork desktop + Web). Provides slash commands /swe:start (apertura sessione + pull-first 11 repo + briefing), /swe:end (chiusura D6 + commit atomic + V1 parity verify), /swe:compact (mid-session compact + sub-agent delegation). Hooks SessionStart/SessionEnd/UserPromptSubmit forced-eval (84-100% skill activation). Pattern Anthropic 2026 native namespaced /swe:<command>. Empire governance V1-V6 binding, PROTOCOLLO GO non derogabile, LL-Empire 28+ lezioni binding.",
+  "author": {
+    "name": "Luke SteelWolf",
+    "url": "https://github.com/lucatrading21-debug"
+  },
+  "homepage": "https://github.com/lucatrading21-debug/steelwolf-empire-plugins",
+  "repository": "https://github.com/lucatrading21-debug/steelwolf-empire-plugins",
+  "license": "UNLICENSED",
+  "keywords": [
+    "empire",
+    "steelwolf",
+    "workflow",
+    "session",
+    "trading-alliance",
+    "ironx",
+    "ta-academy",
+    "governance",
+    "dual-pc",
+    "anthropic-2026"
+  ]
+}

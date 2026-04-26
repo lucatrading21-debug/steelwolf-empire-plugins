@@ -1,0 +1,58 @@
+{
+  "name": "steelwolf-empire-plugins",
+  "owner": {
+    "name": "Luke SteelWolf",
+    "url": "https://github.com/lucatrading21-debug"
+  },
+  "metadata": {
+    "description": "SteelWolf Empire — Claude plugins marketplace per workflow operations Empire ecosystem (Trading Alliance, IronX, TA-Academy, Empire Hub). Pattern Anthropic 2026 native con dual skills+commands+hooks. Compatible Claude Code CLI, Cowork desktop, Claude.ai web.",
+    "version": "1.0.0",
+    "homepage": "https://github.com/lucatrading21-debug/steelwolf-empire-plugins",
+    "repository": "https://github.com/lucatrading21-debug/steelwolf-empire-plugins",
+    "license": "UNLICENSED",
+    "keywords": [
+      "claude",
+      "claude-code",
+      "claude-cowork",
+      "anthropic",
+      "plugins",
+      "marketplace",
+      "empire",
+      "steelwolf",
+      "workflow",
+      "session-management"
+    ]
+  },
+  "plugins": [
+    {
+      "name": "swe",
+      "source": "./plugins/swe",
+      "version": "1.0.0",
+      "description": "SteelWolf Empire workflow plugin. Slash commands per apertura sessione (/swe:start), chiusura (/swe:end), compact mid-session (/swe:compact). Auto-discovery via skills + slash explicit invocation via commands + lifecycle hooks (SessionStart, SessionEnd, UserPromptSubmit forced-eval 84-100% activation). LL-Empire binding governance V1-V6, PROTOCOLLO GO non derogabile, dual-PC parity PREDATOR/ACE.",
+      "author": {
+        "name": "Luke SteelWolf"
+      },
+      "keywords": [
+        "empire",
+        "session",
+        "workflow",
+        "governance"
+      ]
+    },
+    {
+      "name": "empire-research",
+      "source": "./plugins/empire-research",
+      "version": "1.0.0",
+      "description": "Empire research enforcement — WebFetch + WebSearch verifica empirica live di schema/spec/feature esterno Anthropic PRIMA di proporre architettura. Anti-confabulation pattern LL-Empire-011 + LL-Empire-024. Trigger naturale o /empire-research:research [topic].",
+      "author": {
+        "name": "Luke SteelWolf"
+      },
+      "keywords": [
+        "empire",
+        "research",
+        "verification",
+        "anti-confabulation"
+      ]
+    }
+  ]
+}

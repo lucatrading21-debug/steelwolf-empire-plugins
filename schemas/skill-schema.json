@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SteelWolf Empire — SKILL.md frontmatter schema",
+  "description": "Anthropic 2026 authoritative schema for SKILL.md YAML frontmatter. Empire-specific: name field FORBIDDEN per Issue #22063 (namespace bypass).",
+  "type": "object",
+  "properties": {
+    "description": {
+      "type": "string",
+      "minLength": 30,
+      "maxLength": 1500,
+      "description": "Single-sentence description for Claude auto-discovery"
+    },
+    "allowed-tools": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9 ()*_,-]*$",
+      "description": "Space-separated tool list (NOT array). Examples: 'Read Bash Grep' or 'Bash(git add *) Bash(git commit *)'"
+    },
+    "disable-model-invocation": {
+      "type": "boolean"
+    },
+    "user-invocable": {
+      "type": "boolean"
+    },
+    "context": {
+      "type": "string",
+      "enum": ["fork"]
+    },
+    "agent": {
+      "type": "string"
+    }
+  },
+  "required": ["description"],
+  "not": {
+    "required": ["name"]
+  },
+  "additionalProperties": false
+}

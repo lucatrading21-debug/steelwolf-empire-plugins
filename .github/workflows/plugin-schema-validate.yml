@@ -1,0 +1,72 @@
+# SteelWolf Empire — CI: Plugin & Marketplace Schema Validation
+# Copyright © 2026 Luke SteelWolf — All Rights Reserved
+
+name: Plugin & Marketplace Schema Validate
+
+on:
+  push:
+    paths:
+      - '**/plugin.json'
+      - '.claude-plugin/marketplace.json'
+      - 'schemas/plugin-schema.json'
+      - 'schemas/marketplace-schema.json'
+      - '.github/workflows/plugin-schema-validate.yml'
+  pull_request:
+    paths:
+      - '**/plugin.json'
+      - '.claude-plugin/marketplace.json'
+
+jobs:
+  validate-plugin-manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install jsonschema
+        run: pip install jsonschema
+
+      - name: Validate plugin.json
+        run: |
+          python3 << 'PYEOF'
+          import json, sys, glob
+          from jsonschema import validate, ValidationError
+
+          schema = json.load(open('schemas/plugin-schema.json'))
+          errors = []
+          plugin_jsons = glob.glob('plugins/*/.claude-plugin/plugin.json')
+
+          for f in plugin_jsons:
+              try:
+                  data = json.load(open(f))
+                  validate(instance=data, schema=schema)
+                  print(f"OK: {f}")
+              except (ValidationError, json.JSONDecodeError) as e:
+                  errors.append(f"{f}: {e}")
+
+          if errors:
+              for e in errors: print(f"  - {e}")
+              sys.exit(1)
+          print(f"\nAll {len(plugin_jsons)} plugin.json VALID")
+          PYEOF
+
+      - name: Validate marketplace.json
+        run: |
+          python3 << 'PYEOF'
+          import json, sys
+          from jsonschema import validate, ValidationError
+
+          schema = json.load(open('schemas/marketplace-schema.json'))
+          try:
+              data = json.load(open('.claude-plugin/marketplace.json'))
+              validate(instance=data, schema=schema)
+              print("marketplace.json: VALID")
+          except (ValidationError, json.JSONDecodeError) as e:
+              print(f"marketplace.json: {e}")
+              sys.exit(1)
+          PYEOF

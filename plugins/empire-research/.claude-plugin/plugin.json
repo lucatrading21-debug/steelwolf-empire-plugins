@@ -1,0 +1,20 @@
+{
+  "name": "empire-research",
+  "version": "1.0.0",
+  "description": "SteelWolf Empire research plugin — enforcement automatico LL-Empire-024 + LL-Empire-027 (verifica WebFetch live spec esterno Anthropic/GitHub PRIMA di proporre architettura/schema). Skill /empire-research:verify triggera deep research multi-source con cross-check vs Roadmap interna Empire. Pattern protezione contro Sonnet confabulation (LL-Empire-011) e schema obsoleti.",
+  "author": {
+    "name": "Luke SteelWolf",
+    "url": "https://github.com/lucatrading21-debug"
+  },
+  "homepage": "https://github.com/lucatrading21-debug/steelwolf-empire-plugins",
+  "repository": "https://github.com/lucatrading21-debug/steelwolf-empire-plugins",
+  "license": "UNLICENSED",
+  "keywords": [
+    "empire",
+    "research",
+    "verification",
+    "webfetch",
+    "anti-confabulation",
+    "schema-validation"
+  ]
+}
