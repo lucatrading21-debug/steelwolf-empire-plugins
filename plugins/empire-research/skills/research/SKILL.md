@@ -1,21 +1,22 @@
 ---
-description: "Verifica empirica live (WebFetch + WebSearch) di schema/spec/feature esterno Anthropic/GitHub PRIMA di proporre architettura o implementazione. Enforcement automatico LL-Empire-024 (Roadmap interne NON autoritative) + LL-Empire-011 (anti-confabulation Sonnet). Trigger naturale: contesto utente menziona 'schema', 'plugin', 'hook', 'API Anthropic', 'feature recente', 'best practice 2026'."
+description: "Verifica empirica live (WebFetch + WebSearch) di schema/spec/feature esterno Anthropic/GitHub PRIMA di proporre architettura o implementazione. Enforcement automatico LL-Empire-024 (sandbox stale) + LL-Empire-011 (anti-confabulation Sonnet) + LL-Empire-027 (Roadmap interne NON autoritative per spec esterno) + LL-Empire-025 (schema autoritativo Anthropic > Roadmap). Trigger naturale: contesto utente menziona 'schema', 'spec', 'plugin', 'hook', 'API Anthropic', 'feature recente', 'best practice 2026', 'plugin marketplace', 'hooks.json', 'settings.json', 'plugin.json', 'SKILL.md frontmatter', 'GitHub Actions Anthropic', 'Issue #', 'docs.claude.com'. Enforce verifica autoritativa GitHub raw (anthropics/claude-code main branch) quando docs.claude.com NOT reachable (redirect 3xx). Output cross-reference empire-pattern-detector T6 (incongruenze cross-skill) per pattern automatic flagging."
 allowed-tools: Read WebFetch WebSearch Bash Grep
 ---
 
 > Copyright © 2026 Luke SteelWolf — All Rights Reserved. See LICENSE.
 
-# EMPIRE RESEARCH v1.0
+# EMPIRE RESEARCH v1.1
 
 Skill che FORZA verifica empirica di spec/schema/feature esterno PRIMA di scrivere codice o proporre architettura. Anti-confabulation enforcement automatico.
 
-> Creata 2026-04-27 in plugin `empire-research`. Binding: LL-Empire-008 (verifica empirica), LL-Empire-011 (Sonnet confabulation), LL-Empire-024 (sandbox stale), LL-Empire-027 (Roadmap interne non autoritative).
+> Creata 2026-04-27 in plugin `empire-research`. Binding: LL-Empire-008 (verifica empirica), LL-Empire-011 (Sonnet confabulation), LL-Empire-024 (sandbox stale), LL-Empire-025 (schema autoritativo Anthropic), LL-Empire-027 (Roadmap interne non autoritative).
+> v1.1 enhancement (M2 P2 Fase 1 closure 2026-04-30 continuation S4): aggiunta §6.1 cross-reference empire-pattern-detector T6 (incongruenze cross-skill ciclate verso pattern detector) + trigger phrases description aggressive (plugin marketplace / hooks.json / settings.json / plugin.json / SKILL.md frontmatter / GitHub Actions / Issue # / docs.claude.com).
 
 ---
 
 ## §1 — TRIGGER OBBLIGATORI
 
-Skill DEVE attivarsi (auto OR via `/empire-research:verify`) se prompt utente o contesto include:
+Skill DEVE attivarsi (auto OR via `/empire-research:research`) se prompt utente o contesto include:
 
 - "schema" / "spec" / "format" Anthropic
 - "plugin" / "marketplace" / "hook" / "agent" Claude
@@ -24,6 +25,8 @@ Skill DEVE attivarsi (auto OR via `/empire-research:verify`) se prompt utente o 
 - Implementazione contro API/SDK Anthropic
 - Cross-platform pattern (Cowork/Code/Web)
 - Bug noto / GitHub Issue Anthropic
+- **NUOVO v1.1:** "plugin marketplace" / "hooks.json" / "settings.json" / "plugin.json" / "SKILL.md frontmatter"
+- **NUOVO v1.1:** "GitHub Actions Anthropic" / "Issue #" / "docs.claude.com"
 
 ## §2 — METODOLOGIA RICERCA OBBLIGATORIA
 
@@ -34,6 +37,10 @@ Almeno 2 fonti tra:
 - `https://code.claude.com/docs/en/<topic>` (Claude Code docs)
 - `https://platform.claude.com/docs/en/<topic>` (Anthropic API docs)
 - `https://support.claude.com/en/articles/<id>` (Help Center)
+
+**Workaround docs.claude.com NOT reachable** (redirect 3xx, finding empirico S4 2026-04-30): usa GitHub raw fonte autoritativa fallback:
+- `https://raw.githubusercontent.com/anthropics/claude-code/main/plugins/<plugin>/skills/<skill>/SKILL.md`
+- `https://api.github.com/repos/anthropics/claude-code/git/trees/main?recursive=1`
 
 ### Step 2 — WebSearch GitHub Issues anthropic/claude-code
 
@@ -144,10 +151,26 @@ Output report stored:
 - LL-Empire candidate → LESSONS_LEARNED se pattern emerge
 - Reference URLs → ADR-NNN se decisione architetturale
 
+## §6.1 — INTEGRAZIONE empire-pattern-detector (cross-skill T6, NEW v1.1)
+
+Findings WebFetched possono triggerare pattern detection T6 (incongruenze cross-skill) automatic verso skill `empire-core:detector`:
+
+| Discrepanza WebFetch | T6 Urgency | Destinazione pattern |
+|---|---|---|
+| `docs.claude.com` schema contraddice `hub/CLAUDE.md` | **CRITICAL** | LESSONS_LEARNED.md hub + CLAUDE.md hub aggiornamento |
+| Roadmap interna assume feature inesistente | **IMPORTANT** | LESSONS_LEARNED.md hub (LL-Empire-027 binding rinforzo) |
+| Schema Empire-defined diverge da Anthropic 2026 official | **CRITICAL** | ADR-NNN motivazione documentata (es. Issue #22063 enforcement Empire) |
+| GitHub Issue OPEN identifica BUG runtime | **IMPORTANT** | CLAUDE.md hub sezione caveat noti |
+| Plugin pattern Anthropic non riflesso in Empire | **USEFUL** | empire-research/SKILL.md trigger phrases update |
+
+**Procedura:** research output → suggerimento empire-pattern-detector §5 procedure (NON edit autonomo). Pattern detector decide priorita auto T2>T6>T3>T1>T5>T4>T7. Luke approva GO esplicito (LL-Empire-002).
+
 ## RIFERIMENTI
 
 - LL-Empire-008 (verifica empirica obbligatoria)
 - LL-Empire-011 (Sonnet confabulation pattern)
 - LL-Empire-024 (sandbox stale post-pull)
+- LL-Empire-025 (schema autoritativo Anthropic)
 - LL-Empire-027 (Roadmap interne non autoritative)
 - ADR-008 (plugin marketplace architecture)
+- Skill cross-reference: `empire-core:detector` (T6 cross-skill incongruenze)
