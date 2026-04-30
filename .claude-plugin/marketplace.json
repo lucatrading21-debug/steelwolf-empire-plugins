@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "SteelWolf Empire — Claude plugins marketplace per workflow operations Empire ecosystem (Trading Alliance, IronX, TA-Academy, Empire Hub). Pattern Anthropic 2026 native con dual skills+commands+hooks. Compatible Claude Code CLI, Cowork desktop, Claude.ai web.",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "homepage": "https://github.com/lucatrading21-debug/steelwolf-empire-plugins",
     "repository": "https://github.com/lucatrading21-debug/steelwolf-empire-plugins",
     "license": "UNLICENSED",
@@ -52,6 +52,23 @@
         "research",
         "verification",
         "anti-confabulation"
+      ]
+    },
+    {
+      "name": "empire-core",
+      "source": "./plugins/empire-core",
+      "version": "1.0.0",
+      "description": "SteelWolf Empire core utilities plugin. Cross-workspace governance: empire-quality (checklist pre-commit cross-repo Empire-wide, zero-regression rule, criteri accettazione) + empire-pattern-detector (sistema rilevamento pattern v4.0 T1-T7, Pre-Mortem Q1-Q5 LL-Empire-004 gate, context-aware project detection, IronX firewall §11). Slash commands /empire-core:quality e /empire-core:detector. M2 P2 Fase 1 closure 2026-04-30.",
+      "author": {
+        "name": "Luke SteelWolf"
+      },
+      "keywords": [
+        "empire",
+        "quality",
+        "pattern-detection",
+        "governance",
+        "pre-mortem",
+        "cross-workspace"
       ]
     }
   ]

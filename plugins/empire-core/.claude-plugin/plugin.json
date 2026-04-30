@@ -1,0 +1,23 @@
+{
+  "name": "empire-core",
+  "version": "1.0.0",
+  "description": "SteelWolf Empire core utilities plugin per Claude (Code CLI + Cowork desktop + Web). Provides cross-workspace governance utilities: empire-quality (checklist pre-commit cross-repo Empire-wide, zero-regression rule, criteri di accettazione) + empire-pattern-detector (sistema rilevamento pattern v4.0 T1-T7, Pre-Mortem Q1-Q5 LL-Empire-004 gate, context-aware project detection, IronX firewall §11). Slash commands /empire-core:quality e /empire-core:detector. Pattern Anthropic 2026 native namespaced, dual skills+commands, schema-validated CI. Empire governance V1-V6 binding, LL-Empire 23+ lezioni binding, PROTOCOLLO GO non derogabile.",
+  "author": {
+    "name": "Luke SteelWolf",
+    "url": "https://github.com/lucatrading21-debug"
+  },
+  "homepage": "https://github.com/lucatrading21-debug/steelwolf-empire-plugins",
+  "repository": "https://github.com/lucatrading21-debug/steelwolf-empire-plugins",
+  "license": "UNLICENSED",
+  "keywords": [
+    "empire",
+    "steelwolf",
+    "quality",
+    "pattern-detection",
+    "governance",
+    "pre-mortem",
+    "checklist",
+    "cross-workspace",
+    "anthropic-2026"
+  ]
+}
