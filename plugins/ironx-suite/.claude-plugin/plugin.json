@@ -1,0 +1,27 @@
+{
+  "name": "ironx-suite",
+  "version": "1.0.0",
+  "description": "SteelWolf Empire — IronX Ecosystem skill suite per Claude (Code CLI + Cowork desktop + Web). Bundle 15 skill di dominio per sviluppo indicatori/EA/bot cross-platform NinjaTrader 8 (NinjaScript C#), MetaTrader 5 (MQL5) e TradingView (PineScript v6): ironx-prime (direttiva root), ironx-ecosystem (contesto base), ironx-platform-matrix (equivalenze cross-platform), ironx-nt8/ironx-mql5/ironx-pinescript (deep-dive per piattaforma), ironx-signals, ironx-bar-types (Renko/NinZaRenko/KingRenko$), ironx-alerts, ironx-confluence, ironx-research, ironx-engineer, ironx-quality, ironx-docs, ironx-session. Knowledge base read-context: rispetta freeze V5 (solo lettura ironx-ecosystem code repo). Pattern Anthropic 2026 native, skill auto-discovery namespaced, schema-validated.",
+  "author": {
+    "name": "Luke SteelWolf",
+    "url": "https://github.com/lucatrading21-debug"
+  },
+  "homepage": "https://github.com/lucatrading21-debug/steelwolf-empire-plugins",
+  "repository": "https://github.com/lucatrading21-debug/steelwolf-empire-plugins",
+  "license": "UNLICENSED",
+  "keywords": [
+    "empire",
+    "steelwolf",
+    "ironx",
+    "trading",
+    "ninjatrader",
+    "metatrader",
+    "tradingview",
+    "ninjascript",
+    "mql5",
+    "pinescript",
+    "indicators",
+    "cross-platform",
+    "anthropic-2026"
+  ]
+}

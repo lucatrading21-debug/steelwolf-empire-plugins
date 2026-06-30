@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "SteelWolf Empire — Claude plugins marketplace per workflow operations Empire ecosystem (Trading Alliance, IronX, TA-Academy, Empire Hub). Pattern Anthropic 2026 native con dual skills+commands+hooks. Compatible Claude Code CLI, Cowork desktop, Claude.ai web.",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "homepage": "https://github.com/lucatrading21-debug/steelwolf-empire-plugins",
     "repository": "https://github.com/lucatrading21-debug/steelwolf-empire-plugins",
     "license": "UNLICENSED",
@@ -69,6 +69,24 @@
         "governance",
         "pre-mortem",
         "cross-workspace"
+      ]
+    },
+    {
+      "name": "ironx-suite",
+      "source": "./plugins/ironx-suite",
+      "version": "1.0.0",
+      "description": "IronX Ecosystem skill suite — 15 skill di dominio per sviluppo indicatori/EA/bot cross-platform NinjaTrader 8 (NinjaScript C#), MetaTrader 5 (MQL5), TradingView (PineScript v6): prime, ecosystem, platform-matrix, nt8, mql5, pinescript, signals, bar-types, alerts, confluence, research, engineer, quality, docs, session. Knowledge base read-context, rispetta freeze V5 (ADR-007).",
+      "author": {
+        "name": "Luke SteelWolf"
+      },
+      "keywords": [
+        "empire",
+        "ironx",
+        "trading",
+        "ninjatrader",
+        "metatrader",
+        "tradingview",
+        "cross-platform"
       ]
     }
   ]

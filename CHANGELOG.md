@@ -7,6 +7,25 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
 
 ---
 
+## [1.2.0] — 2026-06-30
+
+### Added
+
+#### Plugin `ironx-suite` v1.0.0 (NEW)
+- `.claude-plugin/plugin.json` manifest
+- README.md con tabella 15 skill + governance freeze V5
+- 15 skill `ironx-*` (model-invocation, frontmatter `name` stripped per Issue #22063, CRLF→LF normalizzato):
+  - `ironx-prime`, `ironx-ecosystem`, `ironx-platform-matrix`
+  - `ironx-nt8`, `ironx-mql5`, `ironx-pinescript`
+  - `ironx-signals`, `ironx-bar-types`, `ironx-alerts`, `ironx-confluence`
+  - `ironx-research`, `ironx-engineer`, `ironx-quality`, `ironx-docs`, `ironx-session`
+
+#### Marketplace
+- `marketplace.json` metadata.version 1.1.0 → 1.2.0 + entry `ironx-suite`
+- Layer 3 ADR-033: skill IronX da cache Desktop → marketplace versionato (cross-PC replicabile, NON copia cache)
+
+---
+
 ## [1.0.0] — 2026-04-27
 
 ### Added — Initial release
