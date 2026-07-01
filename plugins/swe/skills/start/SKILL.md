@@ -5,12 +5,13 @@ allowed-tools: Read Bash Grep Glob
 
 > Copyright © 2026 Luke SteelWolf — All Rights Reserved. See LICENSE.
 
-# EMPIRE START v1.1
+# EMPIRE START v1.2
 
 Apertura sessione Empire — Cowork, Code o Chat. Token-saving target: 3-5K read iniziale.
 
 > Creata 2026-04-26 in `hub/steelwolf-empire-hub/.claude/skills/`. Split da empire-session §2 (deprecato).
 > v1.1 (S161): tabella tipi canonica condivisa con `end` + §5-ter persistenza scheda apertura in SESSION_BRIEFINGS.
+> v1.2 (S161 addendum): regole di pre-selezione deterministiche (PC/pull/numero/priorità) in §5-bis.
 > Binding: LL-Empire-002 (PROTOCOLLO GO), LL-Empire-008 (verifica empirica), LL-Empire-023 (pull-first), LL-Empire-024 (sandbox stale), LL-Empire-050 (session boundary), LL-Empire-063 (bash-write hub).
 
 ---
@@ -116,6 +117,11 @@ Dopo il briefing, presenta l'apertura interattiva:
 - **Conferma stato**: PC · esito `git pull` (fatto / da fare) · priorita sessione.
 - **Colpo d'occhio**: sintesi `CHECKLIST` + `ROADMAP` (o `EMPIRE_DASHBOARD`) del progetto attivo, letti a runtime.
 - **Pre-compilazione (preferenza Luke)**: compila TUTTI i campi con i valori dedotti dal contesto; Luke approva o corregge, non riempie da zero. NB: la `<textarea>` del widget elicitation non rende il prefill → presenta la bozza compilata anche come TESTO in chat.
+- **Regole di pre-selezione DETERMINISTICHE** (stesso stato ⇒ stesso default tra istanze diverse):
+  - **PC**: eredita il PC dell'ultima entry `SESSION_LOG` (fallback: chiedi).
+  - **Pull**: default **`già aggiornati`** SOLO se l'ultima entry `SESSION_LOG` registra un push completato in pari data sullo stesso PC (closure appena avvenuta → repo allineati); **altrimenti `da verificare`**. Mai indovinare `da fare`/`già fatto` senza questa evidenza.
+  - **Numero sessione**: ultima entry `SESSION_LOG` + 1 (mai riusare un numero già chiuso).
+  - **Priorità**: eredita il carryover "Prossimo passo" dell'ultima entry; pre-selezionala.
 - **Cowork**: widget di conferma (modulo elicitation, generato a runtime dall'assistente).
 - **Claude Code CLI**: stesso contenuto in testo. Il widget cliccabile esiste solo in Cowork.
 

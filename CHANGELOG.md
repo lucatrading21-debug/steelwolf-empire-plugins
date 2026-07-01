@@ -7,6 +7,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
 
 ---
 
+## [1.6.1] — 2026-07-01
+
+### Changed
+- **`swe` v1.4.1 — pre-selezione apertura deterministica (S161 addendum)**: `skills/start/SKILL.md` §5-bis ora definisce regole di pre-selezione riproducibili tra istanze diverse — PC ereditato dall'ultima entry SESSION_LOG; **pull** = `già aggiornati` solo con evidenza di push in pari data/PC nel SESSION_LOG, altrimenti `da verificare` (niente più guess `da fare`/`già fatto`); numero sessione = ultima +1; priorità = carryover ereditato. Risolve la divergenza osservata al collaudo S162 (istanze diverse pre-selezionavano pull diverso). SKILL `start` v1.2.
+
+---
+
 ## [1.6.0] — 2026-07-01
 
 ### Changed
