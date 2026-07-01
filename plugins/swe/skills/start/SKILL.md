@@ -33,8 +33,12 @@ Fonte unica interna SteelWolf (dominio separato N4). Binding: LL-Empire-023 (pul
 1. **Con argomento** `$1 = <slug>`: cerca in `projects[]`. Slug assente -> errore esplicito + lista slug validi (NON assumere).
 2. **Senza argomento** -> progetto con `default: true` (`predator`/hub) = comportamento storico (retro-compat, zero regressione).
 3. **Path-set risolto**: `repo . session_log . roadmap . session_prefix . branch . desk`. Da qui §2 (pull), §5 (SESSION_LOG), §5-bis (colpo d'occhio ROADMAP), §5-ter (S<n>_OPEN) usano i path DEL PROGETTO risolto, non hub.
-4. **Numero sessione** = +1 sull'ultima entry del `session_log` del progetto, con `session_prefix` (es. `JOURNAL-S12`). Hub/predator: prefix vuoto -> `Sn`.
-5. **GUARD domain-isolation (binding)**: se `swe_writes: false` (domini autonomi: `bot-alliance`, `nexus`, `workdash`) -> `swe` **NON apre ne' scrive** la catena; rimanda al dominio proprietario (plugin `nexus`, scrivania Bot-Alliance, ...). Solo lettura per referenza/roll-up.
+4. **Numero sessione** = +1 sull'ultima entry del `session_log` del progetto, usando la **numerazione nativa** del progetto. `session_prefix` valorizzato solo per catene che lo usano davvero (es. `BA-S` per bot-alliance); vuoto -> `Sn` (default hub, journal, ...). NON forzare prefissi non nativi.
+5. **GUARD domain-isolation (HARD-STOP binding)**: se il progetto risolto ha `swe_writes: false` (domini autonomi: `bot-alliance`, `nexus`, `workdash`), **FERMATI SUBITO**. NON leggere i doc del dominio, NON produrre briefing, NON aprire sessione, NON attendere GO. Emetti SOLO questo rifiuto e termina:
+
+   > ⛔ `<slug>` e' un dominio autonomo (`<domain>`). La sua catena e' gestita dalla scrivania/plugin proprietario (es. scrivania **Bot-Alliance** per `bot-alliance`, plugin **nexus** per `nexus`). `swe` non apre sessioni qui (decisione #3 S163 + domain-isolation LL-050). Apri la sessione dal dominio proprietario.
+
+   L'index elenca questi progetti solo per **referenza/roll-up**, non perche' `swe` li gestisca. (NB: guard advisory in prosa; enforcement deterministico = hook `UserPromptSubmit`, candidato follow-up.)
 6. **Hub sempre genitore**: qualunque il progetto, governance V1-V6 + LL + registry restano in hub; lo stato rolluppa in `hub/_status/<slug>.yaml` (ADR-029).
 
 Le skill `end` e `cycle` risolvono il progetto con lo STESSO index (coerenza cross-skill).

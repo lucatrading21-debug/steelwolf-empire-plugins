@@ -7,6 +7,20 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
 
 ---
 
+## [1.7.2] — 2026-07-01
+
+### Fixed
+- **`swe` v1.5.2 — guard domain-isolation HARD-STOP (S163 collaudo, Test 4)**: al test live `/swe:start bot-alliance` l'istanza apriva comunque il dominio in lettura + briefing + WAIT invece di rifiutare. Il guard §0-ter era troppo soft (advisory "non apre ne' scrive"). Ora e' un **hard-stop**: su `swe_writes: false` la SKILL si ferma subito, NON legge doc / NON briefa / NON attende GO, ed emette SOLO un rifiuto esplicito con rimando al dominio proprietario (scrivania Bot-Alliance / plugin nexus). Nota: guard advisory in prosa; enforcement deterministico = hook `UserPromptSubmit` (candidato follow-up).
+
+---
+
+## [1.7.1] — 2026-07-01
+
+### Changed
+- **`swe` v1.5.1 — numerazione nativa per-progetto (S163 collaudo)**: dopo il test live del pilota, il contatore per-progetto usa la **numerazione nativa** del progetto (journal -> `Sn`, non `JOURNAL-Sn`). `_PROJECTS_INDEX.yaml`: `steelwolf-trading-journal.session_prefix` -> `""`. SKILL `start` §0-ter punto 4 chiarito: prefisso solo per catene che lo usano nativamente (es. `BA-S`), altrimenti vuoto -> `Sn`. Nessun cambio di comportamento del resolver (già nativo al test).
+
+---
+
 ## [1.7.0] — 2026-07-01
 
 ### Added
