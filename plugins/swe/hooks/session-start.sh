@@ -7,12 +7,10 @@
 # BEFORE MCP servers connect: static text only, no MCP/network, zero-secret.
 # Pure ASCII, no shell metacharacters (safe under cmd and bash).
 
-# --- SWE-PROBE (temporaneo S159, rimuovere allo Step 2 guard) ---
-SWE_INPUT="$(cat)"
+# --- SWE-PROBE (temporaneo S159, rimuovere allo Step 2 guard) - NO stdin (non bloccante) ---
 echo "=== SWE-PROBE ==="
-echo "PWD=$(pwd)"
+echo "PWD=$(pwd 2>/dev/null)"
 echo "CLAUDE_PROJECT_DIR=${CLAUDE_PROJECT_DIR:-unset}"
-echo "STDIN_CWD=$(printf '%s' "$SWE_INPUT" | tr ',{' '\n' | grep -i cwd | head -1)"
 echo "=== /SWE-PROBE ==="
 
 cat <<'HOOK_OUTPUT'
