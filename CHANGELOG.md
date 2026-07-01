@@ -7,6 +7,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
 
 ---
 
+## [1.3.1] — 2026-07-01
+
+### Fixed
+- **swe hook SessionStart non caricato in Cowork**: `hooks.json` era in `plugins/swe/.claude-plugin/` (posizione non valida per la spec Claude Code). Spostato in `plugins/swe/hooks/hooks.json` (canonico). Root cause verificata su docs.claude.com/plugins-reference. Banner STEELWOLF ora si registra all'apertura sessione.
+
+---
+
 ## [1.3.0] — 2026-07-01
 
 ### Added
