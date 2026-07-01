@@ -7,6 +7,21 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
 
 ---
 
+## [1.7.4] — 2026-07-02
+
+### Added
+- **`swe` v1.5.4 — hook deterministico domain-isolation guard (S164/A3)**: nuovo `hooks/domain-guard.js` cablato su `UserPromptSubmit` in `hooks.json`. Blocca `/swe:start|end|cycle <slug-dominio-autonomo>` (`bot-alliance`/`nexus`/`workdash`, == `swe_writes:false` in `_PROJECTS_INDEX.yaml`). Design Cowork-safe (ricerca hooks Anthropic + LL-060/S159): in **Cowork** (`CLAUDE_CODE_IS_COWORK==="1"`) NON legge stdin → exit 0 no-op (copre il guard-prosa hard-stop); su **Code CLI** legge il `prompt` da stdin e su match → **exit 2** (rifiuta il prompt + stderr di rimando al dominio). Fail-open su qualsiasi errore/stdin vuoto (mai bloccare sessioni legittime). Test locali 4/4 (bot-alliance→2, ta-analysis→0, nudo→0, Cowork→0). Ricerca in `hub/designs/S164_HOOK_GUARD_RESEARCH.md`.
+
+---
+
+## [1.7.3] — 2026-07-02
+
+### Changed
+- **`swe` v1.5.3 — formato priorità obbligatorio nella card apertura (S164, fix Luke)**: la card "Apertura sessione S<n> details" non deve elencare solo i titoli delle priorità. Nuova §5-bis.1 in `start/SKILL.md`: ogni voce va presentata con formato descrittivo canonico *Cosa · Perché · Output · Rischio*, più due ordinamenti espliciti — **ordine consigliato** (valore/urgenza) e **ordine workflow** (dipendenze). Sezione "Cross-cutting" sempre presente per i vincoli permanenti (parità ACE, handoff). Obiettivo: Luke capisce su cosa lavorare senza aprire altri file.
+- **`swe` v1.5.3 — index project-aware esteso ai ta-\* (S164/A2)**: aggiunti a `_PROJECTS_INDEX.yaml` (hub) `ta-analysis` (ST-Analyst), `ta-academy` (ST-Academy), `ta-knowledge` (ST-Knowledge), `ta-content` (ST-Content) — dominio `steelwolf`, `swe_writes: true`, `bootstrap: on-demand` (SESSION_LOG creato alla 1a sessione; i repo hanno gia' PROJECT_STATE/ROADMAP/CHECKLIST). Nuovo passo resolver **§0-ter.4-bis** in `start/SKILL.md` + nota bootstrap in `end/SKILL.md`: SESSION_LOG mancante = sessione `S1`, non errore; colpo d'occhio da PROJECT_ROADMAP/CHECKLIST.
+
+---
+
 ## [1.7.2] — 2026-07-01
 
 ### Fixed

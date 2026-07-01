@@ -42,6 +42,7 @@ I valori raccolti alimentano direttamente §1 (SESSION_LOG/LESSONS/DASHBOARD) e 
 - **§1 SESSION_LOG** si scrive nel `session_log` DEL PROGETTO (es. `steelwolf-trading-journal/docs/SESSION_LOG.md`, entry `JOURNAL-Sn`), NON nella catena hub.
 - **Roll-up ADR-029**: sovrascrivi `hub/_status/<slug>.yaml` (one-file-per-desk) -> `empire_rollup.py` -> `EMPIRE_STATE.md`. E' il canale con cui il lavoro di progetto risale all'hub SENZA scrivere la catena hub.
 - **GUARD**: se `swe_writes: false` -> rifiuta la chiusura nel dominio autonomo (gestito dal suo dominio).
+- **Bootstrap on-demand** (`bootstrap: on-demand`, es. `ta-*`): se il `session_log` del progetto non esiste ancora, la chiusura lo **crea** (bash-write, LL-063) con la prima entry `S1`. SESSION_LOG mancante = prima sessione, non errore.
 - Il **tipo sessione** resta raccolto interattivamente (§0-bis); `$1` e' il progetto.
 
 ---

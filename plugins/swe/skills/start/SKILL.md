@@ -5,13 +5,14 @@ allowed-tools: Read Bash Grep Glob
 
 > Copyright © 2026 Luke SteelWolf — All Rights Reserved. See LICENSE.
 
-# EMPIRE START v1.2
+# EMPIRE START v1.3
 
 Apertura sessione Empire — Cowork, Code o Chat. Token-saving target: 3-5K read iniziale.
 
 > Creata 2026-04-26 in `hub/steelwolf-empire-hub/.claude/skills/`. Split da empire-session §2 (deprecato).
 > v1.1 (S161): tabella tipi canonica condivisa con `end` + §5-ter persistenza scheda apertura in SESSION_BRIEFINGS.
 > v1.2 (S161 addendum): regole di pre-selezione deterministiche (PC/pull/numero/priorità) in §5-bis.
+> v1.3 (S164): §5-bis.1 formato priorità obbligatorio (descrizione Cosa/Perché/Output/Rischio + ordine consigliato + ordine workflow).
 > Binding: LL-Empire-002 (PROTOCOLLO GO), LL-Empire-008 (verifica empirica), LL-Empire-023 (pull-first), LL-Empire-024 (sandbox stale), LL-Empire-050 (session boundary), LL-Empire-063 (bash-write hub).
 
 ---
@@ -34,11 +35,12 @@ Fonte unica interna SteelWolf (dominio separato N4). Binding: LL-Empire-023 (pul
 2. **Senza argomento** -> progetto con `default: true` (`predator`/hub) = comportamento storico (retro-compat, zero regressione).
 3. **Path-set risolto**: `repo . session_log . roadmap . session_prefix . branch . desk`. Da qui §2 (pull), §5 (SESSION_LOG), §5-bis (colpo d'occhio ROADMAP), §5-ter (S<n>_OPEN) usano i path DEL PROGETTO risolto, non hub.
 4. **Numero sessione** = +1 sull'ultima entry del `session_log` del progetto, usando la **numerazione nativa** del progetto. `session_prefix` valorizzato solo per catene che lo usano davvero (es. `BA-S` per bot-alliance); vuoto -> `Sn` (default hub, journal, ...). NON forzare prefissi non nativi.
+4-bis. **Bootstrap on-demand** (voci con `bootstrap: on-demand`, es. `ta-analysis`/`ta-academy`/`ta-knowledge`/`ta-content`): il `session_log` puo' NON esistere ancora (il repo ha PROJECT_STATE/ROADMAP/CHECKLIST ma non SESSION_LOG). In tal caso: sessione = **S1**, colpo d'occhio da `PROJECT_ROADMAP.md`+`PROJECT_CHECKLIST.md`, e **crea il SESSION_LOG** del progetto alla prima chiusura (`end`/`cycle`) via bash-write (LL-063). La creazione del file vuoto/scheletro in apertura e' bookkeeping non distruttivo (ammessa pre-GO, come §5-ter). NON trattare il SESSION_LOG mancante come errore.
 5. **GUARD domain-isolation (HARD-STOP binding)**: se il progetto risolto ha `swe_writes: false` (domini autonomi: `bot-alliance`, `nexus`, `workdash`), **FERMATI SUBITO**. NON leggere i doc del dominio, NON produrre briefing, NON aprire sessione, NON attendere GO. Emetti SOLO questo rifiuto e termina:
 
    > ⛔ `<slug>` e' un dominio autonomo (`<domain>`). La sua catena e' gestita dalla scrivania/plugin proprietario (es. scrivania **Bot-Alliance** per `bot-alliance`, plugin **nexus** per `nexus`). `swe` non apre sessioni qui (decisione #3 S163 + domain-isolation LL-050). Apri la sessione dal dominio proprietario.
 
-   L'index elenca questi progetti solo per **referenza/roll-up**, non perche' `swe` li gestisca. (NB: guard advisory in prosa; enforcement deterministico = hook `UserPromptSubmit`, candidato follow-up.)
+   L'index elenca questi progetti solo per **referenza/roll-up**, non perche' `swe` li gestisca. (NB: guard-prosa hard-stop = copertura Cowork; enforcement deterministico su **Code CLI** via hook `UserPromptSubmit` `hooks/domain-guard.js` — exit 2 sul match slug autonomo. In Cowork l'hook e' no-op sicuro, LL-060/S159.)
 6. **Hub sempre genitore**: qualunque il progetto, governance V1-V6 + LL + registry restano in hub; lo stato rolluppa in `hub/_status/<slug>.yaml` (ADR-029).
 
 Le skill `end` e `cycle` risolvono il progetto con lo STESSO index (coerenza cross-skill).
@@ -140,11 +142,36 @@ Dopo il briefing, presenta l'apertura interattiva:
   - **PC**: eredita il PC dell'ultima entry `SESSION_LOG` (fallback: chiedi).
   - **Pull**: default **`già aggiornati`** SOLO se l'ultima entry `SESSION_LOG` registra un push completato in pari data sullo stesso PC (closure appena avvenuta → repo allineati); **altrimenti `da verificare`**. Mai indovinare `da fare`/`già fatto` senza questa evidenza.
   - **Numero sessione**: ultima entry `SESSION_LOG` + 1 (mai riusare un numero già chiuso).
-  - **Priorità**: eredita il carryover "Prossimo passo" dell'ultima entry; pre-selezionala.
+  - **Priorità**: eredita il carryover "Prossimo passo" dell'ultima entry; pre-selezionala. Ogni voce va presentata NON come solo titolo ma nel **formato descrittivo canonico** (vedi §5-bis.1): *Cosa · Perché · Output · Rischio* + **ordine consigliato** + **ordine workflow**.
 - **Cowork**: widget di conferma (modulo elicitation, generato a runtime dall'assistente).
 - **Claude Code CLI**: stesso contenuto in testo. Il widget cliccabile esiste solo in Cowork.
 
 Il rendering ricco (checklist/roadmap) si costruisce leggendo i file a runtime: non duplicare quei dati qui.
+
+### §5-bis.1 — FORMATO PRIORITÀ (descrizione + ordine) — FIX S164
+
+**Regola (osservazione Luke S164):** nella card "Apertura sessione S<n> details" ogni
+priorità deve dare a Luke abbastanza contesto da capire su cosa lavorare **senza aprire
+altri file**. Vietato elencare solo i titoli. Per ogni voce, formato canonico:
+
+- **Cosa**: cosa si farebbe in concreto (1-2 frasi).
+- **Perché / posizione**: perché ha quella posizione nell'ordine (dipendenze, sblocca cosa).
+- **Output**: deliverable atteso (file, patch, dossier…).
+- **Rischio**: basso / medio / alto + se serve Pre-Mortem pieno o leggero.
+
+Inoltre la card deve dichiarare DUE ordinamenti:
+1. **Ordine di priorità consigliato** (giudizio Claude su valore/urgenza).
+2. **Ordine per workflow** (sequenza per dipendenze: cosa va fatto prima per abilitare il resto).
+
+Se i due ordini coincidono, dichiararlo esplicitamente. Template voce:
+
+```
+**N · <titolo> — consigliata: Nª (<motivo posizione>)**
+Cosa: … · Perché: … · Output: … · Rischio: …
+```
+
+Le voci cross-cutting (vincoli permanenti Luke: parità ACE, dossier/handoff) vanno in una
+sezione a parte "Cross-cutting", sempre presente.
 
 ---
 
