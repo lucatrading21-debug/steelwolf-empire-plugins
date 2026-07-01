@@ -1,6 +1,6 @@
 ---
 description: Chiusura sessione Empire SteelWolf protocollo D6 — chiusura interattiva (widget) + SESSION_LOG + LESSONS_LEARNED + EMPIRE_DASHBOARD + memory snapshot + commit atomic LL-018 + GATE git status clean LL-024 + push delegato Luke V1 parity
-argument-hint: [tipo-sessione-opzionale]
+argument-hint: [progetto-opzionale]
 allowed-tools: Read Edit Write Bash Grep
 ---
 

@@ -7,6 +7,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
 
 ---
 
+## [1.7.0] — 2026-07-01
+
+### Added
+- **`swe` v1.5.0 — session-governance per-progetto (S163, focus)**: `/swe:start|cycle|end <slug>` ora **project-aware**. Nuovo indice `hub/steelwolf-empire-hub/_status/_PROJECTS_INDEX.yaml` (proiezione machine-readable del registry): `slug -> repo . session_log . roadmap . session_prefix . branch . desk . domain . swe_writes`. Le 3 SKILL guadagnano §0-ter "Risoluzione progetto" (resolver condiviso): con `$1` risolve i path DEL PROGETTO (contatore per-progetto es. `JOURNAL-Sn`), senza argomento resta il default `predator`/hub (retro-compat, zero regressione). Roll-up all'hub via ADR-029 (`_status/<slug>.yaml` -> `EMPIRE_STATE.md`): la catena hub non e' piu' inquinata dal lavoro di progetto. **GUARD domain-isolation**: `swe_writes: false` sui domini autonomi (`bot-alliance`, `nexus`, `workdash`) -> swe non scrive le loro catene. `end.md` argument-hint -> `[progetto-opzionale]`. PILOTA: `steelwolf-trading-journal`.
+
+---
+
 ## [1.6.1] — 2026-07-01
 
 ### Changed

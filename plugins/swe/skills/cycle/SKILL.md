@@ -16,6 +16,15 @@ con un gate di sicurezza in mezzo e il confine di sessione LL-Empire-050 rispett
 
 ---
 
+## §0-ter — RISOLUZIONE PROGETTO (propagazione $1)
+
+`/swe:cycle <progetto>` propaga `$1` a entrambe le fasi via `_PROJECTS_INDEX.yaml`:
+- **FASE 1** (`end`): chiude la catena DEL PROGETTO risolto (`session_prefix`), roll-up `hub/_status/<slug>.yaml`.
+- **FASE 2** (handoff): persiste `SESSION_BRIEFINGS/S<n+1>_OPEN.md` con lo slug del progetto + handoff "`/swe:start <slug>` in chat nuova".
+- **GUARD**: `swe_writes: false` -> il ciclo non opera nel dominio autonomo.
+
+---
+
 ## §1 — FASE 1: CHIUSURA (skill `end`)
 
 Esegui l'intera skill `end` (protocollo D6):
