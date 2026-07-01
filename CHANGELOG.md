@@ -7,6 +7,21 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
 
 ---
 
+## [1.4.0] — 2026-07-01
+
+### Fixed
+- **swe hook non partivano in Cowork/Windows (causa radice)**: gli hook erano `command` shell-form `bash ...`; su questo host Git Bash non è installato, quindi Claude Code ripiega su PowerShell che non sa lanciare `bash` -> hook muti (SessionStart/SessionEnd/UserPromptSubmit tutti inattivi). Verificato su docs.claude.com/hooks (Exec form vs Shell form) + `where bash` (assente) / `where node` (presente).
+
+### Changed
+- Convertiti gli hook a **Node exec form** (`command:node`,`args:[script.js]`) — cross-platform, raccomandato dalla doc Anthropic. SessionStart->`session-start.js`, SessionEnd->`session-end.js`.
+- Aggiunto **domain-guard** `_swe-domain.js`: gli hook agiscono solo nel dominio SteelWolf (Cowork: `CLAUDE_CODE_WORKSPACE_HOST_PATHS`; CLI: `CLAUDE_PROJECT_DIR`/cwd). Evita contaminazione tra ecosistemi (es. Nexus).
+- `UserPromptSubmit`/forced-eval **rimosso da hooks.json** (era bash morto); disponibile come `forced-eval.js` non cablato, da abilitare su scelta.
+
+### Removed
+- Vecchi hook bash `session-start.sh`, `session-end.sh`, `forced-eval.sh`.
+
+---
+
 ## [1.3.1] — 2026-07-01
 
 ### Fixed

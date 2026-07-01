@@ -1,28 +1,8 @@
 #!/usr/bin/env node
-/* SteelWolf Empire - SessionStart hook (Node, cross-platform, exec form).
- * Stdout is injected into context (Anthropic 2026 spec). No bash dependency
- * (Windows-safe: avoids Git-Bash/PowerShell fallback). No stdin read.
+/* SteelWolf Empire - SessionStart hook (Node exec form, Windows-safe).
+ * Stdout iniettato in contesto (spec Anthropic 2026). Guard di dominio.
  * Copyright (c) 2026 Luke SteelWolf - All Rights Reserved. */
-const projectDir = process.env.CLAUDE_PROJECT_DIR || "unset";
-const cwd = process.cwd();
-
-// --- SWE-PROBE v2 (temporaneo S159: caccia discriminatore dominio) ---
-console.log("=== SWE-PROBE ===");
-console.log("CLAUDE_PROJECT_DIR=" + projectDir);
-console.log("CWD=" + cwd);
-try {
-  const env = process.env;
-  const rx = /steelwolf|empire|workspace|space|mount|folder|project|cowork|nexus|selected|root/i;
-  const hits = Object.entries(env)
-    .filter(([k,v]) => rx.test(k) || /steelwolf|empire/i.test(String(v)))
-    .map(([k,v]) => k + "=" + v);
-  console.log("ENV-HITS(" + hits.length + "):");
-  for (const h of hits) console.log("  " + h);
-  console.log("ALL-ENV-KEYS: " + Object.keys(env).sort().join(","));
-} catch (e) { console.log("PROBE-ERR: " + e.message); }
-console.log("=== /SWE-PROBE ===");
-console.log("");
-
+if (!require("./_swe-domain.js")()) process.exit(0);
 console.log(`=== STEELWOLF EMPIRE - SESSION OPEN ===
 Esegui l apertura standard SteelWolf. Non modificare alcun file prima del GO.
 
