@@ -7,6 +7,14 @@
 # BEFORE MCP servers connect: static text only, no MCP/network, zero-secret.
 # Pure ASCII, no shell metacharacters (safe under cmd and bash).
 
+# --- SWE-PROBE (temporaneo S159, rimuovere allo Step 2 guard) ---
+SWE_INPUT="$(cat)"
+echo "=== SWE-PROBE ==="
+echo "PWD=$(pwd)"
+echo "CLAUDE_PROJECT_DIR=${CLAUDE_PROJECT_DIR:-unset}"
+echo "STDIN_CWD=$(printf '%s' "$SWE_INPUT" | tr ',{' '\n' | grep -i cwd | head -1)"
+echo "=== /SWE-PROBE ==="
+
 cat <<'HOOK_OUTPUT'
 === STEELWOLF EMPIRE - SESSION OPEN ===
 Esegui l apertura standard SteelWolf. Non modificare alcun file prima del GO.
