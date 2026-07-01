@@ -6,10 +6,20 @@
 const projectDir = process.env.CLAUDE_PROJECT_DIR || "unset";
 const cwd = process.cwd();
 
-// --- SWE-PROBE (temporaneo S159, rimuovere allo Step guard) ---
+// --- SWE-PROBE v2 (temporaneo S159: caccia discriminatore dominio) ---
 console.log("=== SWE-PROBE ===");
 console.log("CLAUDE_PROJECT_DIR=" + projectDir);
 console.log("CWD=" + cwd);
+try {
+  const env = process.env;
+  const rx = /steelwolf|empire|workspace|space|mount|folder|project|cowork|nexus|selected|root/i;
+  const hits = Object.entries(env)
+    .filter(([k,v]) => rx.test(k) || /steelwolf|empire/i.test(String(v)))
+    .map(([k,v]) => k + "=" + v);
+  console.log("ENV-HITS(" + hits.length + "):");
+  for (const h of hits) console.log("  " + h);
+  console.log("ALL-ENV-KEYS: " + Object.keys(env).sort().join(","));
+} catch (e) { console.log("PROBE-ERR: " + e.message); }
 console.log("=== /SWE-PROBE ===");
 console.log("");
 
