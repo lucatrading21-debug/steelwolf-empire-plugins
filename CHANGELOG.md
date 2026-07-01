@@ -7,6 +7,23 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
 
 ---
 
+## [1.6.0] — 2026-07-01
+
+### Changed
+
+#### Plugin `swe` v1.4.0 — /swe:cycle handoff (LL-050) + tipi sessione canonici + persistenza briefing (S161)
+- **`/swe:cycle` FASE 2 rifatta (fix LL-Empire-050)**: non apre più la sessione successiva nella stessa chat (mescolava i contesti). Ora **prepara l'handoff** — persiste lo snapshot in `SESSION_BRIEFINGS/S<n+1>_OPEN.md` ed emette l'istruzione di aprire una CHAT NUOVA con `/swe:start`. `commands/cycle.md` + `skills/cycle/SKILL.md` v1.1.
+- **Tipi sessione riconciliati (T6)**: `skills/start/SKILL.md` §1 e `skills/end/SKILL.md` §1 ora condividono un'UNICA tabella canonica A/B/C/D/E/K per *tipo di lavoro* (prima `end` usava A=apertura/B=closure, in conflitto). `end` §7 handoff chiarito a Tipo K.
+
+### Added
+- **Persistenza scheda apertura (§5-ter, richiesta Luke S161)**: `/swe:start` scrive lo snapshot d'apertura in `hub/SESSION_BRIEFINGS/S<n>_OPEN.md` (PC · pull · briefing · carryover · priorità pre-compilate) via bash-write, così la predisposizione persiste anche a chat chiusa. `start` §5-ter + step 6-ter in `commands/start.md`. `start`/`end` SKILL bump a v1.1.
+
+### Notes
+- Scrittura snapshot = bookkeeping non distruttivo, ammessa prima del GO (il GATE GO protegge il lavoro, non la registrazione stato).
+- Commit/push V1-parity e reinstall plugin restano lato Luke Windows (LL-Empire-019/031).
+
+---
+
 ## [1.5.0] — 2026-07-01
 
 ### Added

@@ -1,12 +1,12 @@
 ---
-description: Ciclo sessione Empire SteelWolf — chiude la sessione corrente (D6 completo, GATE git clean) e riapre la successiva (apertura interattiva /swe:start) in un solo comando. Rispetta PROTOCOLLO GO e delega push/commit a Luke Windows.
+description: Ciclo sessione Empire SteelWolf — chiude la sessione corrente (D6 completo, GATE git clean) e prepara l'apertura della successiva da incollare in una CHAT NUOVA (session-boundary LL-050). Non lavora nella stessa chat. Rispetta PROTOCOLLO GO e delega push/commit a Luke Windows.
 argument-hint: [progetto-opzionale]
 allowed-tools: Read Edit Write Bash Grep Glob
 ---
 
 > Copyright © 2026 Luke SteelWolf — All Rights Reserved. See LICENSE.
 
-Esegui il ciclo chiusura+apertura Empire SteelWolf seguendo skill `cycle` plugin swe
+Esegui il ciclo chiusura+handoff Empire SteelWolf seguendo skill `cycle` plugin swe
 in `skills/cycle/SKILL.md`. Riferimento completo body: vedi SKILL.md.
 
 ## Sequenza obbligatoria
@@ -24,18 +24,21 @@ in `skills/cycle/SKILL.md`. Riferimento completo body: vedi SKILL.md.
    - Se il working tree NON è clean Windows-side → **STOP**, resta in FASE 1.
    - Il ciclo prosegue a FASE 2 solo a closure confermata.
 
-### FASE 2 — APERTURA (skill `start`, nuova sessione)
+### FASE 2 — HANDOFF (prepara apertura, NON esegue in-chat)
 
-3. Esegui l'intera sequenza di `/swe:start` (skill `start`) per la sessione successiva:
-   - Step 0 dichiara PC + pull-first · CLAUDE.md hierarchy · SESSION_LOG ultime 20 righe · LESSONS_LEARNED indice · memory snapshot · briefing
-   - Apertura interattiva (widget conferma PC · pull · priorità + colpo d'occhio CHECKLIST/ROADMAP)
+**Regola session-boundary (LL-050): la sessione successiva NON si apre in questa chat.**
+Aprire e lavorare nella stessa chat mescola i contesti. Quindi FASE 2:
 
-4. **ATTENDI GO esplicito Luke** (LL-Empire-002) prima di eseguire qualsiasi lavoro della nuova sessione. Default = WAIT.
+3. **Scrivi lo snapshot di apertura** in `hub/SESSION_BRIEFINGS/S<n+1>_OPEN.md` (via skill `start` §5-ter): PC · pull · briefing · carryover · priorità proposte, letti a runtime dal SESSION_LOG appena aggiornato. Persiste su disco anche a chat chiusa.
 
-Argomento opzionale `$1`: progetto target da passare a `/swe:start` in FASE 2.
+4. **Emetti l'handoff** in chat: conferma che S<n> è chiusa e indica a Luke di **aprire una CHAT NUOVA** e lanciare `/swe:start $1`. Lo start ricostruirà (e ritroverà persistito) lo snapshot appena scritto.
+
+5. **NON** eseguire l'apertura interattiva né alcun lavoro della nuova sessione in questa chat. Il ciclo termina qui.
+
+Argomento opzionale `$1`: progetto target suggerito per `/swe:start` nella chat nuova.
 
 Note operative:
-- Cowork: chiusura interattiva e apertura usano widget elicitation; CLI: testo.
+- Cowork: chiusura interattiva usa widget elicitation; CLI: testo.
 - Commit/push/reinstall restano lato Luke Windows (LL-Empire-019/031).
 
-LL critiche binding: 002, 008, 011, 018, 019, 021, 023, 024
+LL critiche binding: 002, 008, 011, 018, 019, 021, 023, 024, 050

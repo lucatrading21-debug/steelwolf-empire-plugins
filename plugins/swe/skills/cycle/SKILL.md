@@ -1,18 +1,18 @@
 ---
-description: "Ciclo sessione Empire SteelWolf — chiude la sessione corrente (skill end, protocollo D6 completo con GATE git clean LL-Empire-024) e, solo a closure confermata, riapre la successiva (skill start, apertura interattiva + ATTENDI GO). Un solo comando per il passaggio consecutivo tra sessioni. Commit/push delegati Luke Windows. Trigger: /swe:cycle [progetto-opzionale]."
+description: "Ciclo sessione Empire SteelWolf — chiude la sessione corrente (skill end, protocollo D6 completo con GATE git clean LL-Empire-024) e, solo a closure confermata, PREPARA l'apertura della successiva scrivendo lo snapshot in SESSION_BRIEFINGS ed emettendo l'handoff da incollare in una CHAT NUOVA (session-boundary LL-Empire-050). NON apre né lavora nella stessa chat. Commit/push delegati Luke Windows. Trigger: /swe:cycle [progetto-opzionale]."
 allowed-tools: Read Edit Write Bash Grep Glob
 ---
 
 > Copyright © 2026 Luke SteelWolf — All Rights Reserved. See LICENSE.
 
-# EMPIRE CYCLE v1.0
+# EMPIRE CYCLE v1.1
 
-Ciclo end+start Empire — chiude e riapre in un colpo. Composizione delle skill
-`end` e `start`: non duplica la loro logica, le orchestra in sequenza con un gate
-di sicurezza in mezzo.
+Ciclo end+handoff Empire — chiude e prepara la riapertura in **chat nuova**.
+Composizione delle skill `end` e `start`: non duplica la loro logica, le orchestra
+con un gate di sicurezza in mezzo e il confine di sessione LL-Empire-050 rispettato.
 
-> Creata 2026-07-01 (S160). Dominio SteelWolf N4.
-> Binding: LL-Empire-002 (GO), LL-Empire-018 (atomic commit), LL-Empire-019 (V1 parity), LL-Empire-023 (pull-first), LL-Empire-024 (sandbox stale → CMD Windows autoritativo).
+> Creata 2026-07-01 (S160). v1.1 (S161): FASE 2 = handoff (non apertura in-chat), fix LL-Empire-050.
+> Binding: LL-Empire-002 (GO), LL-Empire-018 (atomic commit), LL-Empire-019 (V1 parity), LL-Empire-023 (pull-first), LL-Empire-024 (sandbox stale → CMD Windows autoritativo), LL-Empire-050 (session boundary = nuova chat per ogni Sn).
 
 ---
 
@@ -37,39 +37,47 @@ Esegui l'intera skill `end` (protocollo D6):
 
 ---
 
-## §3 — FASE 2: APERTURA (skill `start`)
+## §3 — FASE 2: HANDOFF (prepara apertura, NON esegue in-chat)
 
-Esegui l'intera skill `start` per la sessione successiva:
-1. §0 Step 0 — dichiara PC + pull-first 11 repo (LL-Empire-023).
-2. CLAUDE.md hierarchy + SESSION_LOG ultime 20 righe + LESSONS_LEARNED indice + memory snapshot.
-3. Verifica empirica sandbox vs CMD Windows (LL-Empire-024).
-4. Briefing stato (max 10 righe).
-5. §5-bis apertura interattiva (widget PC · pull · priorità + colpo d'occhio CHECKLIST/ROADMAP).
+**Regola LL-Empire-050 (session boundary): ogni sessione = chat nuova.** Aprire e
+lavorare la sessione successiva nella stessa chat mescola i contesti ("si impazzisce").
+Quindi il ciclo **non** esegue `start` qui: lo **prepara**.
 
-Se `/swe:cycle $1` passa un progetto, inoltralo a `start` come target.
+1. **Persisti lo snapshot di apertura** — invoca la sola procedura di persistenza di `start`
+   (§5-ter): scrivi `hub/SESSION_BRIEFINGS/S<n+1>_OPEN.md` (PC · pull · briefing · carryover ·
+   priorità proposte) leggendo a runtime il SESSION_LOG appena aggiornato. Via bash-write
+   (LL-Empire-063). Il file resta su disco anche a chat chiusa.
+2. **Emetti l'handoff** in chat (max ~5 righe): "S<n> chiusa. Apri una CHAT NUOVA e lancia
+   `/swe:start [progetto]`." Se `/swe:cycle $1` passa un progetto, includilo nel suggerimento.
+3. **STOP.** Non eseguire l'apertura interattiva di `start` né alcun lavoro della nuova
+   sessione in questa chat. Il ciclo termina.
+
+Nella chat nuova, `/swe:start` ricostruirà il briefing e **ritroverà** lo snapshot
+persistito in `SESSION_BRIEFINGS/S<n+1>_OPEN.md`.
 
 ---
 
-## §4 — STEP FINALE: ATTENDI GO (LL-Empire-002 NON DEROGABILE)
+## §4 — STEP FINALE: ATTENDI GO nella chat nuova (LL-Empire-002)
 
-Dopo l'apertura interattiva della nuova sessione: **default = WAIT**.
-Nessuna esecuzione del lavoro della nuova sessione prima di GO esplicito Luke.
+Il GO per il lavoro della nuova sessione si dà **nella chat nuova**, dopo `/swe:start`.
+In questa chat il ciclo si limita a chiudere + handoff. Default = WAIT.
 
 ---
 
 ## §5 — NOTE OPERATIVE
 
-- **Un comando, due skill**: `cycle` non reimplementa `end`/`start`, le richiama. Ogni bugfix a quelle skill si propaga automaticamente al ciclo.
-- **Cowork vs CLI**: chiusura interattiva e apertura usano widget elicitation in Cowork; in Claude Code CLI stesso contenuto in testo.
+- **Un comando, due skill**: `cycle` non reimplementa `end`/`start`, le richiama (FASE 1 = `end` intera; FASE 2 = solo la persistenza-briefing di `start` + handoff). I bugfix a quelle skill si propagano.
+- **Perché handoff e non apertura**: LL-Empire-050. La riapertura in-chat violerebbe il confine di sessione e confonderebbe i contesti.
+- **Cowork vs CLI**: chiusura interattiva usa widget elicitation in Cowork; in CLI stesso contenuto in testo.
 - **Delega Luke**: commit atomici, push V1-parity e reinstall plugin restano lato Windows (LL-Empire-019/031).
-- **Uso tipico**: fine giornata / passaggio S(n) → S(n+1) consecutivo senza cambio chat manuale, oppure handoff Tipo D/K (in tal caso `end` §7 governa il titolo handoff + snapshot obbligatorio).
+- **Handoff Tipo D/K**: se cross-PC, `end` §7 governa titolo handoff + snapshot obbligatorio; lo snapshot `S<n+1>_OPEN.md` indica il PC di destinazione.
 
 ---
 
 ## RIFERIMENTI
 
 - Chiusura: skill `end`
-- Apertura: skill `start`
+- Apertura: skill `start` (§5-ter persistenza briefing)
 - Compact mid-session: skill `compact`
 - Workflow completo: `hub/SESSION_PROTOCOL.md`
-- LL critiche binding: 002, 018, 019, 021, 023, 024
+- LL critiche binding: 002, 018, 019, 021, 023, 024, 050

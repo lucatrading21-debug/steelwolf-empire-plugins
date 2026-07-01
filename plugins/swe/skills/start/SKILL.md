@@ -1,16 +1,17 @@
 ---
-description: "Apertura sessione Empire SteelWolf. Pull-first 11 repo (LL-Empire-023) + leggi CLAUDE.md hierarchy + ultime 20 righe SESSION_LOG + LESSONS_LEARNED indice + memory snapshot piu' recente + briefing stato + ATTENDI GO esplicito Luke (LL-Empire-002). Token saving target 3-5K. Trigger: /swe:start <progetto-opzionale>."
+description: "Apertura sessione Empire SteelWolf. Pull-first 11 repo (LL-Empire-023) + leggi CLAUDE.md hierarchy + ultime 20 righe SESSION_LOG + LESSONS_LEARNED indice + memory snapshot piu' recente + briefing stato + persisti scheda apertura in SESSION_BRIEFINGS (§5-ter) + ATTENDI GO esplicito Luke (LL-Empire-002). Token saving target 3-5K. Trigger: /swe:start <progetto-opzionale>."
 allowed-tools: Read Bash Grep Glob
 ---
 
 > Copyright © 2026 Luke SteelWolf — All Rights Reserved. See LICENSE.
 
-# EMPIRE START v1.0
+# EMPIRE START v1.1
 
 Apertura sessione Empire — Cowork, Code o Chat. Token-saving target: 3-5K read iniziale.
 
 > Creata 2026-04-26 in `hub/steelwolf-empire-hub/.claude/skills/`. Split da empire-session §2 (deprecato).
-> Binding: LL-Empire-002 (PROTOCOLLO GO), LL-Empire-008 (verifica empirica), LL-Empire-023 (pull-first), LL-Empire-024 (sandbox stale).
+> v1.1 (S161): tabella tipi canonica condivisa con `end` + §5-ter persistenza scheda apertura in SESSION_BRIEFINGS.
+> Binding: LL-Empire-002 (PROTOCOLLO GO), LL-Empire-008 (verifica empirica), LL-Empire-023 (pull-first), LL-Empire-024 (sandbox stale), LL-Empire-050 (session boundary), LL-Empire-063 (bash-write hub).
 
 ---
 
@@ -24,7 +25,9 @@ Fonte unica interna SteelWolf (dominio separato N4). Binding: LL-Empire-023 (pul
 
 ---
 
-## §1 — TIPI DI SESSIONE
+## §1 — TIPI DI SESSIONE (tabella canonica — condivisa con skill `end`)
+
+Classifica per **tipo di lavoro** svolto. Stessa tabella usata in chiusura (`end` §1).
 
 | Tipo | Uso | Chi |
 |------|-----|-----|
@@ -33,6 +36,7 @@ Fonte unica interna SteelWolf (dominio separato N4). Binding: LL-Empire-023 (pul
 | **C** | Operations: deploy, git ops, security fix, cleanup | Claude Code (Sonnet) |
 | **D** | Analisi: TA, review, audit qualita', cross-check | Opus o Sonnet |
 | **E** | Closure post-recovery (caso speciale) | Cowork |
+| **K** | TIER closure / handoff cross-PC PREDATOR↔ACE | Cowork/Code |
 
 Dichiarare tipo nella prima riga sessione: "Sessione Tipo X — obiettivo".
 
@@ -77,7 +81,8 @@ Lettura ordinata, token-economic:
 5. Ultime 20 righe `hub/steelwolf-empire-hub/SESSION_LOG.md`
 6. Indice `hub/steelwolf-empire-hub/LESSONS_LEARNED.md` (LL binding)
 7. Memory snapshot piu' recente in `hub/_memory-snapshot/`
-8. Memoria Cowork `%APPDATA%\Claude\...\memory\MEMORY.md`
+8. Snapshot apertura precedente in `hub/SESSION_BRIEFINGS/S<n>_OPEN.md` (se presente)
+9. Memoria Cowork `%APPDATA%\Claude\...\memory\MEMORY.md`
 
 ---
 
@@ -110,10 +115,32 @@ Riassumi a Luke (max 10 righe):
 Dopo il briefing, presenta l'apertura interattiva:
 - **Conferma stato**: PC · esito `git pull` (fatto / da fare) · priorita sessione.
 - **Colpo d'occhio**: sintesi `CHECKLIST` + `ROADMAP` (o `EMPIRE_DASHBOARD`) del progetto attivo, letti a runtime.
+- **Pre-compilazione (preferenza Luke)**: compila TUTTI i campi con i valori dedotti dal contesto; Luke approva o corregge, non riempie da zero. NB: la `<textarea>` del widget elicitation non rende il prefill → presenta la bozza compilata anche come TESTO in chat.
 - **Cowork**: widget di conferma (modulo elicitation, generato a runtime dall'assistente).
 - **Claude Code CLI**: stesso contenuto in testo. Il widget cliccabile esiste solo in Cowork.
 
 Il rendering ricco (checklist/roadmap) si costruisce leggendo i file a runtime: non duplicare quei dati qui.
+
+---
+
+## §5-ter — PERSISTI SCHEDA APERTURA (SESSION_BRIEFINGS)
+
+**Scopo:** la scheda d'apertura (predisposizioni) deve persistere anche a chat chiusa,
+non solo vivere nella conversazione (osservazione Luke S161).
+
+Ad ogni apertura, scrivi lo snapshot su disco:
+
+```
+hub/SESSION_BRIEFINGS/S<n>_OPEN.md
+```
+
+dove `<n>` = numero della sessione corrente (ricavato da +1 sull'ultima entry SESSION_LOG).
+Contenuto (markdown, conciso): PC · esito pull · briefing stato (§5) · carryover · priorita proposte pre-compilate. Scrivi **via bash-write** (LL-Empire-063; MAI Edit Cowork su hub). Il file resta su disco anche dopo la chiusura chat → la predisposizione e' recuperabile.
+
+Note:
+- Scrittura NON distruttiva (nuovo file) → ammessa in apertura anche prima del GO (bookkeeping, non lavoro di sessione). Il GATE GO §6 protegge il LAVORO, non la registrazione dello stato.
+- File untracked finche' Luke non committa; la persistenza su disco e' immediata e sufficiente allo scopo.
+- Usato anche da skill `cycle` FASE 2 (handoff) per pre-scrivere lo snapshot della sessione successiva.
 
 ---
 
@@ -147,7 +174,9 @@ Per repo IronX: ironx-prime PRIMA di empire-start (firewall §11).
 ## RIFERIMENTI
 
 - Workflow completo: `hub/SESSION_PROTOCOL.md`
-- Closure: skill `empire-end`
-- Compact mid-session: skill `empire-compact`
+- Chiusura: skill `end`
+- Ciclo end+handoff: skill `cycle`
+- Compact mid-session: skill `compact`
+- Snapshot apertura persistiti: `hub/SESSION_BRIEFINGS/S<n>_OPEN.md`
 - Roadmap M1: `hub/ROADMAP_M1_M2_ANTHROPIC_2026_ALIGN.md` Action 1.2
-- LL critiche binding: 002, 008, 011, 014, 018, 019, 021, 023, 024
+- LL critiche binding: 002, 008, 011, 014, 018, 019, 021, 023, 024, 050, 063

@@ -20,7 +20,7 @@ Chiusura sessione Empire — protocollo D6. Massimo 7 righe output finale.
 Simmetrica all'apertura interattiva di `/swe:start` (§5-bis). **Prima di scrivere qualsiasi file**, raccogli in un colpo solo i dati della entry D6:
 
 - **PC attivo**: PREDATOR / ACE.
-- **Tipo sessione**: A=apertura · B=closure normale · C=mid-session continuation · D=handoff dual-PC · E=post-recovery · K=TIER closure cross-PC. (Se `/swe:end $1` passa un tipo, pre-selezionalo.)
+- **Tipo sessione** (tabella canonica §1): A=architettura/governance/ricerca · B=sviluppo/docs/fix · C=operations · D=analisi · E=closure post-recovery · K=TIER/handoff cross-PC. (Se `/swe:end $1` passa un tipo, pre-selezionalo.)
 - **Obiettivo** della sessione + **Completato** (con commit/hash reali dove disponibili).
 - **DIRTY** da propagare (D7)? Cosa resta pending Luke-side.
 - Nuove **LL** emerse da formalizzare? (indice + body LESSONS_LEARNED).
@@ -54,7 +54,7 @@ DIRTY: YYYY-MM-DD - ...
 Timestamp: YYYY-MM-DD sessione <env> Tipo X ~HH:MM CEST.
 ```
 
-Tipo: A=apertura, B=closure normale, C=mid-session continuation, D=handoff dual-PC, E=post-recovery, K=TIER closure cross-PC.
+**Tipo sessione (tabella canonica condivisa con skill `start` §1):** A=architettura/skill/governance/ricerca · B=sviluppo/docs/design/fix/planning/migration · C=operations (deploy/git/security/cleanup) · D=analisi/review/audit/cross-check · E=closure post-recovery · K=TIER closure / handoff cross-PC. Classifica per **tipo di lavoro** svolto (es. S158-S160 = Tipo A build governance).
 
 ### LESSONS_LEARNED.md (se nuove LL emerse)
 
@@ -148,9 +148,9 @@ Backup: <hash zip se applicabile>
 
 ---
 
-## §7 — HANDOFF DUAL-PC (Tipo D / Tipo K)
+## §7 — HANDOFF DUAL-PC (Tipo K)
 
-Se closure e' handoff PREDATOR ↔ ACE:
+Se closure e' handoff PREDATOR ↔ ACE (Tipo K; D solo se e' anche una sessione di analisi):
 - Entry SESSION_LOG include "handoff <PC src> → <PC dst>" nel titolo
 - Prossimo passo specifico: "Su PC <dst>: pull-first 11 repo + bootstrap drill + resume <task>"
 - Memory snapshot OBBLIGATORIO (ADR-005 FALLBACK 2)

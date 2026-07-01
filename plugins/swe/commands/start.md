@@ -41,6 +41,11 @@ in `skills/start/SKILL.md`. Riferimento completo body: vedi SKILL.md.
    - **Colpo d'occhio**: sintesi `CHECKLIST` + `ROADMAP` (o `EMPIRE_DASHBOARD`) del progetto attivo, letti a runtime.
    - **Cowork**: widget di conferma (modulo elicitation, generato a runtime dall'assistente). **Claude Code CLI**: stesso contenuto in testo — il widget cliccabile esiste solo in Cowork.
 
+6-ter. **Persisti scheda apertura** (SKILL `start` §5-ter): scrivi lo snapshot
+   `hub/SESSION_BRIEFINGS/S<n>_OPEN.md` (PC · pull · briefing · carryover · priorita
+   pre-compilate) via bash-write (LL-Empire-063), cosi la predisposizione persiste
+   anche a chat chiusa. Scrittura non distruttiva, ammessa prima del GO (bookkeeping).
+
 7. **ATTENDI GO esplicito Luke** (LL-Empire-002 NON DEROGABILE)
    - Default state = WAIT
    - Leggere/capire/vedere ≠ permesso eseguire
@@ -48,4 +53,4 @@ in `skills/start/SKILL.md`. Riferimento completo body: vedi SKILL.md.
 
 Argomento opzionale `$1`: nome progetto target (es. `trading-alliance-bots`, `ironx-ecosystem`).
 
-LL critiche binding: 002, 008, 011, 014, 018, 019, 021, 023, 024
+LL critiche binding: 002, 008, 011, 014, 018, 019, 021, 023, 024, 050, 063
