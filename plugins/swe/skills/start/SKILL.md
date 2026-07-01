@@ -14,6 +14,16 @@ Apertura sessione Empire — Cowork, Code o Chat. Token-saving target: 3-5K read
 
 ---
 
+## §0 — STEP 0: DICHIARA PC + PULL (apertura interattiva)
+
+**Prima di qualsiasi altra azione:**
+- Dichiara il PC attivo (**PREDATOR / ACE**). Se non lo rilevi, **chiedilo a Luke**.
+- Fai o chiedi `git pull` sui repo attivi (pull-first, dettaglio §2). Riporta esito: fatto / da fare.
+
+Fonte unica interna SteelWolf (dominio separato N4). Binding: LL-Empire-023 (pull-first), LL-Empire-002 (GO).
+
+---
+
 ## §1 — TIPI DI SESSIONE
 
 | Tipo | Uso | Chi |
@@ -92,6 +102,18 @@ Riassumi a Luke (max 10 righe):
 - Prossimo passo previsto
 - Eventuali blocchi attivi (PROTOCOLLO GO pending, drift, ecc.)
 - TIER status corrente (es. "TIER 2 ✅ Bootstrap PASS 32/32")
+
+---
+
+## §5-bis — APERTURA INTERATTIVA (PC · pull · priorita + colpo d'occhio)
+
+Dopo il briefing, presenta l'apertura interattiva:
+- **Conferma stato**: PC · esito `git pull` (fatto / da fare) · priorita sessione.
+- **Colpo d'occhio**: sintesi `CHECKLIST` + `ROADMAP` (o `EMPIRE_DASHBOARD`) del progetto attivo, letti a runtime.
+- **Cowork**: widget di conferma (modulo elicitation, generato a runtime dall'assistente).
+- **Claude Code CLI**: stesso contenuto in testo. Il widget cliccabile esiste solo in Cowork.
+
+Il rendering ricco (checklist/roadmap) si costruisce leggendo i file a runtime: non duplicare quei dati qui.
 
 ---
 

@@ -7,6 +7,22 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
 
 ---
 
+## [1.3.0] — 2026-07-01
+
+### Added
+
+#### Plugin `swe` v1.1.0 — Apertura interattiva sessione (S158)
+- `hooks/session-start.sh`: riscritto come echo statico ASCII puro (no MCP/rete/secret, no file-read) che inietta l'apertura interattiva SteelWolf: Step 0 (dichiara PC PREDATOR/ACE + git pull), doc L0, conferma stato (PC · pull · priorita) + colpo d'occhio CHECKLIST/ROADMAP, ATTENDI GO (LL-Empire-002).
+- `commands/start.md`: aggiunti Step 0 (dichiara PC + pull) e step 6-bis Apertura interattiva prima di ATTENDI GO; pull-first 11 repo e CLAUDE.md hierarchy invariati.
+- `skills/start/SKILL.md`: aggiunte §0 (STEP 0 dichiara PC + pull) e §5-bis (apertura interattiva — Cowork widget elicitation / Claude Code CLI testo).
+- Pattern replicato da Nexus_Empire nel dominio SteelWolf (N4 dominio separato, fonte unica interna), governance LL-Empire.
+
+#### Marketplace
+- Plugin `swe` version 1.0.0 -> 1.1.0 (`plugin.json` + entry `marketplace.json`)
+- `marketplace.json` metadata.version 1.2.0 -> 1.3.0
+
+---
+
 ## [1.2.0] — 2026-06-30
 
 ### Added

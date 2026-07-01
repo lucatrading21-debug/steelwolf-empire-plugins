@@ -11,6 +11,10 @@ in `skills/start/SKILL.md`. Riferimento completo body: vedi SKILL.md.
 
 ## Sequenza obbligatoria
 
+0. **Step 0 — Dichiara PC + Pull** (guida apertura interattiva SteelWolf, dominio SteelWolf N4):
+   - Dichiara il PC attivo (**PREDATOR / ACE**). Se non lo rilevi, **chiedilo a Luke**.
+   - Fai o chiedi `git pull` sui repo attivi (pull-first, dettaglio al punto 1). Riporta esito: fatto / da fare.
+
 1. **Pull-first protocol 11 repo** (LL-Empire-023 binding) — CMD da Luke Windows. Sequenza completa in `hub/SESSION_PROTOCOL.md` §2.2.
 
 2. **CLAUDE.md hierarchy** Anthropic 2026:
@@ -31,6 +35,11 @@ in `skills/start/SKILL.md`. Riferimento completo body: vedi SKILL.md.
    - Prossimo passo previsto
    - Blocchi attivi (PROTOCOLLO GO pending, drift, ecc.)
    - TIER status corrente
+
+6-bis. **Apertura interattiva** (PC · pull · priorità + colpo d'occhio):
+   - **Conferma stato**: PC · esito `git pull` (fatto / da fare) · priorità sessione.
+   - **Colpo d'occhio**: sintesi `CHECKLIST` + `ROADMAP` (o `EMPIRE_DASHBOARD`) del progetto attivo, letti a runtime.
+   - **Cowork**: widget di conferma (modulo elicitation, generato a runtime dall'assistente). **Claude Code CLI**: stesso contenuto in testo — il widget cliccabile esiste solo in Cowork.
 
 7. **ATTENDI GO esplicito Luke** (LL-Empire-002 NON DEROGABILE)
    - Default state = WAIT
