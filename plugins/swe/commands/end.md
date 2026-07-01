@@ -1,5 +1,6 @@
 ---
-description: Chiusura sessione Empire SteelWolf protocollo D6 — SESSION_LOG + LESSONS_LEARNED + EMPIRE_DASHBOARD + memory snapshot + commit atomic LL-018 + GATE git status clean LL-024 + push delegato Luke V1 parity
+description: Chiusura sessione Empire SteelWolf protocollo D6 — chiusura interattiva (widget) + SESSION_LOG + LESSONS_LEARNED + EMPIRE_DASHBOARD + memory snapshot + commit atomic LL-018 + GATE git status clean LL-024 + push delegato Luke V1 parity
+argument-hint: [tipo-sessione-opzionale]
 allowed-tools: Read Edit Write Bash Grep
 ---
 
@@ -9,6 +10,13 @@ Esegui workflow chiusura sessione Empire SteelWolf seguendo skill `end` plugin s
 in `skills/end/SKILL.md`. Riferimento completo body: vedi SKILL.md.
 
 ## Sequenza obbligatoria
+
+0. **Step 0 — Chiusura interattiva** (simmetrica all'apertura `/swe:start`, dominio SteelWolf N4):
+   - Raccogli i dati della entry D6 con un colpo solo, PRIMA di scrivere i file:
+     PC attivo (**PREDATOR / ACE**) · **tipo sessione** (A/B/C/D/E/K) · obiettivo + completato (commit/hash reali) · **DIRTY** da propagare (D7)? · nuove **LL** emerse? · prossimo passo (carryover) · **backup V6** pre-destructive necessario?
+   - **Cowork**: widget di conferma (modulo elicitation, generato a runtime dall'assistente). **Claude Code CLI**: stesse domande in testo — il widget cliccabile esiste solo in Cowork.
+   - Se `$1` è passato (tipo sessione), pre-seleziona quel tipo nel widget.
+   - Questi dati alimentano gli Step 1-4. NON scrivere nulla prima di aver raccolto/confermato.
 
 1. **Update SESSION_LOG.md** entry formato D6:
    ```
@@ -48,5 +56,7 @@ in `skills/end/SKILL.md`. Riferimento completo body: vedi SKILL.md.
    `powershell -File hub/scripts/empire-backup.ps1 -Tag "pre-<descrittivo>"`
 
 9. **Conferma chiusura** max 7 righe (Tipo, Obiettivo, Completato, Prossimo, WT clean, Push pending Luke, Backup hash)
+
+Argomento opzionale `$1`: tipo sessione da pre-selezionare (A/B/C/D/E/K).
 
 LL critiche binding: 002, 008, 011, 018, 019, 021, 023, 024

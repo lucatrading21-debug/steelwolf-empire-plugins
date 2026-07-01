@@ -1,16 +1,37 @@
 ---
-description: "Chiusura sessione Empire SteelWolf protocollo D6. Update SESSION_LOG (5 righe + DIRTY + Timestamp) + LESSONS_LEARNED se nuove LL emerse + EMPIRE_DASHBOARD se status cambiato + commit FEAT/FIX/DOCS atomic (LL-Empire-018, no git add -A). GATE binding: git status DEVE essere clean su CMD Windows prima di dichiarare sessione chiusa (LL-Empire-024). NO push automatico (delegato Luke V1 parity verify). Trigger: /swe:end."
+description: "Chiusura sessione Empire SteelWolf protocollo D6. Step 0 chiusura interattiva (widget elicitation Cowork / testo CLI) raccoglie i dati D6 in un colpo. Poi update SESSION_LOG (5 righe + DIRTY + Timestamp) + LESSONS_LEARNED se nuove LL emerse + EMPIRE_DASHBOARD se status cambiato + commit FEAT/FIX/DOCS atomic (LL-Empire-018, no git add -A). GATE binding: git status DEVE essere clean su CMD Windows prima di dichiarare sessione chiusa (LL-Empire-024). NO push automatico (delegato Luke V1 parity verify). Trigger: /swe:end."
 allowed-tools: Read Edit Write Bash Grep
 ---
 
 > Copyright © 2026 Luke SteelWolf — All Rights Reserved. See LICENSE.
 
-# EMPIRE END v1.0
+# EMPIRE END v1.1
 
 Chiusura sessione Empire — protocollo D6. Massimo 7 righe output finale.
 
 > Creata 2026-04-26 in `hub/steelwolf-empire-hub/.claude/skills/`. Split da empire-session §4 (deprecato).
+> v1.1 (S160): aggiunta §0-bis chiusura interattiva simmetrica all'apertura `/swe:start`.
 > Binding: LL-Empire-018 (atomic commit), LL-Empire-019 (V1 parity), LL-Empire-021 (mai checkout --ours/--theirs su append-only), LL-Empire-024 (sandbox stale → CMD Windows autoritativo).
+
+---
+
+## §0-bis — STEP 0: CHIUSURA INTERATTIVA (raccolta dati D6)
+
+Simmetrica all'apertura interattiva di `/swe:start` (§5-bis). **Prima di scrivere qualsiasi file**, raccogli in un colpo solo i dati della entry D6:
+
+- **PC attivo**: PREDATOR / ACE.
+- **Tipo sessione**: A=apertura · B=closure normale · C=mid-session continuation · D=handoff dual-PC · E=post-recovery · K=TIER closure cross-PC. (Se `/swe:end $1` passa un tipo, pre-selezionalo.)
+- **Obiettivo** della sessione + **Completato** (con commit/hash reali dove disponibili).
+- **DIRTY** da propagare (D7)? Cosa resta pending Luke-side.
+- Nuove **LL** emerse da formalizzare? (indice + body LESSONS_LEARNED).
+- **Prossimo passo** / carryover per la sessione successiva.
+- **Backup V6** pre-destructive necessario (prossima sessione filesystem-destructive)?
+
+Rendering:
+- **Cowork**: widget di conferma (modulo elicitation, generato a runtime dall'assistente — pill per PC/tipo, free-text per obiettivo/completato/prossimo, toggle per DIRTY/LL/backup).
+- **Claude Code CLI**: stesse domande in testo. Il widget cliccabile esiste solo in Cowork.
+
+I valori raccolti alimentano direttamente §1 (SESSION_LOG/LESSONS/DASHBOARD) e §5 (backup). Non duplicare qui i contenuti: si compilano a runtime dalle risposte. Conferma con Luke prima di scrivere (LL-Empire-002).
 
 ---
 
@@ -137,10 +158,19 @@ Se closure e' handoff PREDATOR ↔ ACE:
 
 ---
 
+## §8 — CICLO END+START
+
+Per chiudere e riaprire in un colpo (nuova sessione consecutiva) usa `/swe:cycle`
+(skill `cycle`): esegue questa chiusura D6 completa (incl. GATE git clean) e — solo a
+closure confermata — avvia l'apertura interattiva di `/swe:start`.
+
+---
+
 ## RIFERIMENTI
 
 - Workflow completo: `hub/SESSION_PROTOCOL.md` §6
-- Apertura: skill `empire-start`
-- Compact mid-session: skill `empire-compact`
+- Apertura: skill `start`
+- Ciclo end+start: skill `cycle`
+- Compact mid-session: skill `compact`
 - LL critiche binding: 002, 008, 011, 018, 019, 021, 023, 024
 - ADR-005 cross-PC memory strategy

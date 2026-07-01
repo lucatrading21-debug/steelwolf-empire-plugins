@@ -7,6 +7,21 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
 
 ---
 
+## [1.5.0] — 2026-07-01
+
+### Added
+
+#### Plugin `swe` v1.3.0 — Chiusura interattiva + ciclo end+start (S160)
+- `commands/end.md` + `skills/end/SKILL.md` (v1.1): aggiunto **Step 0 / §0-bis Chiusura interattiva** simmetrica all'apertura `/swe:start`. Raccoglie in un colpo i dati della entry D6 (PC · tipo sessione A/B/C/D/E/K · obiettivo+completato · DIRTY da propagare · LL emerse · prossimo passo · backup V6) prima di scrivere i file. Cowork: widget elicitation a runtime; Claude Code CLI: stesse domande in testo. `argument-hint: [tipo-sessione-opzionale]`.
+- **Nuovo comando `/swe:cycle`** (`commands/cycle.md` + `skills/cycle/SKILL.md` v1.0): chiude la sessione corrente (skill `end`, D6 completo con GATE git clean LL-Empire-024) e — **solo a closure confermata** (checkpoint working-tree clean Windows-side) — riapre la successiva (skill `start`, apertura interattiva + ATTENDI GO LL-Empire-002). Orchestrazione delle skill esistenti, non reimplementazione: i bugfix a `end`/`start` si propagano al ciclo. `argument-hint: [progetto-opzionale]`.
+
+### Notes
+- Dominio SteelWolf N4 (Nexus escluso — ecosistema separato).
+- Commit/push V1-parity e reinstall plugin restano lato Luke Windows (LL-Empire-019/031).
+- Attivazione in Cowork: disinstalla+reinstalla `swe` + nuova sessione (hook/commands fotografati all'avvio).
+
+---
+
 ## [1.4.0] — 2026-07-01
 
 ### Fixed
