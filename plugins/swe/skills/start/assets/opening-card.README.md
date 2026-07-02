@@ -30,7 +30,9 @@ Rendering via `show_widget` (Cowork). Su Code CLI/Chat puri → **fallback testo
 L1: badge Pn · Titolo · "Fai:" 1 riga · meta(Rischio ● / Stima tempo·token / Stato / MoSCoW)
 L2: Piano · Prima → Dopo · Serve/Dipende da · Rischi & mitigazione · Verifica (DoD) · Consiglio
 
-## Sezioni fisse
+## Ecosistema (hub): ogni progetto mostra badge stato + **ultima modifica** (data ultimo commit del repo: `git log -1 --date=format:"%Y-%m-%d"`).
+
+Sezioni fisse
 Header brandizzato (SW + wordmark + N sessione) · riga meta (data/commit/pull) · LL richiamate ·
 PC + Pull (pill pre-accese) · Riferimenti rapidi (sendPrompt) · tendina Checklist&Roadmap (flag+barra) ·
 Priorità per workflow · Prossimo passo consigliato · Note di sessione · +Nuova voce Checklist ·

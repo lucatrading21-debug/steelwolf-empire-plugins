@@ -7,6 +7,55 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
 
 ---
 
+## [1.8.6] — 2026-07-02
+
+### Added
+- **`swe` v1.6.6 — dettagli priorità: "Skill da usare" (S165)**: nuovo campo L2 (con chiosa) su ogni priorità che indica quali skill/plugin attivare in base al contesto analizzato (es. empire-research, empire-quality, data/build-dashboard, xlsx/docx, figma…), così ogni nuova sessione sa già cosa attivare. Asset + §5-bis.2 aggiornati. Schema L2 ora 10 campi.
+
+---
+
+## [1.8.5] — 2026-07-02
+
+### Added
+- **`swe` v1.6.5 — dettagli priorità: Dati richiesti + Analisi & consultazione (S165)**: due nuovi campi L2 (con chiosa in parole semplici) su ogni priorità — **Dati richiesti** (input/dati necessari in base al contesto: cosa chiedere a Luke e cosa cercare) e **Analisi & consultazione** (analizza tutto + deep research Anthropic/GitHub/web ingegneristico e forum AI, dashboard/UI/WEB-AI/gestionale/pagamenti automatici, confronto opzioni, Pre-Mortem, soluzione migliore per priorità/workflow nel rispetto di checklist+roadmap). Asset + §5-bis.2 aggiornati.
+
+---
+
+## [1.8.4] — 2026-07-02
+
+### Added
+- **`swe` v1.6.4 — chiose "in parole semplici" su ogni campo dettagli (S165)**: ogni etichetta tecnica dei Dettagli porta accanto una chiosa non-tecnica che ne spiega il senso — Piano (·cosa si fa passo per passo), Prima→Dopo (·com'è ora vs come sarà), Serve/Dipende (·cosa serve prima), Rischi&mitig (·cosa può andare storto e come si evita), Come sarà completato (·quando è finito davvero), Consiglio (·suggerimento). Completa la sezione "In parole semplici" introdotta in v1.6.3. Asset + §5-bis.2 aggiornati.
+
+---
+
+## [1.8.3] — 2026-07-02
+
+### Added
+- **`swe` v1.6.3 — dettagli priorità: "In parole semplici" (S165)**: i Dettagli di ogni priorità ora aprono con una sezione discorsiva NON tecnica che spiega cos'è l'upgrade, che funzioni/benefici porta e cosa si potrà fare dopo — poi seguono i campi tecnici (Piano/Prima→Dopo/Serve·Dipende/Rischi/Come sarà completato/Consiglio). Asset + §5-bis.2 aggiornati.
+
+---
+
+## [1.8.2] — 2026-07-02
+
+### Added
+- **`swe` v1.6.2 — dettagli priorità: Tipo di lavoro + Come sarà completato (S165)**: ogni priorità (tutti i workflow) ora ha nel meta L1 un chip **Tipo di lavoro** (Documentazione/Codice/Ricerca/Infra/Design/Governance) e in L2 una sezione **"Come sarà completato (DoD)"** = risultato finito concreto + criteri di accettazione (fusa/rinominata da "Verifica (DoD)"). Nessun campo precedente rimosso (Piano/Prima→Dopo/Serve·Dipende/Rischi·mitig/Consiglio invariati). Asset + §5-bis.2 aggiornati.
+
+---
+
+## [1.8.1] — 2026-07-02
+
+### Changed
+- **`swe` v1.6.1 — Ecosistema: data ultima modifica per progetto (S165)**: ogni riga Ecosistema mostra "ultima mod: YYYY-MM-DD" (= ultimo commit del repo, `git log -1 --date=format:"%Y-%m-%d"`). Ribadito nello schema che OGNI priorità (tutti i workflow) porta i dettagli L2 completi (Piano/Prima→Dopo/Serve·Dipende/Rischi·mitig/Verifica·DoD/Consiglio) — non solo alcune.
+
+---
+
+## [1.8.0] — 2026-07-02
+
+### Added
+- **`swe` v1.6.0 — Enriched Visual View v6 (S165, decisione delegata + ricerca 2026)**: (1) sezione **Ecosistema SteelWolf** collassabile (SOLO apertura hub/predator) — progetti dal registry con badge stato RAG+testo (attivo/freeze/parcheggiato/gemello) + apri-rapido; (2) **Checklist & Roadmap a drill-down per milestone** — ogni milestone espandibile alle voci esatte con flag outline (full on-demand, no overload); (3) chip header **Continuità** (S###→S###) e **Parità PC** (PREDATOR↔ACE). Coerente con best-practice dashboard 2026 (overview scannabile ≤6 card + progressive disclosure, badge non-solo-colore). Asset `opening-card.template.html` + §5-bis.2 aggiornati. Rimandati per evitare overload: chip Backup/Token/Scheduled (opzionali futuri).
+
+---
+
 ## [1.7.8] — 2026-07-02
 
 ### Fixed

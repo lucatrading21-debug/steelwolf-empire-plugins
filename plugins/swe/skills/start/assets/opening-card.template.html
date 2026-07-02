@@ -16,6 +16,8 @@
   <div style="margin-top:14px; display:flex; flex-wrap:wrap; gap:6px 10px; font-size:11.5px;">
     <span class="hchip"><i class="ti ti-calendar" aria-hidden="true"></i> Apertura: {{DATE_TIME}}</span>
     <span class="hchip"><i class="ti ti-git-branch" aria-hidden="true"></i> {{BRANCH_HEAD}}</span>
+    <span class="hchip"><i class="ti ti-arrow-right" aria-hidden="true"></i> Continuità: {{CONTINUITY}}</span>
+    <span class="hchip"><i class="ti ti-device-desktop" aria-hidden="true"></i> Parità: {{PC_PARITY}}</span>
     <span class="hchip"><i class="ti ti-git-commit" aria-hidden="true"></i> ultimo commit: {{LAST_COMMIT_HASH}} · {{LAST_COMMIT_DATE}} · {{LAST_COMMIT_MSG}}</span>
   </div>
   <div style="margin-top:10px; font-size:11px; color:var(--text-muted);"><b style="color:var(--text-secondary); font-weight:500;">LL richiamate:</b> {{LL_LIST}}</div>
@@ -46,13 +48,26 @@
 
   <div style="height:1px; background:var(--border); margin:20px 0;"></div>
 
+  <!-- ECOSISTEMA (SOLO apertura hub/predator; ometti per sessioni su singolo progetto) -->
+  {{ECOSYSTEM_BLOCK}}
+  <!-- ECOSYSTEM_BLOCK =
+  <details class="cklist"><summary><i class="ti ti-hierarchy-2"></i> Ecosistema SteelWolf — {{ECO_SUMMARY}}</summary>
+    <div class="eco">
+      per progetto (dal registry):
+      <div class="er"><span class="ename">Nome</span><span class="ebadge ea|ew|ep|en"><span class="dot dlow|dmed"></span>stato</span><span class="emeta">descr</span><span class="edate"><i class="ti ti-clock"></i> ultima mod: YYYY-MM-DD</span><button class="mini" data-ask="Stato/Apri <slug>">apri</button></div>  <!-- data = ultimo commit repo: git log -1 --date=format:%Y-%m-%d -->
+    </div>
+  </details> -->
+
   <!-- CHECKLIST/ROADMAP: nascondi il blocco se assente -->
   <details class="cklist"><summary><i class="ti ti-list-check"></i> Checklist &amp; Roadmap progetto — {{CK_DONE}}/{{CK_TOTAL}} ({{PROGRESS_PCT}}%)</summary>
     <div style="height:8px; background:var(--surface-0); border-radius:6px; overflow:hidden; margin:12px 0 14px;"><div style="width:{{PROGRESS_PCT}}%; height:100%; background:var(--text-accent);"></div></div>
     <div class="ckcol">
-      {{CHECKLIST_ITEMS}}
-      <!-- per voce: <div class="ck done"><i class="ti ti-square-check"></i> testo</div>  oppure  <div class="ck todo"><i class="ti ti-square"></i> testo</div>
-           header milestone: <div class="ckml">Mx — titolo</div> -->
+      {{CHECKLIST_MILESTONES}}
+      <!-- Drill-down per milestone (una <details> per milestone, voci dentro):
+      <details class="ms" [open se ha voci da fare]><summary><span class="msdone|mstodo">Mx</span> Titolo <span class="mscount">fatti/tot</span></summary>
+        <div class="ck done"><i class="ti ti-square-check"></i> voce fatta</div>
+        <div class="ck todo"><i class="ti ti-square"></i> voce da fare</div>
+      </details> -->
     </div>
   </details>
 
@@ -71,16 +86,20 @@
       <button class="pbtn" data-v="Pn Titolo" type="button">
         <span class="badge {{b1|nothing}}">Pn</span>
         <span class="ptext"><span class="ptitle">Titolo</span><span class="pfai">Fai: ...</span>
-          <span class="meta"><span class="chip"><span class="dot dlow|dmed|dhigh"></span>basso|medio|alto</span><span class="chip"><i class="ti ti-clock"></i> stima · tok</span><span class="chip"><i class="ti ti-square"></i> Stato</span><span class="chip">Must|Should|Could</span></span></span>
+          <span class="meta"><span class="chip tipo"><i class="ti ti-tag"></i> Tipo: Doc|Codice|Ricerca|Infra|Design|Governance</span><span class="chip"><span class="dot dlow|dmed|dhigh"></span>basso|medio|alto</span><span class="chip"><i class="ti ti-clock"></i> stima · tok</span><span class="chip"><i class="ti ti-square"></i> Stato</span><span class="chip">Must|Should|Could</span></span></span>
         <i class="ti ti-check chk2"></i>
       </button>
       <details><summary>Dettagli</summary>
-        <div class="sec"><span class="lab">Piano</span><ul><li>...</li></ul></div>
-        <div class="sec"><span class="lab">Prima → Dopo</span><div class="ba"><span class="bef"><b>Prima:</b> ...</span><i class="ti ti-arrow-right"></i><span class="aft"><b>Dopo:</b> ...</span></div></div>
-        <div class="sec"><span class="lab">Serve / Dipende da</span><div class="dd">...</div></div>
-        <div class="sec"><span class="lab">Rischi &amp; mitigazione</span><div class="dd">...</div></div>
-        <div class="sec"><span class="lab">Verifica (DoD)</span><div class="dd">...</div></div>
-        <div class="sec"><span class="lab">Consiglio</span><div class="dd">...</div></div>
+        <div class="sec"><span class="lab">In parole semplici</span><div class="dd plain">Cosa è questo upgrade e a cosa serve, in modo discorsiva: che funzioni aggiunge, cosa potrai fare dopo, perché migliora il lavoro. Niente gergo.</div></div>
+        <div class="sec"><span class="lab">Piano <span class="glo">· cosa si fa, passo per passo</span></span><ul><li>...</li></ul></div>
+        <div class="sec"><span class="lab">Prima → Dopo <span class="glo">· com'è ora vs come sarà</span></span><div class="ba"><span class="bef"><b>Prima:</b> ...</span><i class="ti ti-arrow-right"></i><span class="aft"><b>Dopo:</b> ...</span></div></div>
+        <div class="sec"><span class="lab">Serve / Dipende da <span class="glo">· cosa serve prima di partire</span></span><div class="dd">...</div></div>
+        <div class="sec"><span class="lab">Dati richiesti <span class="glo">· cosa mi serve chiederti o cercare</span></span><div class="dd">Input/dati necessari in base al contesto (es. file, preferenze, credenziali, metriche) — cosa chiedo a te e cosa cerco da solo.</div></div>
+        <div class="sec"><span class="lab">Analisi &amp; consultazione <span class="glo">· ricerca e verifica prima di agire</span></span><div class="dd">Analizzo tutto per scegliere la soluzione migliore in ordine di priorità/workflow (checklist+roadmap rispettate). Consulto Anthropic, GitHub e il web dei migliori ingegneri/forum AI (dashboard, UI innovativa, WEB-AI, gestionale, pagamenti automatici), confronto le opzioni, con Pre-Mortem. Non mi arrendo al primo ostacolo.</div></div>
+        <div class="sec"><span class="lab">Skill da usare <span class="glo">· gli strumenti/competenze che attivo</span></span><div class="dd">Scelte dall'analisi del task (es. empire-research per la ricerca, empire-quality pre-commit, data/build-dashboard per dashboard, xlsx/docx per documenti, figma per UI, ecc.). Così la sessione sa già cosa attivare.</div></div>
+        <div class="sec"><span class="lab">Rischi &amp; mitigazione <span class="glo">· cosa può andare storto e come lo evitiamo</span></span><div class="dd">...</div></div>
+        <div class="sec"><span class="lab">Come sarà completato <span class="glo">· quando è finito davvero</span></span><div class="dd">A lavoro finito: <risultato concreto> · criteri di accettazione.</div></div>
+        <div class="sec"><span class="lab">Consiglio <span class="glo">· il mio suggerimento</span></span><div class="dd">...</div></div>
       </details>
     </div> -->
   </div>
@@ -119,7 +138,7 @@
   .cklist[open]>summary::before{content:"▾ "; color:var(--text-accent);}
   .ckcol{display:flex; flex-direction:column; gap:5px;}
   .ckml{font-size:11px; font-weight:500; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.4px; margin-top:8px;}
-  .ck{font-size:12.5px; display:flex; align-items:flex-start; gap:7px; line-height:1.5; color:var(--text-secondary);}
+  .ck{font-size:12.5px; display:flex; align-items:flex-start; gap:7px; line-height:1.5; color:var(--text-secondary); padding-left:16px;}
   .ck i{font-size:15px; flex:none; margin-top:1px;}
   .ck.done i{color:var(--text-success);}
   .ck.todo i{color:var(--text-muted);}
@@ -133,6 +152,7 @@
   .pfai{font-size:12.5px; color:var(--text-secondary); line-height:1.5;}
   .meta{display:flex; flex-wrap:wrap; gap:6px; margin-top:2px;}
   .chip{display:inline-flex; align-items:center; gap:4px; font-size:11px; color:var(--text-secondary); background:var(--surface-2); border:1px solid var(--border); border-radius:20px; padding:2px 8px;}
+  .chip.tipo{color:var(--text-accent); border-color:var(--border-accent);}
   .dot{display:inline-block; width:8px; height:8px; border-radius:50%;}
   .dlow{background:var(--text-success);} .dmed{background:var(--text-warning);} .dhigh{background:var(--text-danger);}
   .chk2{font-size:16px; opacity:0; color:var(--text-accent); flex:none;}
@@ -144,9 +164,11 @@
   .prio>details>summary::before{content:"▸ ";}
   .prio>details[open]>summary::before{content:"▾ ";}
   .dd{font-size:12.5px; color:var(--text-secondary); line-height:1.6; margin-top:4px;}
+  .dd.plain{font-size:13px; color:var(--text-primary);}
   .dd b{color:var(--text-primary); font-weight:500;}
   .sec{margin-top:10px;}
   .lab{display:inline-block; font-size:11px; font-weight:500; color:var(--text-accent); text-transform:uppercase; letter-spacing:0.4px; margin-bottom:3px;}
+  .glo{font-weight:400; color:var(--text-muted); text-transform:none; letter-spacing:0;}
   .sec ul{margin:2px 0 0; padding-left:18px;}
   .sec li{font-size:12.5px; color:var(--text-secondary); line-height:1.6;}
   .ba{display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:12.5px; line-height:1.5;}
@@ -156,6 +178,24 @@
   .addg textarea, .addg input{width:100%; box-sizing:border-box; background:var(--surface-0); border:1px solid var(--border); border-radius:var(--radius); padding:10px 12px; font-size:13px; color:var(--text-primary); font-family:inherit;}
   .addg textarea{min-height:60px; resize:vertical;}
   .addg textarea:focus, .addg input:focus{outline:none; border-color:var(--border-accent);}
+  .eco{display:flex; flex-direction:column; gap:8px; margin-top:12px;}
+  .er{display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:12.5px; padding:8px 10px; background:var(--surface-0); border:1px solid var(--border); border-radius:10px;}
+  .ename{font-weight:500; min-width:170px;}
+  .ebadge{display:inline-flex; align-items:center; gap:4px; font-size:10.5px; padding:2px 8px; border-radius:20px; border:1px solid var(--border); background:var(--surface-2); color:var(--text-secondary);}
+  .ebadge.ew{color:var(--text-warning); border-color:var(--border-warning);}
+  .ebadge.ep{color:var(--text-muted);}
+  .ebadge.en{color:var(--text-accent); border-color:var(--border-accent);}
+  .emeta{flex:1; min-width:150px; color:var(--text-muted); font-size:11.5px;}
+  .edate{font-size:11px; color:var(--text-muted); display:inline-flex; align-items:center; gap:4px;}
+  .mini{font-size:11px; color:var(--text-accent); background:transparent; border:1px solid var(--border-accent); border-radius:6px; padding:2px 8px; cursor:pointer;}
+  .ms>summary{font-size:12.5px; cursor:pointer; list-style:none; display:flex; align-items:center; gap:8px; padding:4px 0;}
+  .ms>summary::-webkit-details-marker{display:none;}
+  .ms>summary::before{content:"▸ "; color:var(--text-muted);}
+  .ms[open]>summary::before{content:"▾ "; color:var(--text-muted);}
+  .msdone,.mstodo{font-size:11px; font-weight:500; padding:1px 7px; border-radius:20px;}
+  .msdone{background:var(--bg-success); color:var(--text-success);}
+  .mstodo{background:var(--surface-2); color:var(--text-secondary); border:1px solid var(--border);}
+  .mscount{font-size:11px; color:var(--text-muted); margin-left:auto;}
 </style>
 <script>
   document.querySelectorAll('.grp').forEach(function(g){

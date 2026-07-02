@@ -5,7 +5,7 @@ allowed-tools: Read Bash Grep Glob
 
 > Copyright © 2026 Luke SteelWolf — All Rights Reserved. See LICENSE.
 
-# EMPIRE START v1.4
+# EMPIRE START v1.5
 
 Apertura sessione Empire — Cowork, Code o Chat. Token-saving target: 3-5K read iniziale.
 
@@ -14,6 +14,7 @@ Apertura sessione Empire — Cowork, Code o Chat. Token-saving target: 3-5K read
 > v1.2 (S161 addendum): regole di pre-selezione deterministiche (PC/pull/numero/priorità) in §5-bis.
 > v1.3 (S164): §5-bis.1 formato priorità obbligatorio (descrizione Cosa/Perché/Output/Rischio + ordine consigliato + ordine workflow).
 > v1.4 (S164/A5): §5-bis.2 Enriched Visual View base ufficiale (card HTML custom pre-accesa + asset template + fallback testo).
+> v1.5 (S165): Ecosistema (hub-only) + checklist drill-down per milestone + chip Continuità/Parità-PC + commit data-ora forzata + lingua italiana binding.
 > Binding: LL-Empire-002 (PROTOCOLLO GO), LL-Empire-008 (verifica empirica), LL-Empire-023 (pull-first), LL-Empire-024 (sandbox stale), LL-Empire-050 (session boundary), LL-Empire-063 (bash-write hub).
 
 ---
@@ -200,7 +201,7 @@ parsate con flag, {{PRIORITIES}} dal carryover) → rendi con `show_widget`.
 - **Degradazione**: SESSION_LOG assente → `S1`; nessun commit → `—`; checklist assente → nascondi la tendina. Nessun errore per dato mancante.
 - **Timestamp OBBLIGATORI (con ORA)**: `{{DATE_TIME}}` = data+ora apertura sessione `YYYY-MM-DD · HH:MM TZ` (leggi l'ora reale via shell `date`). Ultimo commit in 3 campi separati `{{LAST_COMMIT_HASH}}` · `{{LAST_COMMIT_DATE}}` (`YYYY-MM-DD HH:MM`) · `{{LAST_COMMIT_MSG}}` (via `git log -1 --date=format:"%Y-%m-%d %H:%M" --format="%h|%ad|%s"`). La DATA/ORA non è mai omettibile.
 - **LINGUA: ITALIANO SEMPRE** — tutte le risposte, i preamboli e il ragionamento dell'istanza in italiano corretto (direttiva Luke). Vietato preambolo/narrazione in inglese.
-- **Sezioni obbligatorie**: header brandizzato (SW + N sessione) · meta (data/ora, branch/HEAD, ultimo commit, pull) · LL richiamate · PC+Pull pre-accese · Riferimenti rapidi · tendina Checklist&Roadmap (flag+barra) · priorità per workflow (L1 sempre + L2 Dettagli: Piano/Prima→Dopo/Serve·Dipende/Rischi·mitig/Verifica·DoD/Consiglio) · Prossimo passo consigliato · Note di sessione · +Nuova voce Checklist · +Nuova voce Roadmap · Cross-cutting/DIRTY · Conferma.
+- **Sezioni obbligatorie**: header brandizzato (SW + N sessione) · meta (**Apertura data+ora**, branch/HEAD, **Continuità S###→S###**, **Parità PC** PREDATOR↔ACE, ultimo commit `hash·data ora·msg`, pull) · LL richiamate · PC+Pull pre-accese · Riferimenti rapidi · **Ecosistema SteelWolf** (SOLO apertura hub/predator: progetti dal registry con badge stato RAG+testo + **data ultima modifica** = ultimo commit del repo `git log -1 --date=format:"%Y-%m-%d"`; ometti su sessione singolo-progetto) · tendina Checklist&Roadmap **a drill-down per milestone** (ogni milestone espandibile alle sue voci con flag outline; barra %) · priorità per workflow (L1 sempre, meta con **Tipo di lavoro** chip [Doc/Codice/Ricerca/Infra/Design/Governance] + Rischio/Stima/Stato/MoSCoW; L2 Dettagli: **In parole semplici** (discorsivo NON tecnico: cos'è l'upgrade, che funzioni/benefici porta) · poi i campi tecnici, OGNUNO con **chiosa in parole semplici** accanto al termine: Piano (·cosa si fa passo per passo) · Prima→Dopo (·com'è ora vs come sarà) · Serve·Dipende (·cosa serve prima) · **Dati richiesti** (·cosa serve chiederti/cercare in base al contesto) · **Analisi & consultazione** (·deep research Anthropic/GitHub/web ingegneristico+AI/dashboard/gestionale/pagamenti + confronto + Pre-Mortem, soluzione migliore per priorità/workflow nel rispetto di checklist+roadmap) · **Skill da usare** (·quali skill/plugin attivare in base al contesto: es. empire-research, empire-quality, data/build-dashboard, xlsx/docx, figma…) · Rischi·mitig (·cosa può andare storto e come si evita) · Come sarà completato (·quando è finito davvero) · Consiglio (·suggerimento)) · Prossimo passo consigliato · Note di sessione · +Nuova voce Checklist · +Nuova voce Roadmap · Cross-cutting/DIRTY · Conferma.
 - **Checklist vs Roadmap** (per le due nuove-voci): Roadmap = milestone/obiettivo strategico (cosa/quando); Checklist = task eseguibile spuntabile sotto una milestone (come/fatto?).
 - **Conferma** (`sendPrompt`): PC · Pull · Priorità (+ Note / Nuova checklist / Nuova roadmap se compilate). Alla ricezione, dopo GO, scrivi: Note→sessione, nuova voce→checklist/roadmap del progetto.
 
