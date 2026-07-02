@@ -18,6 +18,10 @@ Apertura sessione Empire — Cowork, Code o Chat. Token-saving target: 3-5K read
 
 ---
 
+## §0-lang — LINGUA (binding Luke)
+
+**Italiano SEMPRE**: risposte, preamboli e ragionamento in italiano corretto. Nessuna narrazione in inglese in nessuna fase.
+
 ## §0 — STEP 0: DICHIARA PC + PULL (apertura interattiva)
 
 **Prima di qualsiasi altra azione:**
@@ -192,6 +196,8 @@ parsate con flag, {{PRIORITIES}} dal carryover) → rendi con `show_widget`.
 - **Pre-acceso**: applica `sel` (pill PC/Pull) e `on` (prima .prio) al valore dedotto (§5-bis regole deterministiche) + marcatore "● dedotto".
 - **Flag checklist**: icone outline `ti-square-check` (verde=fatto) / `ti-square` (da fare). MAI `-filled` (non caricate → vuoto).
 - **Degradazione**: SESSION_LOG assente → `S1`; nessun commit → `—`; checklist assente → nascondi la tendina. Nessun errore per dato mancante.
+- **Timestamp OBBLIGATORI (con ORA)**: `{{DATE_TIME}}` = data+ora apertura sessione `YYYY-MM-DD · HH:MM TZ` (leggi l'ora reale via shell `date`). `{{LAST_COMMIT}}` = `<hash> · YYYY-MM-DD HH:MM · <messaggio>` (via `git log -1 --date=format:"%Y-%m-%d %H:%M" --format="%h · %ad · %s"`). Mai solo la data.
+- **LINGUA: ITALIANO SEMPRE** — tutte le risposte, i preamboli e il ragionamento dell'istanza in italiano corretto (direttiva Luke). Vietato preambolo/narrazione in inglese.
 - **Sezioni obbligatorie**: header brandizzato (SW + N sessione) · meta (data/ora, branch/HEAD, ultimo commit, pull) · LL richiamate · PC+Pull pre-accese · Riferimenti rapidi · tendina Checklist&Roadmap (flag+barra) · priorità per workflow (L1 sempre + L2 Dettagli: Piano/Prima→Dopo/Serve·Dipende/Rischi·mitig/Verifica·DoD/Consiglio) · Prossimo passo consigliato · Note di sessione · +Nuova voce Checklist · +Nuova voce Roadmap · Cross-cutting/DIRTY · Conferma.
 - **Checklist vs Roadmap** (per le due nuove-voci): Roadmap = milestone/obiettivo strategico (cosa/quando); Checklist = task eseguibile spuntabile sotto una milestone (come/fatto?).
 - **Conferma** (`sendPrompt`): PC · Pull · Priorità (+ Note / Nuova checklist / Nuova roadmap se compilate). Alla ricezione, dopo GO, scrivi: Note→sessione, nuova voce→checklist/roadmap del progetto.

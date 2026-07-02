@@ -4,6 +4,7 @@
  * Copyright (c) 2026 Luke SteelWolf - All Rights Reserved. */
 if (!require("./_swe-domain.js")()) process.exit(0);
 console.log(`=== STEELWOLF EMPIRE - SESSION OPEN ===
+LINGUA: rispondi e ragiona SEMPRE in italiano (risposte, preamboli, thinking). Mai inglese.
 Esegui l apertura standard SteelWolf. Non modificare alcun file prima del GO.
 
 STEP 0 - PC + PULL:

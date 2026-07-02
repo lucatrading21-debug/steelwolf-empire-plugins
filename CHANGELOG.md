@@ -7,6 +7,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
 
 ---
 
+## [1.7.6] — 2026-07-02
+
+### Fixed
+- **`swe` v1.5.6 — apertura: timestamp con ORA + lingua italiana (S165 collaudo)**: (1) la card d'apertura ora richiede DATA+ORA obbligatorie — `{{DATE_TIME}}` = `YYYY-MM-DD · HH:MM TZ` (via shell `date`), `{{LAST_COMMIT}}` = `<hash> · YYYY-MM-DD HH:MM · <messaggio>` (via `git log -1 --date=format`). Header etichetta "Apertura:". (2) Binding LINGUA ITALIANA in `start/SKILL.md` (§0-lang + §5-bis.2) e nell'hook `session-start.js`: risposte/preamboli/ragionamento sempre in italiano, mai inglese (fix preambolo EN emerso al collaudo S165).
+
+---
+
 ## [1.7.5] — 2026-07-02
 
 ### Added
