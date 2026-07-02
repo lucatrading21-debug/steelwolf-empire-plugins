@@ -7,6 +7,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
 
 ---
 
+## [1.7.7] — 2026-07-02
+
+### Fixed
+- **`swe` v1.5.7 — rimossa contraddizione che faceva improvvisare l'apertura (S165)**: §5-bis diceva ancora "Cowork: widget di conferma (modulo elicitation)", in conflitto con §5-bis.2 (Enriched Visual View asset). Alcune istanze in chat nuove seguivano la riga sbagliata e renderizzavano una card elicitation povera invece dell'asset ricco. Riconciliato: §5-bis ora rimanda a §5-bis.2 (rendi l'asset via `show_widget`), aggiunto divieto IMPERATIVO (no AskUserQuestion / no elicitation nativo / no card improvvisate / no priorità a testo) in SKILL e nell'hook `session-start.js`. Nessun file/asset rimosso — solo riconciliazione istruzioni.
+
+---
+
 ## [1.7.6] — 2026-07-02
 
 ### Fixed

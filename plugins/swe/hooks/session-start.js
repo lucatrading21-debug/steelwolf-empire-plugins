@@ -15,8 +15,10 @@ STEP 1 - DOC L0 (ordine SteelWolf):
 - CLAUDE.md hierarchy -> SESSION_LOG ultime ~20 righe -> LESSONS_LEARNED
   -> ROADMAP / EMPIRE_DASHBOARD.
 
-STEP 2 - APERTURA INTERATTIVA:
-- Conferma stato: PC . esito pull (fatto / da fare) . priorita sessione.
+STEP 2 - APERTURA INTERATTIVA (Enriched Visual View):
+- Rendi SEMPRE l asset skills/start/assets/opening-card.template.html via show_widget (SKILL start §5-bis.2), coi valori dedotti pre-accesi.
+- VIETATO AskUserQuestion / widget elicitation / card improvvisate. CLI/Chat: stesso contenuto in testo.
+- Conferma stato: PC . esito pull . priorita sessione.
 - Colpo d occhio: sintesi CHECKLIST + ROADMAP (o EMPIRE_DASHBOARD) del progetto attivo.
 - In Cowork: widget di conferma a runtime. In Claude Code CLI: stesso contenuto in testo.
 

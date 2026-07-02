@@ -142,14 +142,14 @@ Riassumi a Luke (max 10 righe):
 Dopo il briefing, presenta l'apertura interattiva:
 - **Conferma stato**: PC · esito `git pull` (fatto / da fare) · priorita sessione.
 - **Colpo d'occhio**: sintesi `CHECKLIST` + `ROADMAP` (o `EMPIRE_DASHBOARD`) del progetto attivo, letti a runtime.
-- **Pre-compilazione (preferenza Luke)**: compila TUTTI i campi con i valori dedotti dal contesto; Luke approva o corregge, non riempie da zero. NB: la `<textarea>` del widget elicitation non rende il prefill → presenta la bozza compilata anche come TESTO in chat.
+- **Pre-compilazione (preferenza Luke)**: compila TUTTI i campi con i valori dedotti dal contesto; Luke approva o corregge, non riempie da zero. Il rendering è la card §5-bis.2 (asset), coi valori dedotti già **pre-accesi**.
 - **Regole di pre-selezione DETERMINISTICHE** (stesso stato ⇒ stesso default tra istanze diverse):
   - **PC**: eredita il PC dell'ultima entry `SESSION_LOG` (fallback: chiedi).
   - **Pull**: default **`già aggiornati`** SOLO se l'ultima entry `SESSION_LOG` registra un push completato in pari data sullo stesso PC (closure appena avvenuta → repo allineati); **altrimenti `da verificare`**. Mai indovinare `da fare`/`già fatto` senza questa evidenza.
   - **Numero sessione**: ultima entry `SESSION_LOG` + 1 (mai riusare un numero già chiuso).
   - **Priorità**: eredita il carryover "Prossimo passo" dell'ultima entry; pre-selezionala. Ogni voce va presentata NON come solo titolo ma nel **formato descrittivo canonico** (vedi §5-bis.1): *Cosa · Perché · Output · Rischio* + **ordine consigliato** + **ordine workflow**.
-- **Cowork**: widget di conferma (modulo elicitation, generato a runtime dall'assistente).
-- **Claude Code CLI**: stesso contenuto in testo. Il widget cliccabile esiste solo in Cowork.
+- **Cowork**: rendi la card §5-bis.2 (Enriched Visual View, asset `opening-card.template.html`) via `show_widget`. **VIETATO** usare AskUserQuestion o widget elicitation nativo o card improvvisate.
+- **Claude Code CLI / Chat**: stesso contenuto in **testo strutturato** (fallback §5-bis.2). Il widget cliccabile esiste solo in Cowork.
 
 Il rendering ricco (checklist/roadmap) si costruisce leggendo i file a runtime: non duplicare quei dati qui.
 
@@ -182,6 +182,8 @@ sezione a parte "Cross-cutting", sempre presente.
 
 L'apertura si rende SEMPRE con la **Enriched Visual View** — card HTML custom via `show_widget`,
 base UNICA per ogni sessione e ogni progetto (e blueprint Nexus).
+
+**IMPERATIVO (no divergenza tra istanze):** l'unica apertura ammessa è rendere QUESTO asset. È VIETATO costruire card alternative, usare AskUserQuestion o il widget elicitation nativo, o elencare le priorità come semplice testo. Se l'asset non è leggibile → fallback TESTO strutturato (sotto), mai una card improvvisata.
 
 **Asset (non riscrivere da zero — token-saving):**
 - Template: `${CLAUDE_PLUGIN_ROOT}/skills/start/assets/opening-card.template.html`
