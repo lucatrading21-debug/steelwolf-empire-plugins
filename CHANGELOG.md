@@ -7,6 +7,18 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
 
 ---
 
+## [1.12.0] — 2026-07-03
+
+### Added
+- **swe 1.10.0 — Renderer deterministico opening card (S166 Fase 1).** NEW `plugins/swe/skills/start/assets/render-card.mjs` + `render-card.README.md`: script Node che legge `opening-card.template.html` (INVARIATO) + un modello JSON e produce l'HTML **identico** (scalari + espansione priorità/ecosistema/checklist con le STESSE classi/CSS + preselezione pill). Pattern UI-da-LLM: separazione ragionamento (modello JSON) ↔ rendering (template deterministico). Self-test: 0 placeholder residui, blocchi espansi. Elimina la card vuota/improvvisata e la divergenza tra scrivanie (delirio S166).
+- `start/SKILL.md` §5-bis.3: renderer come via PREFERITA (istanza costruisce il modello → `node render-card.mjs` → `show_widget`); §5-bis.2 resta descrizione+fallback. **Visual view invariata.**
+
+### Note
+- Fase 2 (prossima): renderer gemelli closing/handoff + priorità strutturate scritte alla chiusura + delega apertura BA a swe (rimuove override locale `.claude/`). Runtime-access `${CLAUDE_PLUGIN_ROOT}` da verificare in collaudo (fallback: copia in outputs/).
+- Marketplace `1.11.0`→`1.12.0`; plugin `swe` `1.9.0`→`1.10.0`.
+
+---
+
 ## [1.11.0] — 2026-07-03
 
 ### Added

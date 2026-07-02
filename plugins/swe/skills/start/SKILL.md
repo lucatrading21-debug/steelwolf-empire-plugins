@@ -219,6 +219,21 @@ note) e poi ATTENDI GO (LL-002). L'ecosistema resta coerente cross-tool (Cowork/
 **Chiusura simmetrica:** `end`/`cycle` riusano lo STESSO schema/asset con dati di chiusura
 (cosa fatto, commit generati, checklist aggiornata, handoff prossima sessione).
 
+### §5-bis.3 — RENDERER DETERMINISTICO (preferito, S166 Fase 1)
+
+Per eliminare l'improvvisazione (card vuota / diversa tra istanze o scrivanie — vedi delirio S166),
+la card si genera in modo **deterministico** con `render-card.mjs`. L'istanza NON disegna l'HTML a mano:
+
+1. Raccoglie lo stato (git, SESSION_LOG, roadmap, indice) e costruisce un **modello JSON** (shape in `${CLAUDE_PLUGIN_ROOT}/skills/start/assets/render-card.README.md`).
+2. Esegue `node ${CLAUDE_PLUGIN_ROOT}/skills/start/assets/render-card.mjs <model.json>` → HTML completo su stdout.
+   - **Fallback runtime**: se il bash della scrivania non raggiunge `${CLAUDE_PLUGIN_ROOT}`, copia `render-card.mjs` + `opening-card.template.html` in `outputs/` ed eseguilo lì.
+3. `show_widget(<HTML>)`.
+
+Il renderer riusa il template §5-bis.2 **INVARIATO** e le **stesse classi/CSS** → visual view **identica**,
+solo prodotta da dati (separazione ragionamento↔rendering; pattern collaudato UI-da-LLM, fonti design S166).
+Le priorità ragionate restano input dell'istanza (dentro il modello), ma incastrate in markup fisso.
+§5-bis.2 resta valido come **descrizione della card e fallback** se il renderer non è disponibile.
+
 ---
 
 ## §5-ter — PERSISTI SCHEDA APERTURA (SESSION_BRIEFINGS)
