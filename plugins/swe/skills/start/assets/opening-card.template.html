@@ -24,12 +24,14 @@
   <div style="height:1px; background:var(--border); margin:18px 0;"></div>
 
   <div style="display:flex; flex-direction:column; gap:16px;">
-    <div><div style="font-weight:500; margin-bottom:8px;">Da quale PC?</div>
+    <div><div style="font-weight:500; margin-bottom:4px;">Da quale PC?</div>
+      <div class="qglo"><b>In parole povere:</b> da quale computer stai lavorando (casa PREDATOR / ufficio ACE). Serve per il pull e per tenere i due PC allineati (parità).</div>
       <div class="grp" data-name="PC" style="display:flex; gap:10px; flex-wrap:wrap;">
         <button class="pill {{PC_PREDATOR_SEL}}" data-v="PREDATOR" type="button"><i class="ti ti-check chk"></i>PREDATOR (casa) <span class="ded">● dedotto</span></button>
         <button class="pill {{PC_ACE_SEL}}" data-v="ACE" type="button"><i class="ti ti-check chk"></i>ACE (ufficio)</button>
       </div></div>
-    <div><div style="font-weight:500; margin-bottom:8px;">Pull-first (hub + repo attivi)?</div>
+    <div><div style="font-weight:500; margin-bottom:4px;">Pull-first (hub + repo attivi)?</div>
+      <div class="qglo"><b>Termine tecnico:</b> pull-first (LL-Empire-023). <b>In parole povere:</b> scaricare le ultime modifiche da GitHub PRIMA di iniziare, così non lavori su versioni vecchie.</div>
       <div class="grp" data-name="Pull" style="display:flex; gap:10px; flex-wrap:wrap;">
         <button class="pill {{PULL_VER_SEL}}" data-v="Da verificare" type="button"><i class="ti ti-check chk"></i>Da verificare <span class="ded">● dedotto</span></button>
         <button class="pill {{PULL_OK_SEL}}" data-v="Fatto" type="button"><i class="ti ti-check chk"></i>Fatto, pulito</button>
@@ -132,6 +134,8 @@
   .pill.sel .chk{opacity:1; width:auto; margin-left:0;}
   .ded{font-size:10px; color:var(--text-muted); margin-left:4px;}
   .pill.sel .ded{color:var(--text-accent);}
+  .qglo{font-size:11.5px; color:var(--text-muted); line-height:1.55; margin-bottom:8px;}
+  .qglo b{color:var(--text-secondary); font-weight:500;}
   .cklist>summary{font-size:13px; font-weight:500; color:var(--text-primary); cursor:pointer; list-style:none;}
   .cklist>summary::-webkit-details-marker{display:none;}
   .cklist>summary::before{content:"▸ "; color:var(--text-accent);}

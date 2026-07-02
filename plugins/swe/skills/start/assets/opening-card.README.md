@@ -45,3 +45,8 @@ prossimo passo, note. Poi ATTENDI GO (LL-002).
 
 Il file `opening-card.template.html` contiene lo scheletro con `{{PLACEHOLDER}}`, CSS e JS statici,
 + un blocco priorità d'esempio ripetibile e le sezioni Note/nuove-voci.
+
+## Parole povere + tracciabilità (simmetria con closing card, S165)
+- Controlli (PC/Pull): glossa `.qglo` = termine tecnico + spiegazione senza gergo.
+- Priorità: `In parole semplici` (discorsivo) + `Analisi & consultazione` + `Skill da usare` = provenienza/come verrà fatta.
+- Principio condiviso con `end` (closing card): termine tecnico + parole povere + provenienza (skill/ricerca/fonte web con LINK reale, mai inventato — LL-Empire-011). Vedi `end/assets/closing-card.README.md`.

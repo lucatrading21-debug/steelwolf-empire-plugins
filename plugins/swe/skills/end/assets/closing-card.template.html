@@ -1,0 +1,237 @@
+<!-- SteelWolf Empire — Enriched Visual View · CHIUSURA (base ufficiale, gemella di start/opening-card). Clona e sostituisci {{...}}.
+     Pre-acceso: aggiungi class "sel" (pill PC/Tipo/Backup/Snapshot/Dashboard) al valore dedotto. Icone flag: ti-square-check (verde=fatto) / ti-square (da fare). MAI -filled.
+     TRACCIABILITÀ (binding S165): ogni voce "Cosa fatto" ha 3 livelli — termine tecnico (L1) + In parole povere + Cosa ho usato (skill/ricerca/fonte web+LINK reale, mai inventato) + Problemi trovati e risolti (L2). -->
+<div style="background:var(--surface-2); border:1px solid var(--border); border-radius:16px; padding:24px; max-width:780px;">
+  <div style="display:flex; align-items:center; gap:14px;">
+    <div style="flex:none; width:48px; height:48px; border-radius:12px; background:var(--text-accent); color:var(--surface-2); display:flex; align-items:center; justify-content:center; font-weight:500; font-size:19px; letter-spacing:0.5px;">SW</div>
+    <div style="flex:1;">
+      <div style="font-weight:500; font-size:20px; line-height:1.2;">SteelWolf Empire</div>
+      <div style="font-size:13px; color:var(--text-secondary); margin-top:2px;">Chiusura sessione · {{PROJECT_LABEL}} · {{PC}} · Tipo {{TIPO}}</div>
+    </div>
+    <div style="flex:none; text-align:right;">
+      <div style="font-size:22px; font-weight:500; color:var(--text-accent); line-height:1;">{{SESSION}}</div>
+      <div style="font-size:11px; color:var(--text-muted); margin-top:3px;">chiusura</div>
+    </div>
+  </div>
+  <div style="margin-top:14px; display:flex; flex-wrap:wrap; gap:6px 10px; font-size:11.5px;">
+    <span class="hchip"><i class="ti ti-calendar" aria-hidden="true"></i> Chiusura: {{DATE_TIME}}</span>
+    <span class="hchip"><i class="ti ti-git-branch" aria-hidden="true"></i> {{BRANCH_HEAD}}</span>
+    <span class="hchip"><i class="ti ti-arrow-right" aria-hidden="true"></i> Handoff: {{CONTINUITY}}</span>
+    <span class="hchip"><i class="ti ti-device-desktop" aria-hidden="true"></i> Parità: {{PC_PARITY}}</span>
+    <span class="hchip"><i class="ti ti-git-commit" aria-hidden="true"></i> ultimo commit: {{LAST_COMMIT_HASH}} · {{LAST_COMMIT_DATE}} · {{LAST_COMMIT_MSG}}</span>
+    <span class="hchip"><i class="ti ti-clock-hour-4" aria-hidden="true"></i> Durata: {{DURATION}} · File toccati: {{FILES_TOUCHED}}</span>
+  </div>
+  <div style="margin-top:10px; font-size:11px; color:var(--text-muted);"><b style="color:var(--text-secondary); font-weight:500;">LL richiamate:</b> {{LL_LIST}}</div>
+  <div style="height:1px; background:var(--border); margin:18px 0;"></div>
+
+  <div style="display:flex; flex-direction:column; gap:16px;">
+    <div><div style="font-weight:500; margin-bottom:8px;">Da quale PC?</div>
+      <div class="grp" data-name="PC" style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="pill {{PC_PREDATOR_SEL}}" data-v="PREDATOR" type="button"><i class="ti ti-check chk"></i>PREDATOR (casa) <span class="ded">● dedotto</span></button>
+        <button class="pill {{PC_ACE_SEL}}" data-v="ACE" type="button"><i class="ti ti-check chk"></i>ACE (ufficio)</button>
+      </div></div>
+    <div><div style="font-weight:500; margin-bottom:8px;">Tipo di sessione (lavoro svolto)</div>
+      <div class="qglo">In parole povere: che genere di lavoro hai fatto oggi. Serve a etichettare la sessione nel diario.</div>
+      <div class="grp" data-name="Tipo" style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="pill {{TIPO_A_SEL}}" data-v="A" type="button"><i class="ti ti-check chk"></i>A · architettura/governance/ricerca</button>
+        <button class="pill {{TIPO_B_SEL}}" data-v="B" type="button"><i class="ti ti-check chk"></i>B · sviluppo/docs/fix</button>
+        <button class="pill {{TIPO_C_SEL}}" data-v="C" type="button"><i class="ti ti-check chk"></i>C · operations</button>
+        <button class="pill {{TIPO_D_SEL}}" data-v="D" type="button"><i class="ti ti-check chk"></i>D · analisi/review</button>
+        <button class="pill {{TIPO_E_SEL}}" data-v="E" type="button"><i class="ti ti-check chk"></i>E · closure post-recovery</button>
+        <button class="pill {{TIPO_K_SEL}}" data-v="K" type="button"><i class="ti ti-check chk"></i>K · handoff cross-PC</button>
+      </div></div>
+    <div><div style="font-weight:500; margin-bottom:4px;">Backup V6 pre-destructive per la prossima sessione?</div>
+      <div class="qglo"><b>Termine tecnico:</b> V6 backup (ADR pre-destructive). <b>In parole povere:</b> copia di sicurezza completa prima di operazioni che cancellano o spostano file. Accendi "Sì" solo se la prossima sessione è rischiosa/irreversibile.</div>
+      <div class="grp" data-name="Backup" style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="pill {{BACKUP_NO_SEL}}" data-v="No" type="button"><i class="ti ti-check chk"></i>No · prossima non distruttiva</button>
+        <button class="pill {{BACKUP_YES_SEL}}" data-v="Sì" type="button"><i class="ti ti-check chk"></i>Sì · prossima filesystem-destructive</button>
+      </div></div>
+    <div><div style="font-weight:500; margin-bottom:4px;">Memory snapshot (ADR-005) per closure critica?</div>
+      <div class="qglo"><b>Termine tecnico:</b> memory snapshot ADR-005 (fallback 2). <b>In parole povere:</b> salva una fotografia della memoria di questa sessione in un file a parte, come rete di sicurezza per ritrovarla anche sull'altro PC. Serve solo per sessioni importanti.</div>
+      <div class="grp" data-name="Snapshot" style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="pill {{SNAP_NO_SEL}}" data-v="No" type="button"><i class="ti ti-check chk"></i>No</button>
+        <button class="pill {{SNAP_YES_SEL}}" data-v="Sì" type="button"><i class="ti ti-check chk"></i>Sì · in _memory-snapshot</button>
+      </div></div>
+    <div><div style="font-weight:500; margin-bottom:4px;">Aggiornare EMPIRE_DASHBOARD (status cambiato)?</div>
+      <div class="qglo"><b>Termine tecnico:</b> update EMPIRE_DASHBOARD.md. <b>In parole povere:</b> aggiorna il cruscotto generale che dice "a che punto siamo". Accendi "Sì" solo se cambia lo stato d'insieme del progetto.</div>
+      <div class="grp" data-name="Dashboard" style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="pill {{DASH_NO_SEL}}" data-v="No" type="button"><i class="ti ti-check chk"></i>No</button>
+        <button class="pill {{DASH_YES_SEL}}" data-v="Sì" type="button"><i class="ti ti-check chk"></i>Sì · header/status</button>
+      </div></div>
+  </div>
+
+  <div style="height:18px;"></div>
+  <div style="display:flex; flex-wrap:wrap; gap:8px;">
+    <span style="font-size:11px; color:var(--text-muted); align-self:center;">Riferimenti rapidi:</span>
+    <button class="ref" type="button" data-ask="Mostrami le ultime 20 righe del SESSION_LOG"><i class="ti ti-history"></i> Session log</button>
+    <button class="ref" type="button" data-ask="Mostrami la checklist del progetto attivo"><i class="ti ti-list-check"></i> Checklist</button>
+    <button class="ref" type="button" data-ask="Mostrami la roadmap del progetto attivo"><i class="ti ti-map-2"></i> Roadmap</button>
+    <button class="ref" type="button" data-ask="Mostrami EMPIRE_OPEN_ITEMS"><i class="ti ti-clipboard-list"></i> Open items</button>
+  </div>
+
+  <div style="height:1px; background:var(--border); margin:20px 0;"></div>
+
+  <!-- SINTESI D6: Obiettivo / Scoperto / Blocco attivo -->
+  <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:18px;">
+    <div style="padding:12px 14px; background:var(--surface-0); border:1px solid var(--border); border-radius:12px;">
+      <div class="d6lab"><i class="ti ti-target"></i> Obiettivo sessione <span class="d6glo">· cosa volevi ottenere</span></div>
+      <div class="d6val">{{OBIETTIVO}}</div>
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <div style="flex:1; min-width:220px; padding:12px 14px; background:var(--surface-0); border:1px solid var(--border); border-radius:12px;">
+        <div class="d6lab"><i class="ti ti-eye-search"></i> Scoperto <span class="d6glo">· cose imparate / candidate a "lezione"</span></div>
+        <div class="d6val">{{SCOPERTO}}</div>
+      </div>
+      <div style="flex:1; min-width:220px; padding:12px 14px; background:var(--surface-0); border:1px solid var(--border); border-radius:12px;">
+        <div class="d6lab"><i class="ti ti-hand-stop"></i> Blocco attivo <span class="d6glo">· cosa ti ferma, se qualcosa</span></div>
+        <div class="d6val">{{BLOCCO}}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COSA FATTO (Completato) — OGNI voce è TRACCIABILE: termine tecnico + parole povere + cosa usato (skill/ricerca/link) + problemi risolti -->
+  <details class="cklist" open><summary><i class="ti ti-checkup-list"></i> Cosa fatto — {{DONE_COUNT}} voci (apri per parole povere + tracciabilità)</summary>
+    <div class="ckcol" style="margin-top:12px;">
+      {{DONE_ITEMS}}
+      <!-- BLOCCO RIPETIBILE voce tracciabile:
+      <div class="dit">
+        <div class="ditbtn"><i class="ti ti-square-check"></i> <span class="dtitle">TITOLO TECNICO (es. asset closing-card.template.html)</span></div>
+        <details><summary>Dettagli · parole povere + tracciabilità</summary>
+          <div class="sec"><span class="lab">In parole povere</span><div class="dd">cosa fa, senza gergo.</div></div>
+          <div class="sec"><span class="lab">Cosa ho usato <span class="glo">· skill / ricerca / fonte web + LINK reale</span></span><div class="dd">es. skill <code>skill-creator</code> · asset opening-card (interno) · doc design <code>designs/S164_ENRICHED_VISUAL_VIEW.md</code> · fonte web <a href="https://URL">titolo</a>. Se nessuna fonte web: "asset interno, nessuna fonte esterna".</div></div>
+          <div class="sec"><span class="lab">Problemi trovati e risolti</span><div class="dd">problema → come risolto (+ rif LL/commit se c'è).</div></div>
+        </details>
+      </div> -->
+    </div>
+  </details>
+
+  <!-- COMMIT GENERATI (delega push Luke) -->
+  <details class="cklist"><summary><i class="ti ti-git-commit"></i> Commit generati — {{COMMIT_COUNT}} · push delegato Luke</summary>
+    <div class="ckcol" style="margin-top:12px;">
+      {{COMMITS}}
+      <!-- ripetibile: <div class="commit"><span class="hcode">hash</span> <span class="ctype">FEAT|FIX|DOCS</span> <span>messaggio</span></div> -->
+      <div style="font-size:11px; color:var(--text-muted); margin-top:6px;"><i class="ti ti-info-circle"></i> Push V1-parity e reinstall plugin restano lato Windows (LL-Empire-019/031).</div>
+    </div>
+  </details>
+
+  <!-- CHECKLIST AGGIORNATA (spunte di sessione) — nascondi se assente -->
+  <details class="cklist"><summary><i class="ti ti-list-check"></i> Checklist aggiornata — {{CK_DONE}}/{{CK_TOTAL}} ({{PROGRESS_PCT}}%) · +{{CK_NEW_DONE}} spuntate</summary>
+    <div style="height:8px; background:var(--surface-0); border-radius:6px; overflow:hidden; margin:12px 0 14px;"><div style="width:{{PROGRESS_PCT}}%; height:100%; background:var(--text-accent);"></div></div>
+    <div class="ckcol">
+      {{CHECKLIST_MILESTONES}}
+      <!-- Drill-down per milestone; voci spuntate in questa sessione: <div class="ck done new"><i class="ti ti-square-check"></i> voce (spuntata ora)</div> -->
+    </div>
+  </details>
+
+  <div style="height:22px;"></div>
+
+  <!-- DIRTY / propagazione D7 -->
+  <div style="padding:12px 14px; background:var(--surface-0); border:1px solid var(--border); border-radius:12px;">
+    <div style="font-weight:500; font-size:13px; margin-bottom:4px;"><i class="ti ti-alert-triangle" style="color:var(--text-warning)"></i> DIRTY — da propagare (D7) <span class="d6glo">· cosa resta da committare/pushare</span></div>
+    <div style="font-size:12.5px; color:var(--text-secondary); line-height:1.6;">{{DIRTY}}</div>
+  </div>
+
+  <!-- NUOVE LL emerse -->
+  <div style="margin-top:14px; padding:12px 14px; background:var(--surface-0); border:1px solid var(--border); border-radius:12px;">
+    <div style="font-weight:500; font-size:13px; margin-bottom:4px;"><i class="ti ti-bulb"></i> Nuove Lessons Learned <span class="d6glo">· regole imparate da formalizzare</span></div>
+    <div style="font-size:12.5px; color:var(--text-secondary); line-height:1.6;">{{NEW_LL}}</div>
+  </div>
+
+  <!-- ANTEPRIMA entry SESSION_LOG (D6) — testo letterale che verra' scritto -->
+  <details class="cklist" style="margin-top:16px;"><summary><i class="ti ti-file-text"></i> Anteprima entry SESSION_LOG (D6) — testo che verrà scritto</summary>
+    <pre class="d6pre">{{SESSION_LOG_PREVIEW}}</pre>
+    <div style="font-size:11px; color:var(--text-muted); margin-top:2px;"><i class="ti ti-info-circle"></i> Blocco letterale appeso al SESSION_LOG del progetto risolto (§0-ter). Approva prima della scrittura.</div>
+  </details>
+
+  <!-- GATE git clean reminder -->
+  <div style="margin-top:14px; padding:12px 14px; background:var(--bg-warning); border:1px solid var(--border-warning); border-radius:12px; font-size:12.5px; color:var(--text-warning);">
+    <i class="ti ti-lock"></i> <b>GATE LL-Empire-024:</b> working tree DEVE risultare <code>clean</code> su CMD Windows prima di dichiarare la sessione chiusa. <span style="opacity:0.85;">(In parole povere: prima di dire "chiuso", controlla che non resti nulla da salvare.)</span> Verifica con Luke.
+  </div>
+
+  <div style="margin-top:20px; padding:12px 14px; background:var(--bg-accent); border:1px solid var(--border-accent); border-radius:12px; font-size:13px; color:var(--text-accent);">
+    <i class="ti ti-arrow-right"></i> <b>Prossimo passo / handoff S{{NEXT_SESSION}}:</b> <span>{{NEXT_STEP}}</span>
+  </div>
+
+  <div style="height:1px; background:var(--border); margin:22px 0 18px;"></div>
+  <div class="addg"><div style="font-weight:500; margin-bottom:6px;"><i class="ti ti-note"></i> Note di chiusura</div>
+    <textarea id="note" placeholder="Decisioni finali, promemoria per la prossima…"></textarea></div>
+  <div class="addg"><div style="font-weight:500; margin:14px 0 6px;"><i class="ti ti-square-plus"></i> Nuova voce Checklist <span style="font-size:11px; color:var(--text-muted); font-weight:400;">(task eseguibile sotto una milestone)</span></div>
+    <input id="addck" type="text" placeholder="es. Mx.y — task"></div>
+  <div class="addg"><div style="font-weight:500; margin:14px 0 6px;"><i class="ti ti-map-pin-plus"></i> Nuova voce Roadmap <span style="font-size:11px; color:var(--text-muted); font-weight:400;">(milestone/obiettivo)</span></div>
+    <input id="addrm" type="text" placeholder="es. Mx — obiettivo strategico"></div>
+
+  <div style="margin-top:16px; font-size:11.5px; color:var(--text-muted);"><b>Cross-cutting:</b> {{CROSS_CUTTING}}</div>
+  <div style="display:flex; justify-content:flex-end; margin-top:14px;">
+    <button id="conf" type="button" style="background:var(--text-accent); color:var(--surface-2); border:none; border-radius:var(--radius); padding:10px 20px; font-weight:500; cursor:pointer;">Conferma chiusura</button>
+  </div>
+</div>
+<style>
+  .hchip{display:inline-flex; align-items:center; gap:5px; color:var(--text-secondary); background:var(--surface-0); border:1px solid var(--border); border-radius:20px; padding:3px 10px;}
+  .ref{display:inline-flex; align-items:center; gap:5px; font-size:12px; color:var(--text-secondary); background:var(--surface-0); border:1px solid var(--border); border-radius:var(--radius); padding:6px 11px; cursor:pointer;}
+  .ref:hover{border-color:var(--border-strong);}
+  .pill{display:inline-flex; align-items:center; gap:8px; background:var(--surface-0); color:var(--text-primary); border:1px solid var(--border); border-radius:var(--radius); padding:9px 14px; font-size:13.5px; cursor:pointer;}
+  .pill:hover{border-color:var(--border-strong);}
+  .pill .chk{font-size:15px; opacity:0; width:0; margin-left:-6px;}
+  .pill.sel{border:2px solid var(--text-accent); background:var(--bg-accent); color:var(--text-accent); padding:8px 13px;}
+  .pill.sel .chk{opacity:1; width:auto; margin-left:0;}
+  .ded{font-size:10px; color:var(--text-muted); margin-left:4px;}
+  .pill.sel .ded{color:var(--text-accent);}
+  .qglo{font-size:11.5px; color:var(--text-muted); line-height:1.55; margin-bottom:8px;}
+  .qglo b{color:var(--text-secondary); font-weight:500;}
+  .cklist>summary{font-size:13px; font-weight:500; color:var(--text-primary); cursor:pointer; list-style:none;}
+  .cklist>summary::-webkit-details-marker{display:none;}
+  .cklist>summary::before{content:"▸ "; color:var(--text-accent);}
+  .cklist[open]>summary::before{content:"▾ "; color:var(--text-accent);}
+  .ckcol{display:flex; flex-direction:column; gap:5px;}
+  .ck{font-size:12.5px; display:flex; align-items:flex-start; gap:7px; line-height:1.5; color:var(--text-secondary); padding-left:16px;}
+  .ck i{font-size:15px; flex:none; margin-top:1px;}
+  .ck.done i{color:var(--text-success);}
+  .ck.todo i{color:var(--text-muted);}
+  .ck.done.new{color:var(--text-primary);}
+  .hcode{font-family:var(--font-mono); font-size:11px; color:var(--text-muted); background:var(--surface-2); border:1px solid var(--border); border-radius:5px; padding:0 5px;}
+  .commit{font-size:12.5px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; line-height:1.5; color:var(--text-secondary); padding-left:16px;}
+  .ctype{font-size:10px; font-weight:500; color:var(--text-accent); border:1px solid var(--border-accent); border-radius:20px; padding:1px 7px;}
+  .dit{background:var(--surface-0); border:1px solid var(--border); border-radius:10px; padding:10px 12px;}
+  .ditbtn{display:flex; align-items:flex-start; gap:8px; font-size:12.5px; color:var(--text-primary); line-height:1.5;}
+  .ditbtn i{font-size:15px; flex:none; margin-top:1px; color:var(--text-success);}
+  .dtitle{font-weight:500;}
+  .dit>details{margin-top:8px;}
+  .dit>details>summary{font-size:11.5px; color:var(--text-accent); cursor:pointer; list-style:none;}
+  .dit>details>summary::-webkit-details-marker{display:none;}
+  .dit>details>summary::before{content:"▸ "; color:var(--text-accent);}
+  .dit>details[open]>summary::before{content:"▾ ";}
+  .sec{margin-top:8px;}
+  .lab{display:inline-block; font-size:10.5px; font-weight:500; color:var(--text-accent); text-transform:uppercase; letter-spacing:0.4px; margin-bottom:2px;}
+  .glo{font-weight:400; color:var(--text-muted); text-transform:none; letter-spacing:0;}
+  .dd{font-size:12px; color:var(--text-secondary); line-height:1.6;}
+  .dd code{font-family:var(--font-mono); font-size:11px; background:var(--surface-2); border:1px solid var(--border); border-radius:5px; padding:0 5px;}
+  .dd a{color:var(--text-accent);}
+  .addg textarea, .addg input{width:100%; box-sizing:border-box; background:var(--surface-0); border:1px solid var(--border); border-radius:var(--radius); padding:10px 12px; font-size:13px; color:var(--text-primary); font-family:inherit;}
+  .addg textarea{min-height:60px; resize:vertical;}
+  .addg textarea:focus, .addg input:focus{outline:none; border-color:var(--border-accent);}
+  .ms>summary{font-size:12.5px; cursor:pointer; list-style:none; display:flex; align-items:center; gap:8px; padding:4px 0;}
+  .ms>summary::-webkit-details-marker{display:none;}
+  .ms>summary::before{content:"▸ "; color:var(--text-muted);}
+  .ms[open]>summary::before{content:"▾ "; color:var(--text-muted);}
+  .msdone,.mstodo{font-size:11px; font-weight:500; padding:1px 7px; border-radius:20px;}
+  .msdone{background:var(--bg-success); color:var(--text-success);}
+  .mstodo{background:var(--surface-2); color:var(--text-secondary); border:1px solid var(--border);}
+  .mscount{font-size:11px; color:var(--text-muted); margin-left:auto;}
+  .d6lab{font-size:11px; font-weight:500; color:var(--text-accent); text-transform:uppercase; letter-spacing:0.4px; margin-bottom:3px; display:flex; align-items:center; gap:5px;}
+  .d6glo{font-weight:400; color:var(--text-muted); text-transform:none; letter-spacing:0;}
+  .d6val{font-size:12.5px; color:var(--text-secondary); line-height:1.6;}
+  .d6pre{white-space:pre-wrap; font-family:var(--font-mono); font-size:11.5px; color:var(--text-secondary); background:var(--surface-0); border:1px solid var(--border); border-radius:10px; padding:12px 14px; margin:12px 0 6px; overflow-x:auto; line-height:1.55;}
+</style>
+<script>
+  document.querySelectorAll('.grp').forEach(function(g){
+    g.querySelectorAll('.pill').forEach(function(b){b.addEventListener('click',function(){g.querySelectorAll('.pill').forEach(function(x){x.classList.remove('sel');});b.classList.add('sel');});});
+  });
+  document.querySelectorAll('.ref[data-ask]').forEach(function(r){r.addEventListener('click',function(){sendPrompt(r.getAttribute('data-ask'));});});
+  function pick(s){var e=document.querySelector(s+' .sel');return e?e.getAttribute('data-v'):'—';}
+  document.getElementById('conf').addEventListener('click',function(){
+    var parts=['PC: '+pick('[data-name="PC"]'),'Tipo: '+pick('[data-name="Tipo"]'),'Backup V6: '+pick('[data-name="Backup"]'),'Memory snapshot: '+pick('[data-name="Snapshot"]'),'Dashboard: '+pick('[data-name="Dashboard"]')];
+    var n=document.getElementById('note').value.trim(), c=document.getElementById('addck').value.trim(), r=document.getElementById('addrm').value.trim();
+    if(n)parts.push('Note: '+n); if(c)parts.push('Nuova checklist: '+c); if(r)parts.push('Nuova roadmap: '+r);
+    sendPrompt('Conferma chiusura {{SESSION}} — '+parts.join(' · '));
+  });
+</script>

@@ -5,13 +5,14 @@ allowed-tools: Read Edit Write Bash Grep Glob
 
 > Copyright © 2026 Luke SteelWolf — All Rights Reserved. See LICENSE.
 
-# EMPIRE CYCLE v1.1
+# EMPIRE CYCLE v1.2
 
 Ciclo end+handoff Empire — chiude e prepara la riapertura in **chat nuova**.
 Composizione delle skill `end` e `start`: non duplica la loro logica, le orchestra
 con un gate di sicurezza in mezzo e il confine di sessione LL-Empire-050 rispettato.
 
 > Creata 2026-07-01 (S160). v1.1 (S161): FASE 2 = handoff (non apertura in-chat), fix LL-Empire-050.
+> v1.2 (S165): FASE 1 usa la Enriched Visual View di CHIUSURA (`end` §0-bis.2, asset `closing-card`) — non piu' widget elicitation nativo.
 > Binding: LL-Empire-002 (GO), LL-Empire-018 (atomic commit), LL-Empire-019 (V1 parity), LL-Empire-023 (pull-first), LL-Empire-024 (sandbox stale → CMD Windows autoritativo), LL-Empire-050 (session boundary = nuova chat per ogni Sn).
 
 ---
@@ -28,7 +29,7 @@ con un gate di sicurezza in mezzo e il confine di sessione LL-Empire-050 rispett
 ## §1 — FASE 1: CHIUSURA (skill `end`)
 
 Esegui l'intera skill `end` (protocollo D6):
-1. §0-bis chiusura interattiva — raccolta dati D6 (widget Cowork / testo CLI).
+1. §0-bis chiusura interattiva — raccolta dati D6 con **Enriched Visual View di chiusura** (`end` §0-bis.2, asset `closing-card` via `show_widget` in Cowork / testo strutturato in CLI).
 2. Update SESSION_LOG + LESSONS_LEARNED (se LL nuove) + EMPIRE_DASHBOARD (se status cambiato) + memory snapshot.
 3. Commit atomic LL-Empire-018 (file specifici, MAI `git add -A`).
 4. **GATE LL-Empire-024:** `git status` clean su **CMD Windows**.
@@ -77,7 +78,7 @@ In questa chat il ciclo si limita a chiudere + handoff. Default = WAIT.
 
 - **Un comando, due skill**: `cycle` non reimplementa `end`/`start`, le richiama (FASE 1 = `end` intera; FASE 2 = solo la persistenza-briefing di `start` + handoff). I bugfix a quelle skill si propagano.
 - **Perché handoff e non apertura**: LL-Empire-050. La riapertura in-chat violerebbe il confine di sessione e confonderebbe i contesti.
-- **Cowork vs CLI**: chiusura interattiva usa widget elicitation in Cowork; in CLI stesso contenuto in testo.
+- **Cowork vs CLI**: chiusura interattiva usa la Enriched Visual View (`closing-card`, card HTML custom via `show_widget`) in Cowork; in CLI stesso contenuto in testo strutturato (fallback). MAI AskUserQuestion / elicitation nativo (prefill non si accende, S161).
 - **Delega Luke**: commit atomici, push V1-parity e reinstall plugin restano lato Windows (LL-Empire-019/031).
 - **Handoff Tipo D/K**: se cross-PC, `end` §7 governa titolo handoff + snapshot obbligatorio; lo snapshot `S<n+1>_OPEN.md` indica il PC di destinazione.
 

@@ -1,17 +1,24 @@
 ---
-description: "Chiusura sessione Empire SteelWolf protocollo D6. Step 0 chiusura interattiva (widget elicitation Cowork / testo CLI) raccoglie i dati D6 in un colpo. Poi update SESSION_LOG (5 righe + DIRTY + Timestamp) + LESSONS_LEARNED se nuove LL emerse + EMPIRE_DASHBOARD se status cambiato + commit FEAT/FIX/DOCS atomic (LL-Empire-018, no git add -A). GATE binding: git status DEVE essere clean su CMD Windows prima di dichiarare sessione chiusa (LL-Empire-024). NO push automatico (delegato Luke V1 parity verify). Trigger: /swe:end."
+description: "Chiusura sessione Empire SteelWolf protocollo D6. Step 0 chiusura interattiva con Enriched Visual View (card HTML custom via show_widget in Cowork / testo strutturato in CLI) raccoglie i dati D6 in un colpo. Poi update SESSION_LOG (5 righe + DIRTY + Timestamp) + LESSONS_LEARNED se nuove LL emerse + EMPIRE_DASHBOARD se status cambiato + commit FEAT/FIX/DOCS atomic (LL-Empire-018, no git add -A). GATE binding: git status DEVE essere clean su CMD Windows prima di dichiarare sessione chiusa (LL-Empire-024). NO push automatico (delegato Luke V1 parity verify). Trigger: /swe:end."
 allowed-tools: Read Edit Write Bash Grep
 ---
 
 > Copyright © 2026 Luke SteelWolf — All Rights Reserved. See LICENSE.
 
-# EMPIRE END v1.1
+# EMPIRE END v1.2
 
 Chiusura sessione Empire — protocollo D6. Massimo 7 righe output finale.
 
 > Creata 2026-04-26 in `hub/steelwolf-empire-hub/.claude/skills/`. Split da empire-session §4 (deprecato).
 > v1.1 (S160): aggiunta §0-bis chiusura interattiva simmetrica all'apertura `/swe:start`.
-> Binding: LL-Empire-018 (atomic commit), LL-Empire-019 (V1 parity), LL-Empire-021 (mai checkout --ours/--theirs su append-only), LL-Empire-024 (sandbox stale → CMD Windows autoritativo).
+> v1.2 (S165): §0-bis.2 Enriched Visual View di CHIUSURA base ufficiale (asset `closing-card.template.html`, gemella dell'opening) — sostituisce il widget elicitation nativo; + §0-lang lingua italiana binding.
+> Binding: LL-Empire-002 (GO), LL-Empire-018 (atomic commit), LL-Empire-019 (V1 parity), LL-Empire-021 (mai checkout --ours/--theirs su append-only), LL-Empire-024 (sandbox stale → CMD Windows autoritativo), LL-Empire-050 (session boundary), LL-Empire-063 (bash-write hub).
+
+---
+
+## §0-lang — LINGUA (binding Luke)
+
+**Italiano SEMPRE**: risposte, preamboli e ragionamento in italiano corretto. Nessuna narrazione in inglese in nessuna fase.
 
 ---
 
@@ -22,16 +29,46 @@ Simmetrica all'apertura interattiva di `/swe:start` (§5-bis). **Prima di scrive
 - **PC attivo**: PREDATOR / ACE.
 - **Tipo sessione** (tabella canonica §1): A=architettura/governance/ricerca · B=sviluppo/docs/fix · C=operations · D=analisi · E=closure post-recovery · K=TIER/handoff cross-PC. (Se `/swe:end $1` passa un tipo, pre-selezionalo.)
 - **Obiettivo** della sessione + **Completato** (con commit/hash reali dove disponibili).
+- **Scoperto** (candidati-LL / pattern, distinto dalle LL formali) + **Blocco attivo** (D6).
+- **Commit generati** in sessione (hash · tipo · messaggio) — push delegato Luke.
+- **Checklist aggiornata**: voci spuntate nella sessione (drill-down per milestone).
 - **DIRTY** da propagare (D7)? Cosa resta pending Luke-side.
 - Nuove **LL** emerse da formalizzare? (indice + body LESSONS_LEARNED).
-- **Prossimo passo** / carryover per la sessione successiva.
-- **Backup V6** pre-destructive necessario (prossima sessione filesystem-destructive)?
+- **Prossimo passo** / carryover per la sessione successiva (handoff S<n+1>).
+- **Durata** sessione (indicativa) + **file toccati** (conteggio da `git diff --stat`/status dei repo interessati).
+- **Backup V6** pre-destructive necessario (prossima sessione filesystem-destructive)? · **Memory snapshot** ADR-005 (closure critica)? · **Aggiorna EMPIRE_DASHBOARD** (status cambiato)?
 
-Rendering:
-- **Cowork**: widget di conferma (modulo elicitation, generato a runtime dall'assistente — pill per PC/tipo, free-text per obiettivo/completato/prossimo, toggle per DIRTY/LL/backup).
-- **Claude Code CLI**: stesse domande in testo. Il widget cliccabile esiste solo in Cowork.
+Il rendering è la **Enriched Visual View di chiusura** (§0-bis.2). I valori raccolti alimentano direttamente §1 (SESSION_LOG/LESSONS/DASHBOARD) e §5 (backup). Non duplicare qui i contenuti: si compilano a runtime dalle risposte. Conferma con Luke prima di scrivere (LL-Empire-002).
 
-I valori raccolti alimentano direttamente §1 (SESSION_LOG/LESSONS/DASHBOARD) e §5 (backup). Non duplicare qui i contenuti: si compilano a runtime dalle risposte. Conferma con Luke prima di scrivere (LL-Empire-002).
+### §0-bis.2 — ENRICHED VISUAL VIEW · CHIUSURA (base ufficiale, BINDING S165)
+
+La chiusura interattiva si rende SEMPRE con la **Enriched Visual View** — card HTML custom via `show_widget`, gemella della card d'apertura (`start` §5-bis.2). È lo STESSO schema con dati di CHIUSURA (cosa fatto, commit generati, checklist aggiornata, DIRTY, nuove LL, handoff prossima sessione).
+
+**IMPERATIVO (no divergenza tra istanze):** l'unica chiusura interattiva ammessa è rendere QUESTO asset. È VIETATO costruire card alternative, usare AskUserQuestion o il widget elicitation nativo, o elencare i dati D6 come semplice testo (in Cowork). Se l'asset non è leggibile → fallback TESTO strutturato (sotto), mai una card improvvisata.
+
+**Asset (non riscrivere da zero — token-saving):**
+- Template: `${CLAUDE_PLUGIN_ROOT}/skills/end/assets/closing-card.template.html`
+- Regole+placeholder+schema: `${CLAUDE_PLUGIN_ROOT}/skills/end/assets/closing-card.README.md`
+
+**Procedura:** clona il template → sostituisci i `{{PLACEHOLDER}}` coi dati del progetto risolto
+(§0-ter: {{SESSION}} {{DATE_TIME}} {{BRANCH_HEAD}} {{LAST_COMMIT_*}} {{DONE_ITEMS}} {{COMMITS}}
+checklist/roadmap parsate con flag, {{DIRTY}} {{NEW_LL}} {{NEXT_STEP}}) → rendi con `show_widget`.
+
+**Vincoli BINDING (speculari a start §5-bis.2):**
+- **Mai** AskUserQuestion o widget elicitation nativo per la chiusura (prefill non si accende, S161).
+- **Pre-acceso**: applica `sel` a PC (ultima entry SESSION_LOG), Tipo sessione (dedotto dal lavoro svolto) e Backup V6 (default `No`; `Sì` solo se la prossima è filesystem-destructive) + marcatore "● dedotto".
+- **Flag checklist**: icone outline `ti-square-check` (verde=fatto) / `ti-square` (da fare). MAI `-filled`. Voci spuntate NELLA sessione: classe `.new`.
+- **TRACCIABILITÀ (binding S165)**: ogni voce **Cosa fatto** e i toggle/campi portano 3 livelli — (1) **termine tecnico**, (2) **in parole povere** (senza gergo), (3) **provenienza**: cosa ho usato (skill / ricerca / fonte web con **LINK REALE**, mai inventato — LL-Empire-011; se nessuna fonte esterna → "asset interno, nessuna fonte esterna") + **problemi trovati e risolti** (+rif LL/commit). Toggle e campi D6 hanno la glossa in parole povere; ogni voce `Cosa fatto` è un `.dit` con `<details>` a 3 sezioni.
+- **Timestamp OBBLIGATORI (con ORA)**: `{{DATE_TIME}}` = data+ora chiusura `YYYY-MM-DD · HH:MM TZ` (leggi l'ora reale via shell `date`). Ultimo commit in 3 campi separati (`git log -1 --date=format:"%Y-%m-%d %H:%M" --format="%h|%ad|%s"`).
+- **Degradazione**: nessun commit ancora → `—`; checklist assente → nascondi la tendina; nessuna LL nuova → "nessuna". Nessun errore per dato mancante.
+- **LINGUA: ITALIANO SEMPRE**.
+- **Sezioni obbligatorie**: header (SW + N sessione + "chiusura") · meta (data+ora chiusura, branch/HEAD, **Handoff S###→S###**, **Parità PC**, ultimo commit `hash·data ora·msg`, **Durata · File toccati**) · LL richiamate · PC + Tipo + Backup V6 + **Memory snapshot (ADR-005)** + **Aggiorna EMPIRE_DASHBOARD** (pill pre-accese) · Riferimenti rapidi · **Sintesi D6** (Obiettivo · Scoperto/candidati-LL · Blocco attivo) · **Cosa fatto** (voci + hash) · **Commit generati** (hash·tipo·msg, push delegato Luke) · **Checklist aggiornata** drill-down per milestone (voci `.new` per le spunte di sessione, barra %) · **DIRTY** (D7) · **Nuove LL** · **Anteprima entry SESSION_LOG (D6)** (pre WYSIWYG del testo che verrà scritto, approva prima) · **GATE git clean** (LL-024) · **Prossimo passo / handoff S(n+1)** · Note di chiusura · +Nuova voce Checklist · +Nuova voce Roadmap · Cross-cutting · Conferma.
+- **Conferma** (`sendPrompt`): PC · Tipo · Backup V6 · Memory snapshot · Dashboard (+ Note / Nuova checklist / Nuova roadmap se compilate). Alla ricezione, dopo conferma Luke, procedi a §1 (scrittura file) e §2-§6.
+
+**Fallback testo (Code CLI / Chat, no `show_widget`):** rendi le STESSE informazioni in testo
+strutturato (header sessione/PC/Tipo/data-ora/commit, Cosa fatto con hash, Commit generati,
+Checklist con [x]/[ ] e nuove spunte, DIRTY, Nuove LL, prossimo passo/handoff) e poi attendi
+conferma D6 + GATE git clean (LL-002/024). L'esperienza resta coerente cross-tool.
 
 ---
 
@@ -87,6 +124,8 @@ Timestamp: YYYY-MM-DD sessione <env> Tipo X ~HH:MM CEST.
 ---
 
 ## §2 — STEP 2: COMMIT ATOMIC (LL-Empire-018 binding)
+
+**BINDING (S165):** al termine, `end` EMETTE AUTOMATICAMENTE il blocco commit **pronto-incolla** coi **file REALI toccati** (calcolati da `git status`/`git diff --stat`), **un blocco per ogni repo interessato** (hub e/o repo di progetto e/o plugin). NON un template generico: i path sono quelli effettivamente modificati nella sessione. Luke esegue il commit e **pusha lui** (V1 parity, §3). Il blocco va in chat come CMD copia-incolla (mai "apri il file e segui").
 
 ```cmd
 cd /d %USERPROFILE%\SteelWolf_Empire\hub\steelwolf-empire-hub
@@ -173,16 +212,18 @@ Se closure e' handoff PREDATOR ↔ ACE (Tipo K; D solo se e' anche una sessione 
 ## §8 — CICLO END+START
 
 Per chiudere e riaprire in un colpo (nuova sessione consecutiva) usa `/swe:cycle`
-(skill `cycle`): esegue questa chiusura D6 completa (incl. GATE git clean) e — solo a
-closure confermata — avvia l'apertura interattiva di `/swe:start`.
+(skill `cycle`): esegue questa chiusura D6 completa (incl. §0-bis.2 Enriched Visual View +
+GATE git clean) e — solo a closure confermata — PREPARA l'apertura interattiva di `/swe:start`
+in una CHAT NUOVA (handoff, LL-050).
 
 ---
 
 ## RIFERIMENTI
 
 - Workflow completo: `hub/SESSION_PROTOCOL.md` §6
-- Apertura: skill `start`
+- Apertura: skill `start` (§5-bis.2 opening-card, schema gemello)
 - Ciclo end+start: skill `cycle`
 - Compact mid-session: skill `compact`
-- LL critiche binding: 002, 008, 011, 018, 019, 021, 023, 024
+- Asset chiusura: `skills/end/assets/closing-card.template.html` + `closing-card.README.md`
+- LL critiche binding: 002, 008, 011, 018, 019, 021, 024, 050, 063
 - ADR-005 cross-PC memory strategy

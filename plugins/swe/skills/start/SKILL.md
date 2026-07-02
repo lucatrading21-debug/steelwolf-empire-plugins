@@ -5,7 +5,7 @@ allowed-tools: Read Bash Grep Glob
 
 > Copyright © 2026 Luke SteelWolf — All Rights Reserved. See LICENSE.
 
-# EMPIRE START v1.5
+# EMPIRE START v1.6
 
 Apertura sessione Empire — Cowork, Code o Chat. Token-saving target: 3-5K read iniziale.
 
@@ -15,6 +15,7 @@ Apertura sessione Empire — Cowork, Code o Chat. Token-saving target: 3-5K read
 > v1.3 (S164): §5-bis.1 formato priorità obbligatorio (descrizione Cosa/Perché/Output/Rischio + ordine consigliato + ordine workflow).
 > v1.4 (S164/A5): §5-bis.2 Enriched Visual View base ufficiale (card HTML custom pre-accesa + asset template + fallback testo).
 > v1.5 (S165): Ecosistema (hub-only) + checklist drill-down per milestone + chip Continuità/Parità-PC + commit data-ora forzata + lingua italiana binding.
+> v1.6 (S165): simmetria con `end` — glosse "in parole povere" (`.qglo`) su PC/Pull + principio tracciabilità (termine tecnico + parole povere + provenienza) condiviso con la closing card.
 > Binding: LL-Empire-002 (PROTOCOLLO GO), LL-Empire-008 (verifica empirica), LL-Empire-023 (pull-first), LL-Empire-024 (sandbox stale), LL-Empire-050 (session boundary), LL-Empire-063 (bash-write hub).
 
 ---
@@ -198,6 +199,7 @@ parsate con flag, {{PRIORITIES}} dal carryover) → rendi con `show_widget`.
 - **Mai** AskUserQuestion o widget elicitation nativo per l'apertura (prefill non si accende, S161).
 - **Pre-acceso**: applica `sel` (pill PC/Pull) e `on` (prima .prio) al valore dedotto (§5-bis regole deterministiche) + marcatore "● dedotto".
 - **Flag checklist**: icone outline `ti-square-check` (verde=fatto) / `ti-square` (da fare). MAI `-filled` (non caricate → vuoto).
+- **PAROLE POVERE + TRACCIABILITÀ (simmetria con `end`, S165)**: i controlli (PC/Pull) portano una glossa `.qglo` (termine tecnico + spiegazione senza gergo); ogni priorità ha già `In parole semplici` + `Analisi & consultazione` + `Skill da usare` (= provenienza/come la farò). Stesso principio della closing card: termine tecnico + parole povere + provenienza (skill/ricerca/fonte con **LINK REALE**, mai inventato — LL-Empire-011).
 - **Degradazione**: SESSION_LOG assente → `S1`; nessun commit → `—`; checklist assente → nascondi la tendina. Nessun errore per dato mancante.
 - **Timestamp OBBLIGATORI (con ORA)**: `{{DATE_TIME}}` = data+ora apertura sessione `YYYY-MM-DD · HH:MM TZ` (leggi l'ora reale via shell `date`). Ultimo commit in 3 campi separati `{{LAST_COMMIT_HASH}}` · `{{LAST_COMMIT_DATE}}` (`YYYY-MM-DD HH:MM`) · `{{LAST_COMMIT_MSG}}` (via `git log -1 --date=format:"%Y-%m-%d %H:%M" --format="%h|%ad|%s"`). La DATA/ORA non è mai omettibile.
 - **LINGUA: ITALIANO SEMPRE** — tutte le risposte, i preamboli e il ragionamento dell'istanza in italiano corretto (direttiva Luke). Vietato preambolo/narrazione in inglese.

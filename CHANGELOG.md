@@ -7,6 +7,26 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
 
 ---
 
+## [1.9.0] — 2026-07-02
+
+### Added
+- **swe 1.7.0 — Enriched Visual View di CHIUSURA (End & Cycle).** Simmetria apertura/chiusura: la chiusura interattiva (`/swe:end`, `/swe:cycle` FASE 1) si rende ora con una card HTML custom gemella dell'opening-card, via `show_widget`.
+  - NEW asset `plugins/swe/skills/end/assets/closing-card.template.html` + `closing-card.README.md`: header brandizzato, meta (data+ora chiusura · branch/HEAD · Handoff S→S · Parità PC · ultimo commit), **Sintesi D6** (Obiettivo · Scoperto/candidati-LL · Blocco attivo), PC/Tipo/Backup-V6 + **Memory snapshot (ADR-005)** + **Aggiorna EMPIRE_DASHBOARD** pre-accesi, Cosa fatto (voci+hash), Commit generati (push delegato Luke), Checklist aggiornata drill-down (spunte di sessione `.new`, barra %), DIRTY (D7), Nuove LL, **Anteprima entry SESSION_LOG (D6)** (pre WYSIWYG del testo che verrà scritto), GATE git clean (LL-024), handoff S(n+1), Note + nuove voci checklist/roadmap, Conferma via `sendPrompt`.
+
+### Added
+- **Simmetria apertura↔chiusura + durata/file (S165).** Opening card (start v1.6): glosse `.qglo` "in parole povere" su PC/Pull + principio tracciabilità condiviso. Closing card: chip `Durata · File toccati` nel meta. `end` §2 reso BINDING: emette automaticamente il blocco commit pronto-incolla coi file reali toccati per repo (push delegato Luke).
+- **Strato tracciabilità (S165).** Ogni voce `Cosa fatto` e i toggle/campi della closing card portano 3 livelli: termine tecnico + in parole povere + provenienza (skill/ricerca/fonte web con LINK reale, mai inventato — LL-Empire-011; se assente "asset interno") + problemi trovati e risolti. Glosse `.qglo`/`.d6glo` su toggle (Backup/Snapshot/Dashboard) e campi D6; voci `Cosa fatto` come `.dit` con `<details>` a 3 sezioni.
+
+### Changed
+- `plugins/swe/skills/end/SKILL.md` v1.1→v1.2: §0-bis.2 Enriched Visual View di chiusura BINDING (sostituisce il widget elicitation nativo); + §0-lang lingua italiana; degradazione dati mancanti; fallback testo CLI.
+- `plugins/swe/skills/cycle/SKILL.md` v1.1→v1.2: FASE 1 e §5 puntano alla closing card (no AskUserQuestion / elicitation nativo).
+- Marketplace `1.8.6`→`1.9.0`; plugin `swe` `1.6.6`→`1.7.0`.
+
+### Rationale
+- Chiude il carryover FOCUS S165: portare la Enriched Visual View (base S164) anche alla chiusura, per simmetria apertura↔chiusura e zero perdita di contesto nel passaggio di consegne. Il widget elicitation nativo non accende il prefill (S161) → card HTML custom obbligatoria.
+
+---
+
 ## [1.8.6] — 2026-07-02
 
 ### Added
