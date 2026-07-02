@@ -7,6 +7,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
 
 ---
 
+## [1.10.0] — 2026-07-02
+
+### Added
+- **swe 1.8.0 — Handoff card (Cycle FASE 2).** Terza card della famiglia (apertura/chiusura/handoff). Ponte S(n)→S(n+1): recap sessione chiusa + comando `/swe:start` da lanciare in CHAT NUOVA (SOLO testo, LL-050) + preview S(n+1) (PC/pull/priorità/carryover dallo snapshot `S(n+1)_OPEN.md`).
+  - NEW asset `plugins/swe/skills/cycle/assets/handoff-card.template.html` + `handoff-card.README.md`, **ricco come opening-card**: meta con data+ora ciclo/branch/HEAD/ultimo commit/Continuità/Parità PC + LL richiamate; sezione **Cosa si è fatto in S(n)** e **Cosa si farà in S(n+1)** con **priorità a Dettagli-tendina identici all'opening-card** (L2 a 10 campi: In parole semplici · Piano · Prima→Dopo · Serve/Dipende · Dati richiesti · Analisi&consultazione/ricerche+link · Skill da usare · Rischi · DoD · Consiglio); **Checklist & Roadmap** drill-down per milestone (barra %, voci `.new`); glosse in parole povere.
+- `plugins/swe/skills/cycle/SKILL.md` v1.2→v1.3: §3 FASE 2 rende la handoff card (BINDING LL-050: comando solo testo, mai `sendPrompt` di avvio in-chat); fallback testo Code CLI.
+- Marketplace `1.9.0`→`1.10.0`; plugin `swe` `1.7.0`→`1.8.0`.
+
+---
+
 ## [1.9.0] — 2026-07-02
 
 ### Added

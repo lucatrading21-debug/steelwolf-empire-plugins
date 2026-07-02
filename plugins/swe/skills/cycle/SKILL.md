@@ -5,7 +5,7 @@ allowed-tools: Read Edit Write Bash Grep Glob
 
 > Copyright © 2026 Luke SteelWolf — All Rights Reserved. See LICENSE.
 
-# EMPIRE CYCLE v1.2
+# EMPIRE CYCLE v1.3
 
 Ciclo end+handoff Empire — chiude e prepara la riapertura in **chat nuova**.
 Composizione delle skill `end` e `start`: non duplica la loro logica, le orchestra
@@ -13,6 +13,7 @@ con un gate di sicurezza in mezzo e il confine di sessione LL-Empire-050 rispett
 
 > Creata 2026-07-01 (S160). v1.1 (S161): FASE 2 = handoff (non apertura in-chat), fix LL-Empire-050.
 > v1.2 (S165): FASE 1 usa la Enriched Visual View di CHIUSURA (`end` §0-bis.2, asset `closing-card`) — non piu' widget elicitation nativo.
+> v1.3 (S165): FASE 2 rende la Enriched Visual View di HANDOFF (asset `cycle/assets/handoff-card`) — ponte S(n)->S(n+1) ricco come opening-card (meta+ora, Cosa fatto/Cosa si farà, Checklist&Roadmap drill-down), SOLO testo per il comando (LL-050, nessuna apertura in-chat).
 > Binding: LL-Empire-002 (GO), LL-Empire-018 (atomic commit), LL-Empire-019 (V1 parity), LL-Empire-023 (pull-first), LL-Empire-024 (sandbox stale → CMD Windows autoritativo), LL-Empire-050 (session boundary = nuova chat per ogni Sn).
 
 ---
@@ -57,8 +58,7 @@ Quindi il ciclo **non** esegue `start` qui: lo **prepara**.
    (§5-ter): scrivi `hub/SESSION_BRIEFINGS/S<n+1>_OPEN.md` (PC · pull · briefing · carryover ·
    priorità proposte) leggendo a runtime il SESSION_LOG appena aggiornato. Via bash-write
    (LL-Empire-063). Il file resta su disco anche a chat chiusa.
-2. **Emetti l'handoff** in chat (max ~5 righe): "S<n> chiusa. Apri una CHAT NUOVA e lancia
-   `/swe:start [progetto]`." Se `/swe:cycle $1` passa un progetto, includilo nel suggerimento.
+2. **Rendi la Enriched Visual View di HANDOFF** (asset `${CLAUDE_PLUGIN_ROOT}/skills/cycle/assets/handoff-card.template.html`; regole+placeholder in `handoff-card.README.md`): clona -> sostituisci i `{{PLACEHOLDER}}` -> `show_widget`. Card **ricca come opening-card**: meta con ORA (data+ora ciclo, branch/HEAD, ultimo commit hash·data·msg via `git log -1 --date=format:"%Y-%m-%d %H:%M"`, Continuità, Parità PC, LL richiamate) + **Cosa si è fatto in S<n>** (Tipo/Obiettivo/Cosa fatto/Commit/Working tree) + **Cosa si farà in S<n+1>** (PC/pull + **priorità con Dettagli a tendina come opening-card**: L2 a 10 campi incl. Skill da usare + Analisi&consultazione/ricerche con LINK reale + carryover, da `S<n+1>_OPEN.md`) + **Checklist & Roadmap** drill-down per milestone (barra %, voci `.new` per le spunte) + CTA `{{START_CMD}}`=`/swe:start [progetto]`. **BINDING LL-050**: il comando è mostrato SOLO come testo; VIETATO un pulsante `sendPrompt` che avvii `/swe:start` in questa chat. Su Code CLI/Chat -> fallback testo (~5 righe): "S<n> chiusa (recap). Apri una CHAT NUOVA e lancia `/swe:start [progetto]`." Se `/swe:cycle $1` passa un progetto, includilo.
 3. **STOP.** Non eseguire l'apertura interattiva di `start` né alcun lavoro della nuova
    sessione in questa chat. Il ciclo termina.
 
@@ -76,7 +76,7 @@ In questa chat il ciclo si limita a chiudere + handoff. Default = WAIT.
 
 ## §5 — NOTE OPERATIVE
 
-- **Un comando, due skill**: `cycle` non reimplementa `end`/`start`, le richiama (FASE 1 = `end` intera; FASE 2 = solo la persistenza-briefing di `start` + handoff). I bugfix a quelle skill si propagano.
+- **Un comando, due skill**: `cycle` non reimplementa `end`/`start`, le richiama (FASE 1 = `end` intera incl. closing-card; FASE 2 = persistenza-briefing di `start` §5-ter + **handoff-card**). I bugfix a quelle skill si propagano.
 - **Perché handoff e non apertura**: LL-Empire-050. La riapertura in-chat violerebbe il confine di sessione e confonderebbe i contesti.
 - **Cowork vs CLI**: chiusura interattiva usa la Enriched Visual View (`closing-card`, card HTML custom via `show_widget`) in Cowork; in CLI stesso contenuto in testo strutturato (fallback). MAI AskUserQuestion / elicitation nativo (prefill non si accende, S161).
 - **Delega Luke**: commit atomici, push V1-parity e reinstall plugin restano lato Windows (LL-Empire-019/031).
@@ -89,5 +89,6 @@ In questa chat il ciclo si limita a chiudere + handoff. Default = WAIT.
 - Chiusura: skill `end`
 - Apertura: skill `start` (§5-ter persistenza briefing)
 - Compact mid-session: skill `compact`
+- Asset handoff: `skills/cycle/assets/handoff-card.template.html` + `handoff-card.README.md`
 - Workflow completo: `hub/SESSION_PROTOCOL.md`
 - LL critiche binding: 002, 018, 019, 021, 023, 024, 050

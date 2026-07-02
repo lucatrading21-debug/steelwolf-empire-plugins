@@ -1,0 +1,160 @@
+<!-- SteelWolf Empire — Enriched Visual View · HANDOFF Cycle (FASE 2). Ponte S(n)->S(n+1), ricco come opening-card. Clona e sostituisci {{...}}.
+     LL-050: NON apre la sessione in-chat; il comando /swe:start è SOLO testo (nessun sendPrompt di avvio).
+     Meta con ORA: {{DATE_TIME}} via shell date; ultimo commit via git log -1 --date=format:"%Y-%m-%d %H:%M" --format="%h|%ad|%s".
+     {{NEXT_PRIORITIES}} = blocchi .prio IDENTICI all'opening-card (L1 + L2 Dettagli a 10 campi con chiose: In parole semplici · Piano · Prima→Dopo · Serve/Dipende · Dati richiesti · Analisi&consultazione · Skill da usare · Rischi&mitig · Come sarà completato · Consiglio). -->
+<div style="background:var(--surface-2); border:1px solid var(--border); border-radius:16px; padding:24px; max-width:780px;">
+  <div style="display:flex; align-items:center; gap:14px;">
+    <div style="flex:none; width:48px; height:48px; border-radius:12px; background:var(--text-accent); color:var(--surface-2); display:flex; align-items:center; justify-content:center; font-weight:500; font-size:19px; letter-spacing:0.5px;">SW</div>
+    <div style="flex:1;">
+      <div style="font-weight:500; font-size:20px; line-height:1.2;">SteelWolf Empire</div>
+      <div style="font-size:13px; color:var(--text-secondary); margin-top:2px;">Ciclo sessione · handoff · {{PROJECT_LABEL}} · {{PC}} · Tipo {{TIPO}}</div>
+    </div>
+    <div style="flex:none; text-align:right;">
+      <div style="font-size:18px; font-weight:500; color:var(--text-accent); line-height:1;">{{SESSION}} → {{NEXT_SESSION}}</div>
+      <div style="font-size:11px; color:var(--text-muted); margin-top:3px;">chiusa → prossima</div>
+    </div>
+  </div>
+  <div style="margin-top:14px; display:flex; flex-wrap:wrap; gap:6px 10px; font-size:11.5px;">
+    <span class="hchip"><i class="ti ti-calendar" aria-hidden="true"></i> Ciclo: {{DATE_TIME}}</span>
+    <span class="hchip"><i class="ti ti-git-branch" aria-hidden="true"></i> {{BRANCH_HEAD}}</span>
+    <span class="hchip"><i class="ti ti-arrow-right" aria-hidden="true"></i> Continuità: {{SESSION}} → {{NEXT_SESSION}}</span>
+    <span class="hchip"><i class="ti ti-device-desktop" aria-hidden="true"></i> Parità: {{PC_PARITY}}</span>
+    <span class="hchip"><i class="ti ti-git-commit" aria-hidden="true"></i> ultimo commit: {{LAST_COMMIT_HASH}} · {{LAST_COMMIT_DATE}} · {{LAST_COMMIT_MSG}}</span>
+  </div>
+  <div style="margin-top:10px; font-size:11px; color:var(--text-muted);"><b style="color:var(--text-secondary); font-weight:500;">LL richiamate:</b> {{LL_LIST}}</div>
+  <div style="margin-top:10px; font-size:11.5px; color:var(--text-muted);"><i class="ti ti-info-circle"></i> <b style="color:var(--text-secondary);font-weight:500;">In parole povere:</b> il ponte tra la sessione chiusa e la prossima. Non fa partire il lavoro qui: dice cosa è stato fatto, cosa riprenderai (col piano dettagliato) e il comando da lanciare in una chat nuova.</div>
+  <div style="height:1px; background:var(--border); margin:18px 0;"></div>
+
+  <!-- 1 · COSA SI È FATTO in S(n) -->
+  <div style="font-weight:500; font-size:14px; margin-bottom:10px;"><i class="ti ti-circle-check" style="color:var(--text-success)"></i> Cosa si è fatto in {{SESSION}} <span style="font-size:11px; font-weight:400; color:var(--text-muted);">· sessione chiusa</span></div>
+  <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:22px;">
+    <div style="padding:10px 12px; background:var(--surface-0); border:1px solid var(--border); border-radius:10px;">
+      <div class="hl">Obiettivo</div><div class="hv">{{OBIETTIVO}}</div>
+    </div>
+    <div style="padding:10px 12px; background:var(--surface-0); border:1px solid var(--border); border-radius:10px;">
+      <div class="hl">Cosa fatto <span class="glo">· in breve</span></div><div class="hv">{{DONE_SUMMARY}}</div>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <div style="flex:1; min-width:200px; padding:10px 12px; background:var(--surface-0); border:1px solid var(--border); border-radius:10px;">
+        <div class="hl">Commit generati</div><div class="hv">{{COMMITS}}</div>
+      </div>
+      <div style="flex:1; min-width:200px; padding:10px 12px; background:var(--surface-0); border:1px solid var(--border); border-radius:10px;">
+        <div class="hl">Working tree <span class="glo">· stato git</span></div><div class="hv">{{WT_CLEAN}}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2 · COSA SI FARÀ in S(n+1) — priorità con Dettagli a tendina (come opening-card) -->
+  <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:10px; gap:12px;">
+    <div><div style="font-weight:500; font-size:14px;"><i class="ti ti-player-track-next" style="color:var(--text-accent)"></i> Cosa si farà in {{NEXT_SESSION}}</div>
+    <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">continuazione · apri "Dettagli" per piano, skill, ricerche</div></div>
+    <button id="expall" type="button" class="ref"><i class="ti ti-chevrons-down"></i> Espandi tutti</button>
+  </div>
+  <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
+    <span class="chip"><i class="ti ti-device-desktop"></i> PC: {{PC}}</span>
+    <span class="chip"><i class="ti ti-refresh"></i> Pull: {{PULL_NEXT}}</span>
+  </div>
+  <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:16px;">
+    {{NEXT_PRIORITIES}}
+    <!-- BLOCCO RIPETIBILE priorità (identico a opening-card):
+    <div class="prio">
+      <div class="pbtn">
+        <span class="badge">Pn</span>
+        <span class="ptext"><span class="ptitle">Titolo</span><span class="pfai">Fai: ...</span>
+          <span class="meta"><span class="chip tipo"><i class="ti ti-tag"></i> Tipo: Doc|Codice|Ricerca|Infra|Design|Governance</span><span class="chip"><span class="dot dlow|dmed|dhigh"></span>basso|medio|alto</span><span class="chip"><i class="ti ti-clock"></i> stima · tok</span><span class="chip"><i class="ti ti-square"></i> Stato</span><span class="chip">Must|Should|Could</span></span></span>
+      </div>
+      <details><summary>Dettagli · piano, skill, ricerche</summary>
+        <div class="sec"><span class="lab">In parole semplici</span><div class="dd plain">Cos'è e a cosa serve, senza gergo.</div></div>
+        <div class="sec"><span class="lab">Piano <span class="glo">· cosa si fa passo per passo</span></span><ul><li>...</li></ul></div>
+        <div class="sec"><span class="lab">Prima → Dopo <span class="glo">· com'è ora vs come sarà</span></span><div class="ba"><span class="bef"><b>Prima:</b> ...</span><i class="ti ti-arrow-right"></i><span class="aft"><b>Dopo:</b> ...</span></div></div>
+        <div class="sec"><span class="lab">Serve / Dipende da <span class="glo">· cosa serve prima</span></span><div class="dd">...</div></div>
+        <div class="sec"><span class="lab">Dati richiesti <span class="glo">· cosa chiederti/cercare</span></span><div class="dd">...</div></div>
+        <div class="sec"><span class="lab">Analisi &amp; consultazione <span class="glo">· ricerche e verifica</span></span><div class="dd">Deep research Anthropic/GitHub/web + confronto + Pre-Mortem; fonti con LINK reale (mai inventato).</div></div>
+        <div class="sec"><span class="lab">Skill da usare <span class="glo">· skill/plugin da attivare</span></span><div class="dd">es. empire-research · empire-quality · data/build-dashboard · xlsx/docx · figma ...</div></div>
+        <div class="sec"><span class="lab">Rischi &amp; mitigazione <span class="glo">· cosa può andare storto</span></span><div class="dd">...</div></div>
+        <div class="sec"><span class="lab">Come sarà completato <span class="glo">· quando è finito davvero (DoD)</span></span><div class="dd">...</div></div>
+        <div class="sec"><span class="lab">Consiglio <span class="glo">· il mio suggerimento</span></span><div class="dd">...</div></div>
+      </details>
+    </div> -->
+  </div>
+  <div style="padding:10px 12px; background:var(--surface-0); border:1px solid var(--border); border-radius:10px; margin-bottom:20px;">
+    <div class="hl">Carryover <span class="glo">· il resto che resta aperto</span></div><div class="hv">{{CARRYOVER}}</div>
+  </div>
+
+  <!-- 3 · CHECKLIST & ROADMAP (drill-down, come opening) — nascondi se assente -->
+  <details class="cklist"><summary><i class="ti ti-list-check"></i> Checklist &amp; Roadmap progetto — {{CK_DONE}}/{{CK_TOTAL}} ({{PROGRESS_PCT}}%)</summary>
+    <div style="height:8px; background:var(--surface-0); border-radius:6px; overflow:hidden; margin:12px 0 14px;"><div style="width:{{PROGRESS_PCT}}%; height:100%; background:var(--text-accent);"></div></div>
+    <div class="ckcol">
+      {{CHECKLIST_MILESTONES}}
+    </div>
+  </details>
+
+  <!-- 4 · CTA BOUNDARY (LL-050) -->
+  <div style="margin-top:20px; padding:16px; background:var(--bg-accent); border:1px solid var(--border-accent); border-radius:12px;">
+    <div style="font-weight:500; font-size:14px; color:var(--text-accent); margin-bottom:6px;"><i class="ti ti-arrow-big-right-lines"></i> Prossimo passo — apri una CHAT NUOVA</div>
+    <div style="font-size:12.5px; color:var(--text-accent); line-height:1.6; margin-bottom:10px;"><b>Perché chat nuova?</b> <span style="opacity:0.9;">(LL-Empire-050) In parole povere: ogni sessione in una chat separata, così i contesti non si mescolano e non "si impazzisce". Questa card apposta NON apre nulla qui.</span></div>
+    <div style="font-family:var(--font-mono); font-size:13px; color:var(--text-accent); background:var(--surface-2); border:1px solid var(--border-accent); border-radius:8px; padding:10px 12px;">{{START_CMD}}</div>
+    <div style="font-size:11px; color:var(--text-muted); margin-top:8px;"><i class="ti ti-device-floppy"></i> Predisposizione già salvata su disco: <code>{{SNAPSHOT_PATH}}</code> — <code>/swe:start</code> la ritroverà.</div>
+  </div>
+
+  <div style="margin-top:16px; font-size:11.5px; color:var(--text-muted);"><b>Cross-cutting:</b> {{CROSS_CUTTING}} &nbsp;·&nbsp; <b>Gate:</b> working tree clean verificato CMD Windows prima del ciclo (LL-024).</div>
+</div>
+<style>
+  .hchip{display:inline-flex; align-items:center; gap:5px; color:var(--text-secondary); background:var(--surface-0); border:1px solid var(--border); border-radius:20px; padding:3px 10px;}
+  .ref{display:inline-flex; align-items:center; gap:5px; font-size:12px; color:var(--text-secondary); background:var(--surface-0); border:1px solid var(--border); border-radius:var(--radius); padding:6px 11px; cursor:pointer;}
+  .ref:hover{border-color:var(--border-strong);}
+  .chip{display:inline-flex; align-items:center; gap:4px; font-size:11px; color:var(--text-secondary); background:var(--surface-2); border:1px solid var(--border); border-radius:20px; padding:2px 8px;}
+  .chip.tipo{color:var(--text-accent); border-color:var(--border-accent);}
+  .cklist>summary{font-size:13px; font-weight:500; color:var(--text-primary); cursor:pointer; list-style:none;}
+  .cklist>summary::-webkit-details-marker{display:none;}
+  .cklist>summary::before{content:"▸ "; color:var(--text-accent);}
+  .cklist[open]>summary::before{content:"▾ "; color:var(--text-accent);}
+  .ckcol{display:flex; flex-direction:column; gap:5px;}
+  .ck{font-size:12.5px; display:flex; align-items:flex-start; gap:7px; line-height:1.5; color:var(--text-secondary); padding-left:16px;}
+  .ck i{font-size:15px; flex:none; margin-top:1px;}
+  .ck.done i{color:var(--text-success);}
+  .ck.todo i{color:var(--text-muted);}
+  .ck.done.new{color:var(--text-primary);}
+  .ms>summary{font-size:12.5px; cursor:pointer; list-style:none; display:flex; align-items:center; gap:8px; padding:4px 0;}
+  .ms>summary::-webkit-details-marker{display:none;}
+  .ms>summary::before{content:"▸ "; color:var(--text-muted);}
+  .ms[open]>summary::before{content:"▾ "; color:var(--text-muted);}
+  .msdone,.mstodo{font-size:11px; font-weight:500; padding:1px 7px; border-radius:20px;}
+  .msdone{background:var(--bg-success); color:var(--text-success);}
+  .mstodo{background:var(--surface-2); color:var(--text-secondary); border:1px solid var(--border);}
+  .mscount{font-size:11px; color:var(--text-muted); margin-left:auto;}
+  .prio{background:var(--surface-0); border:1px solid var(--border); border-radius:12px; padding:14px;}
+  .pbtn{display:flex; align-items:flex-start; gap:10px; width:100%; text-align:left; color:var(--text-primary);}
+  .badge{flex:none; font-size:11px; font-weight:500; padding:2px 9px; border-radius:20px; background:var(--bg-accent); color:var(--text-accent); border:1px solid var(--border-accent);}
+  .ptext{display:flex; flex-direction:column; gap:5px; flex:1;}
+  .ptitle{font-weight:500; font-size:15px; line-height:1.4;}
+  .pfai{font-size:12.5px; color:var(--text-secondary); line-height:1.5;}
+  .meta{display:flex; flex-wrap:wrap; gap:6px; margin-top:2px;}
+  .dot{display:inline-block; width:8px; height:8px; border-radius:50%;}
+  .dlow{background:var(--text-success);} .dmed{background:var(--text-warning);} .dhigh{background:var(--text-danger);}
+  .prio>details{margin-top:10px;}
+  .prio>details>summary{font-size:12px; color:var(--text-accent); cursor:pointer; list-style:none;}
+  .prio>details>summary::-webkit-details-marker{display:none;}
+  .prio>details>summary::before{content:"▸ ";}
+  .prio>details[open]>summary::before{content:"▾ ";}
+  .sec{margin-top:10px;}
+  .lab{display:inline-block; font-size:11px; font-weight:500; color:var(--text-accent); text-transform:uppercase; letter-spacing:0.4px; margin-bottom:3px;}
+  .glo{font-weight:400; color:var(--text-muted); text-transform:none; letter-spacing:0;}
+  .sec ul{margin:2px 0 0; padding-left:18px;}
+  .sec li{font-size:12.5px; color:var(--text-secondary); line-height:1.6;}
+  .dd{font-size:12.5px; color:var(--text-secondary); line-height:1.6; margin-top:4px;}
+  .dd.plain{font-size:13px; color:var(--text-primary);}
+  .dd b{color:var(--text-primary); font-weight:500;}
+  .ba{display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:12.5px; line-height:1.5;}
+  .ba .bef{flex:1; min-width:190px; color:var(--text-muted);}
+  .ba .aft{flex:1; min-width:190px; color:var(--text-secondary);}
+  .ba .bef b, .ba .aft b{color:var(--text-primary); font-weight:500;}
+  .hl{font-size:10.5px; font-weight:500; color:var(--text-accent); text-transform:uppercase; letter-spacing:0.4px; margin-bottom:2px;}
+  .hv{font-size:12.5px; color:var(--text-secondary); line-height:1.6;}
+  .hv code{font-family:var(--font-mono); font-size:11px; background:var(--surface-2); border:1px solid var(--border); border-radius:5px; padding:0 5px;}
+  code{font-family:var(--font-mono); font-size:11px; background:var(--surface-2); border:1px solid var(--border); border-radius:5px; padding:0 5px;}
+</style>
+<script>
+  var expall=document.getElementById('expall'); var op=false;
+  if(expall)expall.addEventListener('click',function(){op=!op;document.querySelectorAll('.prio>details').forEach(function(d){d.open=op;});expall.innerHTML=op?'<i class="ti ti-chevrons-up"></i> Comprimi tutti':'<i class="ti ti-chevrons-down"></i> Espandi tutti';});
+</script>
