@@ -5,7 +5,7 @@ allowed-tools: Read Bash Grep Glob
 
 > Copyright © 2026 Luke SteelWolf — All Rights Reserved. See LICENSE.
 
-# EMPIRE START v1.3
+# EMPIRE START v1.4
 
 Apertura sessione Empire — Cowork, Code o Chat. Token-saving target: 3-5K read iniziale.
 
@@ -13,6 +13,7 @@ Apertura sessione Empire — Cowork, Code o Chat. Token-saving target: 3-5K read
 > v1.1 (S161): tabella tipi canonica condivisa con `end` + §5-ter persistenza scheda apertura in SESSION_BRIEFINGS.
 > v1.2 (S161 addendum): regole di pre-selezione deterministiche (PC/pull/numero/priorità) in §5-bis.
 > v1.3 (S164): §5-bis.1 formato priorità obbligatorio (descrizione Cosa/Perché/Output/Rischio + ordine consigliato + ordine workflow).
+> v1.4 (S164/A5): §5-bis.2 Enriched Visual View base ufficiale (card HTML custom pre-accesa + asset template + fallback testo).
 > Binding: LL-Empire-002 (PROTOCOLLO GO), LL-Empire-008 (verifica empirica), LL-Empire-023 (pull-first), LL-Empire-024 (sandbox stale), LL-Empire-050 (session boundary), LL-Empire-063 (bash-write hub).
 
 ---
@@ -172,6 +173,35 @@ Cosa: … · Perché: … · Output: … · Rischio: …
 
 Le voci cross-cutting (vincoli permanenti Luke: parità ACE, dossier/handoff) vanno in una
 sezione a parte "Cross-cutting", sempre presente.
+
+### §5-bis.2 — ENRICHED VISUAL VIEW (base ufficiale, BINDING S164/A5)
+
+L'apertura si rende SEMPRE con la **Enriched Visual View** — card HTML custom via `show_widget`,
+base UNICA per ogni sessione e ogni progetto (e blueprint Nexus).
+
+**Asset (non riscrivere da zero — token-saving):**
+- Template: `${CLAUDE_PLUGIN_ROOT}/skills/start/assets/opening-card.template.html`
+- Regole+placeholder+schema: `${CLAUDE_PLUGIN_ROOT}/skills/start/assets/opening-card.README.md`
+
+**Procedura:** clona il template → sostituisci i `{{PLACEHOLDER}}` coi dati del progetto risolto
+(§0-ter: {{SESSION}} {{DATE_TIME}} {{BRANCH_HEAD}} {{LAST_COMMIT}} {{LL_LIST}} checklist/roadmap
+parsate con flag, {{PRIORITIES}} dal carryover) → rendi con `show_widget`.
+
+**Vincoli BINDING:**
+- **Mai** AskUserQuestion o widget elicitation nativo per l'apertura (prefill non si accende, S161).
+- **Pre-acceso**: applica `sel` (pill PC/Pull) e `on` (prima .prio) al valore dedotto (§5-bis regole deterministiche) + marcatore "● dedotto".
+- **Flag checklist**: icone outline `ti-square-check` (verde=fatto) / `ti-square` (da fare). MAI `-filled` (non caricate → vuoto).
+- **Degradazione**: SESSION_LOG assente → `S1`; nessun commit → `—`; checklist assente → nascondi la tendina. Nessun errore per dato mancante.
+- **Sezioni obbligatorie**: header brandizzato (SW + N sessione) · meta (data/ora, branch/HEAD, ultimo commit, pull) · LL richiamate · PC+Pull pre-accese · Riferimenti rapidi · tendina Checklist&Roadmap (flag+barra) · priorità per workflow (L1 sempre + L2 Dettagli: Piano/Prima→Dopo/Serve·Dipende/Rischi·mitig/Verifica·DoD/Consiglio) · Prossimo passo consigliato · Note di sessione · +Nuova voce Checklist · +Nuova voce Roadmap · Cross-cutting/DIRTY · Conferma.
+- **Checklist vs Roadmap** (per le due nuove-voci): Roadmap = milestone/obiettivo strategico (cosa/quando); Checklist = task eseguibile spuntabile sotto una milestone (come/fatto?).
+- **Conferma** (`sendPrompt`): PC · Pull · Priorità (+ Note / Nuova checklist / Nuova roadmap se compilate). Alla ricezione, dopo GO, scrivi: Note→sessione, nuova voce→checklist/roadmap del progetto.
+
+**Fallback testo (Code CLI / Chat, no `show_widget`):** rendi le STESSE informazioni in testo
+strutturato (header, priorità numerate con i campi L1+L2, checklist con [x]/[ ], prossimo passo,
+note) e poi ATTENDI GO (LL-002). L'ecosistema resta coerente cross-tool (Cowork/Code/Chat).
+
+**Chiusura simmetrica:** `end`/`cycle` riusano lo STESSO schema/asset con dati di chiusura
+(cosa fatto, commit generati, checklist aggiornata, handoff prossima sessione).
 
 ---
 

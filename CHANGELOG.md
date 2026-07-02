@@ -7,6 +7,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
 
 ---
 
+## [1.7.5] — 2026-07-02
+
+### Added
+- **`swe` v1.5.5 — Enriched Visual View: base ufficiale card d'apertura (S164/A5)**: nuova §5-bis.2 in `start/SKILL.md` + asset `skills/start/assets/opening-card.template.html` + `opening-card.README.md`. L'apertura di OGNI sessione e OGNI progetto usa una card HTML custom (via `show_widget`) pre-accesa (valori dedotti già selezionati; il widget elicitation nativo non accende il prefill — S161). Header brandizzato (SW + N sessione + data/ora + branch/HEAD + ultimo commit), LL richiamate, PC+Pull, Riferimenti rapidi, tendina Checklist&Roadmap con flag outline (verde=fatto / da fare; MAI `-filled`) + barra progresso, priorità per workflow con mini-brief L2 (Piano · Prima→Dopo · Serve/Dipende · Rischi&mitig · Verifica/DoD · Consiglio), Prossimo passo, Note di sessione, +Nuova voce Checklist, +Nuova voce Roadmap. Degradazione dati mancanti (S1 / — / sezione nascosta). **Fallback testo** per Code CLI/Chat. Ricerca UX + fonti in `hub/designs/S164_ENRICHED_VISUAL_VIEW.md`. Schema riusato da end/cycle e blueprint Nexus.
+
+---
+
 ## [1.7.4] — 2026-07-02
 
 ### Added

@@ -1,0 +1,178 @@
+<!-- SteelWolf Empire — Enriched Visual View (base ufficiale). Clona e sostituisci {{...}}.
+     Pre-acceso: aggiungi class "sel" (pill PC/Pull) e "on" (prio) al valore dedotto.
+     Icone flag: ti-square-check (verde=fatto) / ti-square (da fare). MAI -filled. -->
+<div style="background:var(--surface-2); border:1px solid var(--border); border-radius:16px; padding:24px; max-width:780px;">
+  <div style="display:flex; align-items:center; gap:14px;">
+    <div style="flex:none; width:48px; height:48px; border-radius:12px; background:var(--text-accent); color:var(--surface-2); display:flex; align-items:center; justify-content:center; font-weight:500; font-size:19px; letter-spacing:0.5px;">SW</div>
+    <div style="flex:1;">
+      <div style="font-weight:500; font-size:20px; line-height:1.2;">SteelWolf Empire</div>
+      <div style="font-size:13px; color:var(--text-secondary); margin-top:2px;">Apertura sessione · {{PROJECT_LABEL}} · {{PC}} · Tipo {{TIPO}}</div>
+    </div>
+    <div style="flex:none; text-align:right;">
+      <div style="font-size:22px; font-weight:500; color:var(--text-accent); line-height:1;">{{SESSION}}</div>
+      <div style="font-size:11px; color:var(--text-muted); margin-top:3px;">sessione</div>
+    </div>
+  </div>
+  <div style="margin-top:14px; display:flex; flex-wrap:wrap; gap:6px 10px; font-size:11.5px;">
+    <span class="hchip"><i class="ti ti-calendar" aria-hidden="true"></i> {{DATE_TIME}}</span>
+    <span class="hchip"><i class="ti ti-git-branch" aria-hidden="true"></i> {{BRANCH_HEAD}}</span>
+    <span class="hchip"><i class="ti ti-git-commit" aria-hidden="true"></i> ultimo commit: {{LAST_COMMIT}}</span>
+  </div>
+  <div style="margin-top:10px; font-size:11px; color:var(--text-muted);"><b style="color:var(--text-secondary); font-weight:500;">LL richiamate:</b> {{LL_LIST}}</div>
+  <div style="height:1px; background:var(--border); margin:18px 0;"></div>
+
+  <div style="display:flex; flex-direction:column; gap:16px;">
+    <div><div style="font-weight:500; margin-bottom:8px;">Da quale PC?</div>
+      <div class="grp" data-name="PC" style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="pill {{PC_PREDATOR_SEL}}" data-v="PREDATOR" type="button"><i class="ti ti-check chk"></i>PREDATOR (casa) <span class="ded">● dedotto</span></button>
+        <button class="pill {{PC_ACE_SEL}}" data-v="ACE" type="button"><i class="ti ti-check chk"></i>ACE (ufficio)</button>
+      </div></div>
+    <div><div style="font-weight:500; margin-bottom:8px;">Pull-first (hub + repo attivi)?</div>
+      <div class="grp" data-name="Pull" style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="pill {{PULL_VER_SEL}}" data-v="Da verificare" type="button"><i class="ti ti-check chk"></i>Da verificare <span class="ded">● dedotto</span></button>
+        <button class="pill {{PULL_OK_SEL}}" data-v="Fatto" type="button"><i class="ti ti-check chk"></i>Fatto, pulito</button>
+        <button class="pill {{PULL_TODO_SEL}}" data-v="Da fare" type="button"><i class="ti ti-check chk"></i>Da fare ora</button>
+      </div></div>
+  </div>
+
+  <div style="height:18px;"></div>
+  <div style="display:flex; flex-wrap:wrap; gap:8px;">
+    <span style="font-size:11px; color:var(--text-muted); align-self:center;">Riferimenti rapidi:</span>
+    <button class="ref" type="button" data-ask="Mostrami la roadmap del progetto attivo"><i class="ti ti-map-2"></i> Roadmap</button>
+    <button class="ref" type="button" data-ask="Mostrami la checklist del progetto attivo"><i class="ti ti-list-check"></i> Checklist</button>
+    <button class="ref" type="button" data-ask="Mostrami EMPIRE_OPEN_ITEMS"><i class="ti ti-clipboard-list"></i> Open items</button>
+    <button class="ref" type="button" data-ask="Mostrami le ultime 20 righe del SESSION_LOG"><i class="ti ti-history"></i> Session log</button>
+  </div>
+
+  <div style="height:1px; background:var(--border); margin:20px 0;"></div>
+
+  <!-- CHECKLIST/ROADMAP: nascondi il blocco se assente -->
+  <details class="cklist"><summary><i class="ti ti-list-check"></i> Checklist &amp; Roadmap progetto — {{CK_DONE}}/{{CK_TOTAL}} ({{PROGRESS_PCT}}%)</summary>
+    <div style="height:8px; background:var(--surface-0); border-radius:6px; overflow:hidden; margin:12px 0 14px;"><div style="width:{{PROGRESS_PCT}}%; height:100%; background:var(--text-accent);"></div></div>
+    <div class="ckcol">
+      {{CHECKLIST_ITEMS}}
+      <!-- per voce: <div class="ck done"><i class="ti ti-square-check"></i> testo</div>  oppure  <div class="ck todo"><i class="ti ti-square"></i> testo</div>
+           header milestone: <div class="ckml">Mx — titolo</div> -->
+    </div>
+  </details>
+
+  <div style="height:22px;"></div>
+  <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:14px; gap:12px;">
+    <div><div style="font-weight:500; font-size:16px;">Priorità di sessione</div>
+    <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">Ordine consigliato + workflow · apri “Dettagli” per il mini-brief</div></div>
+    <button id="expall" type="button" class="ref"><i class="ti ti-chevrons-down"></i> Espandi tutti</button>
+  </div>
+
+  <div class="grp" data-name="Priorità" style="display:flex; flex-direction:column; gap:14px;">
+    {{PRIORITIES}}
+    <!-- Per WORKFLOW inserisci prima del gruppo: <div class="wfh"><i class="ti ti-topology-ring"></i> Workflow N — titolo</div>
+    Blocco priorità ripetibile (aggiungi "on" alla prima .prio dedotta):
+    <div class="prio">
+      <button class="pbtn" data-v="Pn Titolo" type="button">
+        <span class="badge {{b1|nothing}}">Pn</span>
+        <span class="ptext"><span class="ptitle">Titolo</span><span class="pfai">Fai: ...</span>
+          <span class="meta"><span class="chip"><span class="dot dlow|dmed|dhigh"></span>basso|medio|alto</span><span class="chip"><i class="ti ti-clock"></i> stima · tok</span><span class="chip"><i class="ti ti-square"></i> Stato</span><span class="chip">Must|Should|Could</span></span></span>
+        <i class="ti ti-check chk2"></i>
+      </button>
+      <details><summary>Dettagli</summary>
+        <div class="sec"><span class="lab">Piano</span><ul><li>...</li></ul></div>
+        <div class="sec"><span class="lab">Prima → Dopo</span><div class="ba"><span class="bef"><b>Prima:</b> ...</span><i class="ti ti-arrow-right"></i><span class="aft"><b>Dopo:</b> ...</span></div></div>
+        <div class="sec"><span class="lab">Serve / Dipende da</span><div class="dd">...</div></div>
+        <div class="sec"><span class="lab">Rischi &amp; mitigazione</span><div class="dd">...</div></div>
+        <div class="sec"><span class="lab">Verifica (DoD)</span><div class="dd">...</div></div>
+        <div class="sec"><span class="lab">Consiglio</span><div class="dd">...</div></div>
+      </details>
+    </div> -->
+  </div>
+
+  <div style="margin-top:22px; padding:12px 14px; background:var(--bg-accent); border:1px solid var(--border-accent); border-radius:12px; font-size:13px; color:var(--text-accent);">
+    <i class="ti ti-arrow-right"></i> <b>Prossimo passo consigliato:</b> <span id="nextp">{{NEXT_STEP}}</span>
+  </div>
+
+  <div style="height:1px; background:var(--border); margin:22px 0 18px;"></div>
+  <div class="addg"><div style="font-weight:500; margin-bottom:6px;"><i class="ti ti-note"></i> Note di sessione</div>
+    <textarea id="note" placeholder="Appunti, decisioni, promemoria…"></textarea></div>
+  <div class="addg"><div style="font-weight:500; margin:14px 0 6px;"><i class="ti ti-square-plus"></i> Nuova voce Checklist <span style="font-size:11px; color:var(--text-muted); font-weight:400;">(task eseguibile sotto una milestone)</span></div>
+    <input id="addck" type="text" placeholder="es. Mx.y — task"></div>
+  <div class="addg"><div style="font-weight:500; margin:14px 0 6px;"><i class="ti ti-map-pin-plus"></i> Nuova voce Roadmap <span style="font-size:11px; color:var(--text-muted); font-weight:400;">(milestone/obiettivo)</span></div>
+    <input id="addrm" type="text" placeholder="es. Mx — obiettivo strategico"></div>
+
+  <div style="margin-top:16px; font-size:11.5px; color:var(--text-muted);"><b>Cross-cutting:</b> {{CROSS_CUTTING}} &nbsp;·&nbsp; <b>DIRTY:</b> {{DIRTY}}</div>
+  <div style="display:flex; justify-content:flex-end; margin-top:14px;">
+    <button id="conf" type="button" style="background:var(--text-accent); color:var(--surface-2); border:none; border-radius:var(--radius); padding:10px 20px; font-weight:500; cursor:pointer;">Conferma apertura</button>
+  </div>
+</div>
+<style>
+  .hchip{display:inline-flex; align-items:center; gap:5px; color:var(--text-secondary); background:var(--surface-0); border:1px solid var(--border); border-radius:20px; padding:3px 10px;}
+  .ref{display:inline-flex; align-items:center; gap:5px; font-size:12px; color:var(--text-secondary); background:var(--surface-0); border:1px solid var(--border); border-radius:var(--radius); padding:6px 11px; cursor:pointer;}
+  .ref:hover{border-color:var(--border-strong);}
+  .pill{display:inline-flex; align-items:center; gap:8px; background:var(--surface-0); color:var(--text-primary); border:1px solid var(--border); border-radius:var(--radius); padding:9px 14px; font-size:14px; cursor:pointer;}
+  .pill:hover{border-color:var(--border-strong);}
+  .pill .chk{font-size:15px; opacity:0; width:0; margin-left:-6px;}
+  .pill.sel{border:2px solid var(--text-accent); background:var(--bg-accent); color:var(--text-accent); padding:8px 13px;}
+  .pill.sel .chk{opacity:1; width:auto; margin-left:0;}
+  .ded{font-size:10px; color:var(--text-muted); margin-left:4px;}
+  .pill.sel .ded{color:var(--text-accent);}
+  .cklist>summary{font-size:13px; font-weight:500; color:var(--text-primary); cursor:pointer; list-style:none;}
+  .cklist>summary::-webkit-details-marker{display:none;}
+  .cklist>summary::before{content:"▸ "; color:var(--text-accent);}
+  .cklist[open]>summary::before{content:"▾ "; color:var(--text-accent);}
+  .ckcol{display:flex; flex-direction:column; gap:5px;}
+  .ckml{font-size:11px; font-weight:500; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.4px; margin-top:8px;}
+  .ck{font-size:12.5px; display:flex; align-items:flex-start; gap:7px; line-height:1.5; color:var(--text-secondary);}
+  .ck i{font-size:15px; flex:none; margin-top:1px;}
+  .ck.done i{color:var(--text-success);}
+  .ck.todo i{color:var(--text-muted);}
+  .wfh{font-size:12px; color:var(--text-secondary); font-weight:500; margin:22px 0 10px;}
+  .prio{background:var(--surface-0); border:1px solid var(--border); border-radius:12px; padding:14px;}
+  .pbtn{display:flex; align-items:flex-start; gap:10px; width:100%; background:transparent; border:none; text-align:left; cursor:pointer; color:var(--text-primary); padding:0;}
+  .badge{flex:none; font-size:11px; font-weight:500; padding:2px 9px; border-radius:20px; background:var(--surface-2); color:var(--text-secondary); border:1px solid var(--border);}
+  .badge.b1{background:var(--bg-accent); color:var(--text-accent); border-color:var(--border-accent);}
+  .ptext{display:flex; flex-direction:column; gap:5px; flex:1;}
+  .ptitle{font-weight:500; font-size:15px; line-height:1.4;}
+  .pfai{font-size:12.5px; color:var(--text-secondary); line-height:1.5;}
+  .meta{display:flex; flex-wrap:wrap; gap:6px; margin-top:2px;}
+  .chip{display:inline-flex; align-items:center; gap:4px; font-size:11px; color:var(--text-secondary); background:var(--surface-2); border:1px solid var(--border); border-radius:20px; padding:2px 8px;}
+  .dot{display:inline-block; width:8px; height:8px; border-radius:50%;}
+  .dlow{background:var(--text-success);} .dmed{background:var(--text-warning);} .dhigh{background:var(--text-danger);}
+  .chk2{font-size:16px; opacity:0; color:var(--text-accent); flex:none;}
+  .prio.on{border:2px solid var(--text-accent); background:var(--bg-accent); padding:13px;}
+  .prio.on .chk2{opacity:1;}
+  .prio>details{margin-top:10px;}
+  .prio>details>summary{font-size:12px; color:var(--text-accent); cursor:pointer; list-style:none;}
+  .prio>details>summary::-webkit-details-marker{display:none;}
+  .prio>details>summary::before{content:"▸ ";}
+  .prio>details[open]>summary::before{content:"▾ ";}
+  .dd{font-size:12.5px; color:var(--text-secondary); line-height:1.6; margin-top:4px;}
+  .dd b{color:var(--text-primary); font-weight:500;}
+  .sec{margin-top:10px;}
+  .lab{display:inline-block; font-size:11px; font-weight:500; color:var(--text-accent); text-transform:uppercase; letter-spacing:0.4px; margin-bottom:3px;}
+  .sec ul{margin:2px 0 0; padding-left:18px;}
+  .sec li{font-size:12.5px; color:var(--text-secondary); line-height:1.6;}
+  .ba{display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:12.5px; line-height:1.5;}
+  .ba .bef{flex:1; min-width:190px; color:var(--text-muted);}
+  .ba .aft{flex:1; min-width:190px; color:var(--text-secondary);}
+  .ba .bef b, .ba .aft b{color:var(--text-primary); font-weight:500;}
+  .addg textarea, .addg input{width:100%; box-sizing:border-box; background:var(--surface-0); border:1px solid var(--border); border-radius:var(--radius); padding:10px 12px; font-size:13px; color:var(--text-primary); font-family:inherit;}
+  .addg textarea{min-height:60px; resize:vertical;}
+  .addg textarea:focus, .addg input:focus{outline:none; border-color:var(--border-accent);}
+</style>
+<script>
+  document.querySelectorAll('.grp').forEach(function(g){
+    if(g.getAttribute('data-name')==='Priorità') return;
+    g.querySelectorAll('.pill').forEach(function(b){b.addEventListener('click',function(){g.querySelectorAll('.pill').forEach(function(x){x.classList.remove('sel');});b.classList.add('sel');});});
+  });
+  document.querySelectorAll('.ref[data-ask]').forEach(function(r){r.addEventListener('click',function(){sendPrompt(r.getAttribute('data-ask'));});});
+  var prios=document.querySelectorAll('.prio'); var nextp=document.getElementById('nextp');
+  prios.forEach(function(p){p.querySelector('.pbtn').addEventListener('click',function(e){if(e.target.closest('details'))return;prios.forEach(function(x){x.classList.remove('on');});p.classList.add('on');if(nextp)nextp.textContent=p.querySelector('.badge').textContent+' — '+p.querySelector('.ptitle').textContent;});});
+  var expall=document.getElementById('expall'); var op=false;
+  if(expall)expall.addEventListener('click',function(){op=!op;document.querySelectorAll('.prio>details').forEach(function(d){d.open=op;});expall.innerHTML=op?'<i class="ti ti-chevrons-up"></i> Comprimi tutti':'<i class="ti ti-chevrons-down"></i> Espandi tutti';});
+  function pick(s){var e=document.querySelector(s+' .sel');return e?e.getAttribute('data-v'):'—';}
+  document.getElementById('conf').addEventListener('click',function(){
+    var on=document.querySelector('.prio.on .pbtn');
+    var parts=['PC: '+pick('[data-name="PC"]'),'Pull: '+pick('[data-name="Pull"]'),'Priorità: '+(on?on.getAttribute('data-v'):'—')];
+    var n=document.getElementById('note').value.trim(), c=document.getElementById('addck').value.trim(), r=document.getElementById('addrm').value.trim();
+    if(n)parts.push('Note: '+n); if(c)parts.push('Nuova checklist: '+c); if(r)parts.push('Nuova roadmap: '+r);
+    sendPrompt('Conferma apertura {{SESSION}} — '+parts.join(' · '));
+  });
+</script>
