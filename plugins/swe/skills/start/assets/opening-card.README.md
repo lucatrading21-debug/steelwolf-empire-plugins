@@ -21,8 +21,9 @@ Rendering via `show_widget` (Cowork). Su Code CLI/Chat puri → **fallback testo
 {{PROJECT_LABEL}} {{PC}} {{TIPO}} {{SESSION}} {{DATE_TIME}} {{BRANCH_HEAD}}
 (OBBLIGATORI con ORA:
   {{DATE_TIME}} = data+ora apertura sessione, formato `YYYY-MM-DD · HH:MM TZ` (via shell `date`).
-  {{LAST_COMMIT}} = `<hash> · YYYY-MM-DD HH:MM · <messaggio>` (via `git log -1 --date=format:"%Y-%m-%d %H:%M" --format="%h · %ad · %s"`).)
-{{PULL_STATE}} {{LAST_COMMIT}} {{LL_LIST}} {{PROGRESS_PCT}} {{CK_DONE}} {{CK_TOTAL}}
+  {{LAST_COMMIT_HASH}} / {{LAST_COMMIT_DATE}} (`YYYY-MM-DD HH:MM`) / {{LAST_COMMIT_MSG}} — 3 campi SEPARATI, la data NON è omettibile.
+  Ricavali: `git log -1 --date=format:"%Y-%m-%d %H:%M" --format="%h|%ad|%s"` e splitta su `|`.)
+{{PULL_STATE}} {{LAST_COMMIT_HASH}} {{LAST_COMMIT_DATE}} {{LAST_COMMIT_MSG}} {{LL_LIST}} {{PROGRESS_PCT}} {{CK_DONE}} {{CK_TOTAL}}
 {{CHECKLIST_ITEMS}} {{PRIORITIES}}  (+ pre-selezione: aggiungi `sel`/`on` al dedotto)
 
 ## Schema per-priorità (livello 1 sempre + livello 2 "Dettagli")

@@ -7,6 +7,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
 
 ---
 
+## [1.7.8] — 2026-07-02
+
+### Fixed
+- **`swe` v1.5.8 — ultimo commit con data/ora forzata (S165)**: `{{LAST_COMMIT}}` spezzato in 3 placeholder separati `{{LAST_COMMIT_HASH}}` · `{{LAST_COMMIT_DATE}}` · `{{LAST_COMMIT_MSG}}` in template/README/SKILL, così la data/ora non è più omettibile dall'istanza (residuo estetico S165).
+
+---
+
 ## [1.7.7] — 2026-07-02
 
 ### Fixed
