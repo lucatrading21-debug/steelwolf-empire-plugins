@@ -43,14 +43,19 @@ Fonte unica interna SteelWolf (dominio separato N4). Binding: LL-Empire-023 (pul
 3. **Path-set risolto**: `repo . session_log . roadmap . session_prefix . branch . desk`. Da qui §2 (pull), §5 (SESSION_LOG), §5-bis (colpo d'occhio ROADMAP), §5-ter (S<n>_OPEN) usano i path DEL PROGETTO risolto, non hub.
 4. **Numero sessione** = +1 sull'ultima entry del `session_log` del progetto, usando la **numerazione nativa** del progetto. `session_prefix` valorizzato solo per catene che lo usano davvero (es. `BA-S` per bot-alliance); vuoto -> `Sn` (default hub, journal, ...). NON forzare prefissi non nativi.
 4-bis. **Bootstrap on-demand** (voci con `bootstrap: on-demand`, es. `ta-analysis`/`ta-academy`/`ta-knowledge`/`ta-content`): il `session_log` puo' NON esistere ancora (il repo ha PROJECT_STATE/ROADMAP/CHECKLIST ma non SESSION_LOG). In tal caso: sessione = **S1**, colpo d'occhio da `PROJECT_ROADMAP.md`+`PROJECT_CHECKLIST.md`, e **crea il SESSION_LOG** del progetto alla prima chiusura (`end`/`cycle`) via bash-write (LL-063). La creazione del file vuoto/scheletro in apertura e' bookkeeping non distruttivo (ammessa pre-GO, come §5-ter). NON trattare il SESSION_LOG mancante come errore.
-5. **GUARD domain-isolation (HARD-STOP binding)**: se il progetto risolto ha `swe_writes: false` (domini autonomi: `bot-alliance`, `nexus`, `workdash`), **FERMATI SUBITO**. NON leggere i doc del dominio, NON produrre briefing, NON aprire sessione, NON attendere GO. Emetti SOLO questo rifiuto e termina:
+5. **GUARD dominio ESTERNO (HARD-STOP binding)**: se il progetto risolto ha `swe_writes: false` (domini ESTERNI `repo: null`: `nexus`, `workdash`), **FERMATI SUBITO**. NON leggere doc, NON briefing, NON aprire, NON attendere GO. Emetti SOLO questo rifiuto e termina:
 
-   > ⛔ `<slug>` e' un dominio autonomo (`<domain>`). La sua catena e' gestita dalla scrivania/plugin proprietario (es. scrivania **Bot-Alliance** per `bot-alliance`, plugin **nexus** per `nexus`). `swe` non apre sessioni qui (decisione #3 S163 + domain-isolation LL-050). Apri la sessione dal dominio proprietario.
+   > ⛔ `<slug>` e' un dominio ESTERNO (`<domain>`): ecosistema/piattaforma gestita altrove (plugin **nexus** per `nexus`, dominio **WorkDASH** per `workdash`). `swe` non apre sessioni qui. Apri dal suo strumento proprietario.
 
-   L'index elenca questi progetti solo per **referenza/roll-up**, non perche' `swe` li gestisca. (NB: guard-prosa hard-stop = copertura Cowork; enforcement deterministico su **Code CLI** via hook `UserPromptSubmit` `hooks/domain-guard.js` — exit 2 sul match slug autonomo. In Cowork l'hook e' no-op sicuro, LL-060/S159.)
-6. **Hub sempre genitore**: qualunque il progetto, governance V1-V6 + LL + registry restano in hub; lo stato rolluppa in `hub/_status/<slug>.yaml` (ADR-029).
+   (**Nota S166:** `bot-alliance` NON e' piu' qui — e' un progetto SteelWolf con repo reale, `swe_writes: true`, catena `BA-S`. Va aperto con `/swe:start bot-alliance` DALLA sua scrivania.) L'enforcement e' deterministico su **CLI** via hook `hooks/domain-guard.js` (exit 2); in Cowork l'hook e' no-op → vale questa prosa (LL-060/S159).
+6. **COERENZA SCRIVANIA↔PROGETTO (Opzione B, S166 — HARD-STOP binding)**: la sessione aperta deve combaciare con la **scrivania Cowork corrente**. Rileva la scrivania dal **basename della radice del mount** (Cowork: `CLAUDE_CODE_WORKSPACE_HOST_PATHS`; CLI: `cwd`/`CLAUDE_PROJECT_DIR`) e mappala su `desk_mount` nell'index.
+   - **Scrivania Hub** (`SteelWolf_Empire`) = **lanciatore**: apre `predator` (default) o QUALSIASI progetto SteelWolf esplicito → consenti.
+   - **Scrivania-progetto X** (es. `trading-alliance-bots` = `bot-alliance`): puoi aprire SOLO X. Se il progetto lanciato (o il default `predator`) ≠ X → **RIFIUTA** hard-stop:
+     > ⛔ Sei nella scrivania del progetto `<X>`, ma stai aprendo `<Y>`. Qui apri solo `<X>` con `/swe:start <X>`. Per `<Y>` apri la sua scrivania (o l'Hub SteelWolf per i progetti senza scrivania).
+   - **FAIL-OPEN**: se non riconosci la scrivania dal mount, **NON bloccare** — avvisa e procedi col progetto risolto (mai bloccare sessioni legittime; pattern verificato: custom-CLI valida il contesto + direnv per-dir, fonti nel design S166). Su CLI questo controllo e' deterministico (hook exit 2); in Cowork e' prosa-resolver.
+7. **Hub sempre genitore**: qualunque il progetto, governance V1-V6 + LL + registry restano in hub; lo stato rolluppa in `hub/_status/<slug>.yaml` (ADR-029).
 
-Le skill `end` e `cycle` risolvono il progetto con lo STESSO index (coerenza cross-skill).
+Le skill `end` e `cycle` risolvono il progetto con lo STESSO index + STESSA coerenza scrivania↔progetto (cross-skill).
 
 ---
 

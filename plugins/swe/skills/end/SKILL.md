@@ -78,7 +78,8 @@ conferma D6 + GATE git clean (LL-002/024). L'esperienza resta coerente cross-too
 - **Con `$1 = <slug>`** -> usa `session_log`/`roadmap`/`session_prefix` del progetto. Senza argomento -> `default` (`predator`/hub).
 - **§1 SESSION_LOG** si scrive nel `session_log` DEL PROGETTO (es. `steelwolf-trading-journal/docs/SESSION_LOG.md`, entry `JOURNAL-Sn`), NON nella catena hub.
 - **Roll-up ADR-029**: sovrascrivi `hub/_status/<slug>.yaml` (one-file-per-desk) -> `empire_rollup.py` -> `EMPIRE_STATE.md`. E' il canale con cui il lavoro di progetto risale all'hub SENZA scrivere la catena hub.
-- **GUARD**: se `swe_writes: false` -> rifiuta la chiusura nel dominio autonomo (gestito dal suo dominio).
+- **GUARD dominio ESTERNO**: `swe_writes: false` (repo:null: `nexus`/`workdash`) -> rifiuta, rimanda al suo strumento. (`bot-alliance` da S166 e' SteelWolf `swe_writes:true`, catena `BA-S`.)
+- **COERENZA SCRIVANIA↔PROGETTO (S166, Opzione B)**: la chiusura deve combaciare con la scrivania corrente (basename radice mount -> `desk_mount`). Scrivania-progetto X + chiudi Y (o hub default) -> RIFIUTA; Hub = lanciatore; FAIL-OPEN se scrivania non riconosciuta. Deterministico su CLI (hook exit 2), prosa in Cowork. Vedi `start` §0-ter.5-6.
 - **Bootstrap on-demand** (`bootstrap: on-demand`, es. `ta-*`): se il `session_log` del progetto non esiste ancora, la chiusura lo **crea** (bash-write, LL-063) con la prima entry `S1`. SESSION_LOG mancante = prima sessione, non errore.
 - Il **tipo sessione** resta raccolto interattivamente (§0-bis); `$1` e' il progetto.
 

@@ -7,6 +7,23 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
 
 ---
 
+## [1.11.0] — 2026-07-03
+
+### Added
+- **swe 1.9.0 — Guardia di coerenza scrivania↔progetto (S166, Opzione B).** La sessione aperta deve combaciare con la scrivania Cowork corrente (rilevata dal basename radice mount → `desk_mount` nell'index). Scrivania-progetto X + apri Y (o hub default) → rifiuta; Hub = lanciatore (apre predator o qualsiasi progetto); FAIL-OPEN se scrivania non riconosciuta. Enforcement: hook `domain-guard.js` deterministico su CLI (exit 2, ricerca Anthropic hooks: `cwd`+`prompt`), prosa-resolver in Cowork (hook no-op, S159). Self-test 6/6.
+
+### Changed
+- **`bot-alliance` riclassificato** (fix design): da dominio autonomo `swe_writes:false` a progetto SteelWolf `swe_writes:true` (repo reale `trading-alliance-bots`, catena `BA-S` nel SUO SESSION_LOG). Ora `/swe:start bot-alliance` apre la stessa Enriched Visual View. `swe_writes:false` resta solo per domini ESTERNI `repo:null` (Nexus, WorkDASH).
+- `hooks/domain-guard.js`: rimosso `bot-alliance` dagli esterni + aggiunto check coerenza cwd↔slug.
+- `start/end/cycle/SKILL.md` §0-ter: guard esterni + guardia coerenza (Opzione B, fail-open).
+- Marketplace `1.10.0`→`1.11.0`; plugin `swe` `1.8.0`→`1.9.0`.
+- Hub `_PROJECTS_INDEX.yaml`: `bot-alliance` swe_writes true + campo `desk_mount` per ogni progetto (commit separato hub-repo).
+
+### Rationale
+- Chiude la contraddizione "ogni progetto SteelWolf apre con la stessa base" vs guardia che rifiutava BA. Fonti: Anthropic Hooks (cwd/CLAUDE_PROJECT_DIR/UserPromptSubmit exit 2), pattern monorepo "custom CLI valida il contesto" (Marco Lancini 2026), direnv per-directory, sfida root-vs-subdir.
+
+---
+
 ## [1.10.0] — 2026-07-02
 
 ### Added

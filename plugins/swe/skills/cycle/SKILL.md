@@ -23,7 +23,8 @@ con un gate di sicurezza in mezzo e il confine di sessione LL-Empire-050 rispett
 `/swe:cycle <progetto>` propaga `$1` a entrambe le fasi via `_PROJECTS_INDEX.yaml`:
 - **FASE 1** (`end`): chiude la catena DEL PROGETTO risolto (`session_prefix`), roll-up `hub/_status/<slug>.yaml`.
 - **FASE 2** (handoff): persiste `SESSION_BRIEFINGS/S<n+1>_OPEN.md` con lo slug del progetto + handoff "`/swe:start <slug>` in chat nuova".
-- **GUARD**: `swe_writes: false` -> il ciclo non opera nel dominio autonomo.
+- **GUARD dominio ESTERNO**: `swe_writes: false` (repo:null: `nexus`/`workdash`) -> il ciclo non opera. (`bot-alliance` da S166 = SteelWolf `swe_writes:true`, catena `BA-S`.)
+- **COERENZA SCRIVANIA↔PROGETTO (S166, Opzione B)**: il ciclo deve combaciare con la scrivania corrente (`desk_mount`); mismatch -> RIFIUTA; Hub = lanciatore; FAIL-OPEN se non riconosciuta. Vedi `start` §0-ter.5-6.
 
 ---
 
