@@ -7,6 +7,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
 
 ---
 
+## [marketplace 1.13.0] - swe 1.11.0 - 2026-07-03
+### Added
+- swe `hooks/session-start.js` Passo 2 (S166): l'HOOK PRE-RENDERIZZA la opening card ed inietta "mostra il file, non disegnare". Legge il modello dal blocco fenced ```swe-model {json}``` in `SESSION_BRIEFINGS/S<n>_OPEN.md`, esegue `render-card.mjs` (renderer deterministico), scrive l'HTML in `<cwd>/.swe-open-card.html` (mount outputs). L'istanza fa solo `show_widget` del file. Fail-open: se il modello manca, degrada a costruzione istanza senza bloccare l'apertura.
+- SSOT modello opening card: contratto blocco `swe-model` in `S<n>_OPEN.md` (shape `render-card.README`).
+
+
 ## [marketplace 1.12.1] - swe 1.10.1 - 2026-07-03
 ### Added
 - swe `hooks/session-start.js`: RUNTIME PROBE fail-open (S166 Passo 1) — stampa env (cowork, host_paths, project_dir, plugin_root), cwd, hook_dir, renderer/template exists, e model_scan (SESSION_BRIEFINGS raggiungibile) per decidere il wiring definitivo del renderer opening card. Non blocca mai l'apertura.
