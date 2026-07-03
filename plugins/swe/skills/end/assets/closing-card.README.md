@@ -1,5 +1,7 @@
 # Enriched Visual View — card di CHIUSURA sessione (base ufficiale S165)
 
+> **CARD FREEZE (S166, direttiva Luke — BINDING):** questa Enriched Visual View nella versione ricca collaudata in S166 è lo standard **INVARIABILE** per hub e OGNI progetto SteelWolf. Vietato impoverirla, semplificarla, improvvisarla o cambiarne stile/struttura. Riempirla SEMPRE completa coi dati reali del progetto.
+
 Gemella della card d'apertura (`start/assets/opening-card.template.html`). Stessa estetica e
 stesso schema, dati di CHIUSURA (protocollo D6). Rendering via `show_widget` (Cowork).
 Su Code CLI / Chat puri -> **fallback testo** (vedi sotto). LINGUA: italiano SEMPRE.

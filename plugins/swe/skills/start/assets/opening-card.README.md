@@ -1,5 +1,7 @@
 # Enriched Visual View — card d'apertura sessione (base ufficiale S164/A5)
 
+> **CARD FREEZE (S166, direttiva Luke — BINDING):** questa Enriched Visual View nella versione ricca collaudata in S166 è lo standard **INVARIABILE** per hub e OGNI progetto SteelWolf. Vietato impoverirla, semplificarla, improvvisarla o cambiarne stile/struttura. Riempirla SEMPRE completa coi dati reali del progetto.
+
 Base UNICA per l'apertura di OGNI sessione e OGNI progetto SteelWolf (e blueprint Nexus).
 Rendering via `show_widget` (Cowork). Su Code CLI/Chat puri → **fallback testo** (vedi sotto).
 

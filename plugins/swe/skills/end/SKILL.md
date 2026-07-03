@@ -11,6 +11,7 @@ Chiusura sessione Empire — protocollo D6. Massimo 7 righe output finale.
 
 > Creata 2026-04-26 in `hub/steelwolf-empire-hub/.claude/skills/`. Split da empire-session §4 (deprecato).
 > v1.1 (S160): aggiunta §0-bis chiusura interattiva simmetrica all'apertura `/swe:start`.
+> v1.3 (S166 Passo 4): CARD FREEZE (closing-card INVARIATA) + il modello card lo scrive `cycle` §3-bis.
 > v1.2 (S165): §0-bis.2 Enriched Visual View di CHIUSURA base ufficiale (asset `closing-card.template.html`, gemella dell'opening) — sostituisce il widget elicitation nativo; + §0-lang lingua italiana binding.
 > Binding: LL-Empire-002 (GO), LL-Empire-018 (atomic commit), LL-Empire-019 (V1 parity), LL-Empire-021 (mai checkout --ours/--theirs su append-only), LL-Empire-024 (sandbox stale → CMD Windows autoritativo), LL-Empire-050 (session boundary), LL-Empire-063 (bash-write hub).
 
@@ -41,6 +42,8 @@ Simmetrica all'apertura interattiva di `/swe:start` (§5-bis). **Prima di scrive
 Il rendering è la **Enriched Visual View di chiusura** (§0-bis.2). I valori raccolti alimentano direttamente §1 (SESSION_LOG/LESSONS/DASHBOARD) e §5 (backup). Non duplicare qui i contenuti: si compilano a runtime dalle risposte. Conferma con Luke prima di scrivere (LL-Empire-002).
 
 ### §0-bis.2 — ENRICHED VISUAL VIEW · CHIUSURA (base ufficiale, BINDING S165)
+
+**CARD FREEZE (S166, direttiva Luke — BINDING):** questa Enriched Visual View nella versione ricca collaudata in S166 è lo standard **INVARIABILE** per hub e OGNI progetto SteelWolf. Vietato impoverirla, semplificarla, improvvisarla o cambiarne stile/struttura. Riempirla SEMPRE completa coi dati reali del progetto.
 
 La chiusura interattiva si rende SEMPRE con la **Enriched Visual View** — card HTML custom via `show_widget`, gemella della card d'apertura (`start` §5-bis.2). È lo STESSO schema con dati di CHIUSURA (cosa fatto, commit generati, checklist aggiornata, DIRTY, nuove LL, handoff prossima sessione).
 

@@ -1,5 +1,7 @@
 # Enriched Visual View — card di HANDOFF Cycle (FASE 2, S165)
 
+> **CARD FREEZE (S166, direttiva Luke — BINDING):** questa Enriched Visual View nella versione ricca collaudata in S166 è lo standard **INVARIABILE** per hub e OGNI progetto SteelWolf. Vietato impoverirla, semplificarla, improvvisarla o cambiarne stile/struttura. Riempirla SEMPRE completa coi dati reali del progetto.
+
 Terza card della famiglia (apertura `start` · chiusura `end` · handoff `cycle`). E' il **ponte**
 tra la sessione appena chiusa (S<n>) e la successiva (S<n+1>). Rendering via `show_widget` (Cowork);
 su Code CLI / Chat -> fallback testo. LINGUA: italiano SEMPRE.

@@ -14,6 +14,7 @@ Apertura sessione Empire — Cowork, Code o Chat. Token-saving target: 3-5K read
 > v1.2 (S161 addendum): regole di pre-selezione deterministiche (PC/pull/numero/priorità) in §5-bis.
 > v1.3 (S164): §5-bis.1 formato priorità obbligatorio (descrizione Cosa/Perché/Output/Rischio + ordine consigliato + ordine workflow).
 > v1.4 (S164/A5): §5-bis.2 Enriched Visual View base ufficiale (card HTML custom pre-accesa + asset template + fallback testo).
+> v1.5 (S166): §5-bis.4 hook pre-render PRIMARIO (l'hook genera la card, l'istanza fa solo show_widget del file); fix template commento annidato.
 > v1.5 (S165): Ecosistema (hub-only) + checklist drill-down per milestone + chip Continuità/Parità-PC + commit data-ora forzata + lingua italiana binding.
 > v1.6 (S165): simmetria con `end` — glosse "in parole povere" (`.qglo`) su PC/Pull + principio tracciabilità (termine tecnico + parole povere + provenienza) condiviso con la closing card.
 > Binding: LL-Empire-002 (PROTOCOLLO GO), LL-Empire-008 (verifica empirica), LL-Empire-023 (pull-first), LL-Empire-024 (sandbox stale), LL-Empire-050 (session boundary), LL-Empire-063 (bash-write hub).
@@ -187,6 +188,8 @@ sezione a parte "Cross-cutting", sempre presente.
 
 ### §5-bis.2 — ENRICHED VISUAL VIEW (base ufficiale, BINDING S164/A5)
 
+**CARD FREEZE (S166, direttiva Luke — BINDING):** questa Enriched Visual View nella versione ricca collaudata in S166 è lo standard **INVARIABILE** per hub e OGNI progetto SteelWolf. Vietato impoverirla, semplificarla, improvvisarla o cambiarne stile/struttura. Riempirla SEMPRE completa coi dati reali del progetto.
+
 L'apertura si rende SEMPRE con la **Enriched Visual View** — card HTML custom via `show_widget`,
 base UNICA per ogni sessione e ogni progetto (e blueprint Nexus).
 
@@ -233,6 +236,16 @@ Il renderer riusa il template §5-bis.2 **INVARIATO** e le **stesse classi/CSS**
 solo prodotta da dati (separazione ragionamento↔rendering; pattern collaudato UI-da-LLM, fonti design S166).
 Le priorità ragionate restano input dell'istanza (dentro il modello), ma incastrate in markup fisso.
 §5-bis.2 resta valido come **descrizione della card e fallback** se il renderer non è disponibile.
+
+### §5-bis.4 — HOOK PRE-RENDER (PRIMARIO, S166 Passo 2)
+
+Meccanismo definitivo anti-improvvisazione: **è l'hook `SessionStart` che pre-renderizza la card**, non l'istanza. Ordine di precedenza a STEP 2:
+
+1. **Card pre-generata dall'hook (DEFAULT).** All'apertura il hook stampa `=== SWE RUNTIME STATUS S166 ===`. Se dice `card_ready: <path>`, la card è **già pronta**: l'istanza legge quel file (in Cowork è `.swe-open-card.html` nella cartella `outputs`) e passa il **contenuto ESATTO** a `show_widget`. NON costruire il modello, NON disegnare, NON usare AskUserQuestion/elicitation.
+2. **Renderer istanza (degradato).** Se `card_ready: no` (es. hub non montato sulla scrivania), l'istanza costruisce il modello JSON ed esegue `render-card.mjs` (§5-bis.3).
+3. **Manuale (ultimo fallback).** Card §5-bis.2 / testo strutturato in CLI.
+
+SSOT del modello: blocco fenced ```swe-model {json}``` dentro `SESSION_BRIEFINGS/S<n>_OPEN.md` (shape `render-card.README`), scritto alla chiusura da `end`/`cycle` — l'hook lo legge e rende. Fail-open: se il modello manca o il render fallisce, si degrada senza mai bloccare l'apertura.
 
 ---
 

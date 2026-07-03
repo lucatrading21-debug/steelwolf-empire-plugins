@@ -7,6 +7,21 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
 
 ---
 
+## [marketplace 1.14.0] - swe 1.12.0 - 2026-07-04
+### Added
+- swe Passo 4 (S166): `cycle` §3-bis scrive alla chiusura il blocco fenced ```swe-model {json}``` (modello COMPLETO/freeze) dentro `SESSION_BRIEFINGS/S<n+1>_OPEN.md` (SSOT). L'apertura successiva rende la card ricca in automatico via hook, deterministica, per hub e ogni progetto gestito da swe (ta-* nel loro repo; domini autonomi come Bot-Alliance restano fallback ricco).
+### Changed
+- CARD FREEZE S166 (direttiva Luke) documentato BINDING in SKILL start §5-bis, end §0-bis.2, cycle §3, e nei README opening/closing/handoff: la Enriched Visual View ricca è invariabile per hub e ogni progetto; vietato impoverirla/cambiarne stile.
+- Le card closing-card e handoff-card NON modificate (stile S165 invariato): il Passo 4 è puramente additivo (scrive un file).
+
+
+## [marketplace 1.13.1] - swe 1.11.1 - 2026-07-03
+### Fixed
+- opening-card template: rimosso commento HTML annidato (riga esempio ECOSYSTEM_BLOCK) che, per la regola no-nested-comments, chiudeva il commento esterno in anticipo e lasciava un `-->` orfano nella card renderizzata. Rigenerazione: 0 residui.
+### Changed
+- SKILL start §5-bis.4 (S166 Passo 2): documentato il flusso PRIMARIO hook-pre-render (l'hook genera la card, l'istanza fa solo show_widget del file `.swe-open-card.html`); precedenza hook > renderer-istanza > manuale.
+
+
 ## [marketplace 1.13.0] - swe 1.11.0 - 2026-07-03
 ### Added
 - swe `hooks/session-start.js` Passo 2 (S166): l'HOOK PRE-RENDERIZZA la opening card ed inietta "mostra il file, non disegnare". Legge il modello dal blocco fenced ```swe-model {json}``` in `SESSION_BRIEFINGS/S<n>_OPEN.md`, esegue `render-card.mjs` (renderer deterministico), scrive l'HTML in `<cwd>/.swe-open-card.html` (mount outputs). L'istanza fa solo `show_widget` del file. Fail-open: se il modello manca, degrada a costruzione istanza senza bloccare l'apertura.
