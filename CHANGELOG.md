@@ -7,6 +7,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
 
 ---
 
+## [marketplace 1.12.1] - swe 1.10.1 - 2026-07-03
+### Added
+- swe `hooks/session-start.js`: RUNTIME PROBE fail-open (S166 Passo 1) — stampa env (cowork, host_paths, project_dir, plugin_root), cwd, hook_dir, renderer/template exists, e model_scan (SESSION_BRIEFINGS raggiungibile) per decidere il wiring definitivo del renderer opening card. Non blocca mai l'apertura.
+### Changed
+- swe hook banner: bonifica ASCII (rimosso `§`), STEP 2 nota probe.
+
+
 ## [1.12.0] — 2026-07-03
 
 ### Added
