@@ -53,9 +53,12 @@ La chiusura interattiva si rende SEMPRE con la **Enriched Visual View** — card
 - Template: `${CLAUDE_PLUGIN_ROOT}/skills/end/assets/closing-card.template.html`
 - Regole+placeholder+schema: `${CLAUDE_PLUGIN_ROOT}/skills/end/assets/closing-card.README.md`
 
-**Procedura:** clona il template → sostituisci i `{{PLACEHOLDER}}` coi dati del progetto risolto
-(§0-ter: {{SESSION}} {{DATE_TIME}} {{BRANCH_HEAD}} {{LAST_COMMIT_*}} {{DONE_ITEMS}} {{COMMITS}}
-checklist/roadmap parsate con flag, {{DIRTY}} {{NEW_LL}} {{NEXT_STEP}}) → rendi con `show_widget`.
+**Procedura (renderer deterministico, S167 Passo 6 — come l'apertura):**
+1. **Costruisci il modello JSON** di chiusura (`kind:"closing"` + `scalars` coi campi §0-ter: SESSION · DATE_TIME · BRANCH_HEAD · LAST_COMMIT_* · OBIETTIVO · SCOPERTO · BLOCCO · DIRTY · NEW_LL · NEXT_STEP · CK_*; array `done[]` `{title,plain,used,fixed}`; array `commits[]` `{hash,type,msg}`; `checklist[]` a milestone; `sessionLogPreview`; pill `pc`/`tipo`/`backup`/`snap`/`dash`). Shape completo in `render-card.README.md` + `closing-card.README.md`.
+2. **Esegui il renderer**: `node ${CLAUDE_PLUGIN_ROOT}/skills/start/assets/render-card.mjs <model.json>` → HTML deterministico (template+CSS+classi FISSI → CARD FREEZE garantito meccanicamente, non "a memoria").
+3. **`show_widget`** con quell'HTML. **NON** clonare/riempire il template a mano (vecchia procedura S165 → soggetta a card povere/improvvisate/dimenticate).
+
+**STEP OBBLIGATORIO — NON SALTABILE (gate anti-dimenticanza, S167):** rendi la Enriched Visual View **PRIMA** di qualsiasi recap testuale di chiusura. Se non hai ancora eseguito renderer→`show_widget`, **NON procedere** al testo né a §1. In Cowork la card è il PRIMO output della chiusura; il fallback testo vale SOLO su Code CLI/Chat (no `show_widget`).
 
 **Vincoli BINDING (speculari a start §5-bis.2):**
 - **Mai** AskUserQuestion o widget elicitation nativo per la chiusura (prefill non si accende, S161).
