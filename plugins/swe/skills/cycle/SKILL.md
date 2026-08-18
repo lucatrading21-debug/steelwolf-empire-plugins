@@ -25,7 +25,7 @@ con un gate di sicurezza in mezzo e il confine di sessione LL-Empire-050 rispett
 - **FASE 1** (`end`): chiude la catena DEL PROGETTO risolto (`session_prefix`), roll-up `hub/_status/<slug>.yaml`.
 - **FASE 2** (handoff): persiste `SESSION_BRIEFINGS/S<n+1>_OPEN.md` con lo slug del progetto + handoff "`/swe:start <slug>` in chat nuova".
 - **GUARD dominio ESTERNO**: `swe_writes: false` (repo:null: `nexus`/`workdash`) -> il ciclo non opera. (`bot-alliance` da S166 = SteelWolf `swe_writes:true`, catena `BA-S`.)
-- **COERENZA SCRIVANIA↔PROGETTO (S166, Opzione B)**: il ciclo deve combaciare con la scrivania corrente (`desk_mount`); mismatch -> RIFIUTA; Hub = lanciatore; FAIL-OPEN se non riconosciuta. Vedi `start` §0-ter.5-6.
+- **COERENZA SCRIVANIA↔PROGETTO (S166 · riscritta S189)**: il ciclo deve combaciare con la scrivania corrente (`desk_mount`); mismatch -> **RIFIUTA**. **INVARIANTE (owner directive S189, ADR-027 §4):** ogni progetto SteelWolf possiede la propria scrivania e la propria catena di sessioni. Una scrivania puo' aprire, ciclare e chiudere ESCLUSIVAMENTE sessioni del progetto che rappresenta. **L'Hub NON e' un lanciatore.** L'Hub cicla SOLO `predator`. **Identita' del progetto FAIL-CLOSED**: se non si stabilisce, o due segnali si contraddicono -> STOP. Vedi `start` §0-ter.5-6.
 
 ---
 
