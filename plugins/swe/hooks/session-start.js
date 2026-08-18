@@ -38,13 +38,22 @@ function extractModel(file) {
     return { json: m[1], obj: obj };
   } catch (e) { return { error: "briefing illeggibile: " + e.message }; }
 }
-function renderHtml(modelJson) {
+/* CARD-05: lo scope si passa SEMPRE al renderer. Il vecchio criterio di qualita'
+ * (`niente {{` + `len>200`) era inutile: un modello vuoto lo superava. Ora e' il renderer
+ * a rifiutare (exit 3) e qui si riporta il motivo, invece di degradare in silenzio. */
+function renderHtml(modelJson, scopeProject, scopeSession) {
   const R = path.join(__dirname, "..", "skills", "start", "assets", "render-card.mjs");
-  if (!fs.existsSync(R)) return null;
+  if (!fs.existsSync(R)) return { error: "renderer non trovato: " + R };
+  const args = [R, "--scope-kind=opening", "--scope-project=" + scopeProject];
+  if (scopeSession) args.push("--scope-session=" + scopeSession);
   try {
-    const out = cp.execFileSync(process.execPath, [R], { input: modelJson, encoding: "utf8", timeout: 10000, maxBuffer: 8 * 1024 * 1024 });
-    return (out && out.indexOf("{{") === -1 && out.length > 200) ? out : null;
-  } catch (_) { return null; }
+    const out = cp.execFileSync(process.execPath, args, { input: modelJson, encoding: "utf8", timeout: 10000, maxBuffer: 8 * 1024 * 1024 });
+    if (!out || out.length < 200) return { error: "il renderer ha prodotto un output troppo corto (" + (out ? out.length : 0) + " B)" };
+    return { html: out };
+  } catch (e) {
+    const msg = (e && e.stderr ? String(e.stderr).trim() : (e && e.message) || String(e));
+    return { error: msg };
+  }
 }
 function writeCard(html) {
   try { const p = path.join(process.cwd(), ".swe-open-card.html"); fs.writeFileSync(p, html, "utf8"); return p; }
@@ -84,8 +93,10 @@ try {
             } else {
               modelOk = true;
               binding += declared ? " + model.project=" + declared : " (model.project assente: binding implicito da path+prefisso)";
-              const html = renderHtml(mm.json);
-              if (html) cardPath = writeCard(html);
+              const sess = mm.obj && mm.obj.scalars ? mm.obj.scalars.SESSION : null;
+              const r = renderHtml(mm.json, desk.slug, sess);
+              if (r.error) { stop = "renderer: " + r.error; modelOk = false; }
+              else { cardPath = writeCard(r.html); }
             }
           }
         }

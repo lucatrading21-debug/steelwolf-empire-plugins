@@ -8,9 +8,20 @@ NON cambia: è lo stesso `opening-card.template.html`.
 
 ## Uso
 ```
-node render-card.mjs <model.json>   # oppure modello su stdin
+node render-card.mjs <model.json> --scope-kind=opening --scope-project=<slug> [--scope-session=S<n>]
+#   oppure modello su stdin, con gli stessi flag
 # -> HTML completo su stdout -> passare a show_widget
 ```
+
+**Lo scope e' OBBLIGATORIO (CARD-05, S189).** Senza `--scope-kind` e `--scope-project` il renderer
+rifiuta con **exit 3**. Rifiuta anche: `kind` sconosciuto (nessun fallback silenzioso), scope CLI in
+disaccordo con `model.scope`, modello che dichiara un altro progetto o un'altra sessione, e schema
+minimo assente (`scalars` con `SESSION`, e `DATE_TIME` per `opening`).
+
+*Perche':* misurato in S189, un modello `{}` produceva 15.544 byte di HTML valido con rc=0 e zero
+placeholder residui — l'ultima `replace()` sostituisce ogni `{{CHIAVE}}` ignota con stringa vuota.
+Il controllo a valle (`niente {{` + `len>200`) lo superava perfettamente. Il renderer non poteva
+fallire: ora puo'.
 
 ## Modello JSON (shape)
 ```jsonc

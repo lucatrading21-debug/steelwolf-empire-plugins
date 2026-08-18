@@ -231,7 +231,8 @@ Per eliminare l'improvvisazione (card vuota / diversa tra istanze o scrivanie �
 la card si genera in modo **deterministico** con `render-card.mjs`. L'istanza NON disegna l'HTML a mano:
 
 1. Raccoglie lo stato (git, SESSION_LOG, roadmap, indice) e costruisce un **modello JSON** (shape in `${CLAUDE_PLUGIN_ROOT}/skills/start/assets/render-card.README.md`).
-2. Esegue `node ${CLAUDE_PLUGIN_ROOT}/skills/start/assets/render-card.mjs <model.json>` → HTML completo su stdout.
+2. Esegue `node ${CLAUDE_PLUGIN_ROOT}/skills/start/assets/render-card.mjs <model.json> --scope-kind=opening --scope-project=<slug>` → HTML completo su stdout.
+   - **Lo scope e' obbligatorio (CARD-05, S189)**: senza `--scope-kind` e `--scope-project` il renderer rifiuta con exit 3. Rifiuta anche `kind` sconosciuto, scope in disaccordo col modello, modello di un altro progetto/sessione, schema minimo assente. Un modello vuoto NON produce piu' una card.
    - **Fallback runtime**: se il bash della scrivania non raggiunge `${CLAUDE_PLUGIN_ROOT}`, copia `render-card.mjs` + `opening-card.template.html` in `outputs/` ed eseguilo lì.
 3. `show_widget(<HTML>)`.
 

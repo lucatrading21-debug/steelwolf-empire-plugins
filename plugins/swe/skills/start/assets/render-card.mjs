@@ -156,10 +156,74 @@ function render(model){
   return t;
 }
 
+/* ─────────── CARD-05 (S189): gate di SCOPE e SCHEMA, fail-closed ───────────
+ * Misura OLD, S189: `{}` produceva 15.544 byte di HTML valido con rc=0 e ZERO placeholder
+ * residui, perche' l'ultima replace() sostituisce ogni {{CHIAVE}} ignota con stringa vuota.
+ * Il controllo a valle in session-start.js (`niente {{` + `len>200`) lo superava perfettamente:
+ * un guardiano tarato su un sintomo che non si verifica mai. Un `kind` sconosciuto ripiegava
+ * in silenzio sul template opening.
+ *
+ * Da qui il renderer RIFIUTA (exit 3) quando:
+ *   - lo SCOPE non e' dichiarato: serve `kind` + `project`, via --scope-* o via model.scope;
+ *   - scope dichiarato due volte e in disaccordo (CLI vs modello);
+ *   - `kind` non e' fra opening|closing|handoff (nessun fallback silenzioso);
+ *   - manca lo schema minimo: `scalars` oggetto, `scalars.SESSION` non vuoto,
+ *     e per `opening` anche `scalars.DATE_TIME` non vuoto (timestamp binding §5-bis.2).
+ * Lo scope NON deve stare per forza nel briefing: chi invoca (session-start.js) lo conosce dal
+ * resolver e lo passa. Cosi' non si rende obbligatorio un campo retroattivo nei briefing esistenti. */
+const KINDS = ["opening","closing","handoff"];
+function die(msg){ process.stderr.write("SCOPE/SCHEMA RIFIUTATO (CARD-05): "+msg+"\n"); process.exit(3); }
+
+function cliScope(argv){
+  const o = {};
+  for (const a of argv){
+    let m;
+    if ((m = a.match(/^--scope-kind=(.*)$/)))    o.kind = m[1];
+    else if ((m = a.match(/^--scope-project=(.*)$/))) o.project = m[1];
+    else if ((m = a.match(/^--scope-session=(.*)$/))) o.session = m[1];
+  }
+  return o;
+}
+function assertScope(model, argv){
+  const cli = cliScope(argv);
+  const mod = (model && typeof model.scope === "object" && model.scope) ? model.scope : {};
+  const pick = (k) => {
+    const a = cli[k], b = mod[k];
+    if (a && b && String(a).toLowerCase() !== String(b).toLowerCase()) {
+      die("scope in disaccordo su `"+k+"`: CLI dice `"+a+"`, il modello dice `"+b+"`. Non indovino quale valga.");
+    }
+    return a || b || null;
+  };
+  const kind = pick("kind") || (model && model.kind) || null;
+  const project = pick("project");
+  const session = pick("session");
+
+  if (!kind)    die("`kind` non dichiarato. Passa --scope-kind=opening|closing|handoff (o model.scope.kind).");
+  if (!KINDS.includes(String(kind))) die("`kind` sconosciuto: `"+kind+"`. Ammessi: "+KINDS.join(", ")+". Nessun fallback silenzioso.");
+  if (!project) die("`project` non dichiarato. Una card senza progetto e' un falso verde in attesa: passa --scope-project=<slug> (o model.scope.project).");
+
+  const sc = (model && typeof model.scalars === "object" && model.scalars) ? model.scalars : null;
+  if (!sc) die("schema minimo assente: il modello non ha un oggetto `scalars`.");
+  if (!String(sc.SESSION || "").trim()) die("schema minimo: `scalars.SESSION` mancante o vuoto.");
+  if (kind === "opening" && !String(sc.DATE_TIME || "").trim())
+    die("schema minimo: `scalars.DATE_TIME` mancante o vuoto (timestamp obbligatorio, SKILL start §5-bis.2).");
+
+  if (session && String(sc.SESSION).trim().toLowerCase() !== String(session).trim().toLowerCase())
+    die("il modello e' della sessione `"+sc.SESSION+"` ma lo scope chiede `"+session+"`.");
+
+  const declaredProj = mod.project || model.project;
+  if (declaredProj && String(declaredProj).toLowerCase() !== String(project).toLowerCase())
+    die("il modello dichiara il progetto `"+declaredProj+"` ma lo scope e' `"+project+"`.");
+
+  return { kind: String(kind), project: String(project) };
+}
+
 let input="";
 try {
-  const arg = process.argv[2];
+  const arg = process.argv.slice(2).find(a => !a.startsWith("--"));
   input = arg ? readFileSync(arg,"utf8") : readFileSync(0,"utf8");
 } catch(e){ process.stderr.write("modello mancante: "+e.message+"\n"); process.exit(1); }
 let model; try { model = JSON.parse(input); } catch(e){ process.stderr.write("JSON modello non valido: "+e.message+"\n"); process.exit(1); }
+const scope = assertScope(model, process.argv.slice(2));
+model.kind = scope.kind;   /* lo scope validato vince sul campo del modello */
 process.stdout.write(render(model));
