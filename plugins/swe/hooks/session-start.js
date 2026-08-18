@@ -1,11 +1,17 @@
 #!/usr/bin/env node
 /* SteelWolf Empire - SessionStart hook (Node exec form, Windows-safe).
  * S166 Passo 2: l'HOOK PRE-RENDERIZZA la opening card e INIETTA "mostra il file".
- * L'istanza NON disegna piu': legge l'HTML gia' pronto e fa show_widget.
- * Pattern (ricerca UI-da-LLM): ragionamento (modello JSON persistito) separato dal
- * rendering (renderer deterministico eseguito dall'hook). Fail-open: se qualcosa manca,
- * degrada al flusso "istanza costruisce" senza mai bloccare l'apertura.
- * SSOT modello: blocco fenced ```swe-model {json} ``` dentro SESSION_BRIEFINGS/S<n>_OPEN.md.
+ * S189 CARD-08: il briefing e' vincolato al PROGETTO della scrivania. Nessun fallback all'Hub,
+ * nessun "piu' recente" globale. Se il progetto non e' stabilibile, o il briefing non gli
+ * appartiene, o e' ambiguo -> NESSUNA CARD, con motivo esplicito nel probe.
+ *
+ * Prima di S189 `findBriefings()` provava per PRIMO `hub/steelwolf-empire-hub/SESSION_BRIEFINGS`
+ * su ogni root. Poiche' ADR-027 impone che ogni scrivania-progetto monti `hub/` come livello L3,
+ * il risultato MISURATO era: scrivania Lab -> briefing dell'Hub, model_ok true, card generata.
+ * Una card perfetta dal progetto sbagliato: il falso verde che CARD-08 esiste per impedire.
+ *
+ * Fail-closed sull'IDENTITA'; cio' che degrada e' solo il livello di rendering (L1 -> L2).
+ * SSOT modello: blocco fenced ```swe-model {json} ``` dentro <briefings del progetto>/S<n>_OPEN.md.
  * Copyright (c) 2026 Luke SteelWolf - All Rights Reserved. */
 "use strict";
 if (!require("./_swe-domain.js")()) process.exit(0);
@@ -13,43 +19,24 @@ if (!require("./_swe-domain.js")()) process.exit(0);
 const path = require("path");
 const fs = require("fs");
 const cp = require("child_process");
+const P = require("./_swe-project.js");
 
-function roots() {
-  const env = process.env;
-  const list = [];
+function searchDirs() {
+  const env = process.env, list = [];
   const push = v => { if (v) String(v).split(/[;,]/).forEach(s => { s = s.trim(); if (s) list.push(s); }); };
   push(env.CLAUDE_CODE_WORKSPACE_HOST_PATHS);
   push(env.CLAUDE_PROJECT_DIR);
-  try { list.push(process.cwd()); } catch (e) {}
+  try { list.push(process.cwd()); } catch (_) {}
   return Array.from(new Set(list));
-}
-function findBriefings(rs) {
-  for (const r of rs) {
-    const cands = [
-      path.join(r, "hub", "steelwolf-empire-hub", "SESSION_BRIEFINGS"),
-      path.join(r, "steelwolf-empire-hub", "SESSION_BRIEFINGS"),
-      path.join(r, "SESSION_BRIEFINGS")
-    ];
-    for (const c of cands) { try { if (fs.existsSync(c)) return c; } catch (e) {} }
-  }
-  return null;
-}
-function latestOpen(dir) {
-  try {
-    const fsx = fs.readdirSync(dir).filter(f => /^S\d+_OPEN\.md$/.test(f));
-    if (!fsx.length) return null;
-    fsx.sort((a, b) => (parseInt(a.slice(1)) || 0) - (parseInt(b.slice(1)) || 0));
-    return path.join(dir, fsx[fsx.length - 1]);
-  } catch (e) { return null; }
 }
 function extractModel(file) {
   try {
     const txt = fs.readFileSync(file, "utf8");
     const m = txt.match(/```swe-model\s*([\s\S]*?)```/);
-    if (!m) return null;
-    JSON.parse(m[1]); /* valida */
-    return m[1];
-  } catch (e) { return null; }
+    if (!m) return { error: "il briefing non contiene il blocco ```swe-model```" };
+    let obj; try { obj = JSON.parse(m[1]); } catch (e) { return { error: "swe-model non e' JSON valido: " + e.message }; }
+    return { json: m[1], obj: obj };
+  } catch (e) { return { error: "briefing illeggibile: " + e.message }; }
 }
 function renderHtml(modelJson) {
   const R = path.join(__dirname, "..", "skills", "start", "assets", "render-card.mjs");
@@ -57,38 +44,64 @@ function renderHtml(modelJson) {
   try {
     const out = cp.execFileSync(process.execPath, [R], { input: modelJson, encoding: "utf8", timeout: 10000, maxBuffer: 8 * 1024 * 1024 });
     return (out && out.indexOf("{{") === -1 && out.length > 200) ? out : null;
-  } catch (e) { return null; }
+  } catch (_) { return null; }
 }
 function writeCard(html) {
-  try {
-    const p = path.join(process.cwd(), ".swe-open-card.html");
-    fs.writeFileSync(p, html, "utf8");
-    return p;
-  } catch (e) { return null; }
+  try { const p = path.join(process.cwd(), ".swe-open-card.html"); fs.writeFileSync(p, html, "utf8"); return p; }
+  catch (_) { return null; }
 }
 
-/* ---- pipeline (tutta fail-open) ---- */
-let modelFile = "none", modelOk = false, cardPath = null;
+/* ---- pipeline: identita' fail-closed, rendering degradabile ---- */
+let project = "NON RISOLTO", modelFile = "none", modelOk = false, cardPath = null, stop = null, binding = "n/d", signal = "n/d";
 try {
-  const bd = findBriefings(roots());
-  if (bd) {
-    const mo = latestOpen(bd);
-    if (mo) {
-      modelFile = mo;
-      const mj = extractModel(mo);
-      if (mj) {
-        modelOk = true;
-        const html = renderHtml(mj);
-        if (html) cardPath = writeCard(html);
+  const dirs = searchDirs();
+  let empireRoot = null;
+  for (const d of dirs) { empireRoot = P.findEmpireRoot(d); if (empireRoot) break; }
+  if (!empireRoot) {
+    stop = "non trovo `_PROJECTS_INDEX.yaml` risalendo da: " + dirs.join(" | ");
+  } else {
+    const projects = P.loadProjects(empireRoot);
+    const desk = P.resolveDesk({ projects: projects, cwd: process.env.CLAUDE_PROJECT_DIR || process.cwd(), hostPaths: process.env.CLAUDE_CODE_WORKSPACE_HOST_PATHS });
+    if (desk.error) { stop = desk.error; }
+    else {
+      project = desk.slug;
+      signal = desk.signal + (desk.others && desk.others.length ? "  (altri mount: " + desk.others.join(", ") + " - attesi per ADR-027 L2/L3)" : "");
+      const proj = projects.find(x => x.slug === desk.slug);
+      if (!proj) { stop = "progetto `" + desk.slug + "` assente dall'index"; }
+      else if (proj.swe_writes === false) { stop = "`" + desk.slug + "` e' un dominio ESTERNO: swe non apre sessioni qui"; }
+      else {
+        const br = P.resolveBriefing(proj, empireRoot);
+        if (br.error) { stop = br.error; }
+        else {
+          modelFile = br.file;
+          binding = "dir=" + proj.briefings + " + pattern=" + br.pattern;
+          const mm = extractModel(br.file);
+          if (mm.error) { stop = mm.error; }
+          else {
+            const declared = mm.obj && (mm.obj.project || (mm.obj.scalars && mm.obj.scalars.PROJECT_SLUG));
+            if (declared && String(declared).toLowerCase() !== desk.slug) {
+              stop = "il briefing dichiara il progetto `" + declared + "` ma la scrivania e' `" + desk.slug + "`";
+            } else {
+              modelOk = true;
+              binding += declared ? " + model.project=" + declared : " (model.project assente: binding implicito da path+prefisso)";
+              const html = renderHtml(mm.json);
+              if (html) cardPath = writeCard(html);
+            }
+          }
+        }
       }
     }
   }
-} catch (e) {}
+} catch (e) { stop = "errore nel resolver: " + (e && e.message ? e.message : e); }
 
-const PROBE = "=== SWE RUNTIME STATUS S166 ===\n" +
+const PROBE = "=== SWE RUNTIME STATUS S189 (CARD-08) ===\n" +
+  "project: " + project + "\n" +
+  "desk_signal: " + signal + "\n" +
+  "briefing_binding: " + binding + "\n" +
   "model_file: " + modelFile + "\n" +
   "model_ok: " + modelOk + "\n" +
-  "card_ready: " + (cardPath ? cardPath : "no (degrada a costruzione istanza)") + "\n" +
+  "card_ready: " + (cardPath ? cardPath : "no") + "\n" +
+  (stop ? "stop_reason: " + stop + "\n" : "") +
   "=== END STATUS ===";
 
 let STEP2;
@@ -98,11 +111,16 @@ if (cardPath) {
 - Nel tuo mount Cowork e' il file .swe-open-card.html dentro la cartella outputs.
 - Leggi quel file e passa il suo contenuto ESATTO a show_widget. NON costruire, NON improvvisare, NON usare AskUserQuestion/elicitation.
 - Conferma stato in testo (PC . pull . priorita) SOTTO la card. In CLI: descrivi la card a parole.`;
+} else if (project !== "NON RISOLTO" && !stop) {
+  STEP2 = `STEP 2 - APERTURA INTERATTIVA (renderer istanza, livello L2 dichiarato):
+- Il progetto e' risolto: ${project}. Costruisci il modello JSON (shape render-card.README) SOLO con
+  briefing/checklist/roadmap DI QUESTO progetto, poi esegui skills/start/assets/render-card.mjs -> HTML -> show_widget.
+- VIETATO AskUserQuestion / elicitation / card disegnate a mano. Dichiara il livello (L2).`;
 } else {
-  STEP2 = `STEP 2 - APERTURA INTERATTIVA (fallback: card non pre-generata):
-- Costruisci il modello JSON (shape render-card.README) ed esegui skills/start/assets/render-card.mjs -> HTML -> show_widget. NON disegnare a mano.
-- VIETATO AskUserQuestion / elicitation / card improvvisate. CLI/Chat: stesso contenuto in testo.
-- Conferma stato: PC . esito pull . priorita. Colpo d occhio: CHECKLIST + ROADMAP del progetto attivo.`;
+  STEP2 = `STEP 2 - STOP: identita' o briefing NON risolti (CARD-08, fail-closed).
+- Motivo: ${stop || "progetto non risolto"}
+- NON aprire la card. NON usare il briefing di un altro progetto. NON ripiegare sull'Hub.
+- NON assumere un default: riporta il motivo a Luke e attendi istruzioni.`;
 }
 
 console.log(`${PROBE}
