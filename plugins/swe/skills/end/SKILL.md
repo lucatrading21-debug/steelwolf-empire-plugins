@@ -91,6 +91,40 @@ conferma D6 + GATE git clean (LL-002/024). L'esperienza resta coerente cross-too
 
 ---
 
+## §0-quater — GATE CARD-04 (S189, FAIL-CLOSED, NON SALTABILE)
+
+**Nessuna scrittura di chiusura prima che questo gate dia PASS.** Vale per `SESSION_LOG`,
+`LESSONS_LEARNED`, dashboard, briefing successivo, stato CLOSED, memory snapshot e commit.
+
+Perche' esiste: `closing-card-guard.js` e' solo un promemoria che esce 0, e nell'ambiente cloud non
+stampa nulla (si autoesclude, CARD-06B). **S188 e' arrivata a CLOSED senza closing card.** Un cartello
+non e' un cancello.
+
+Sequenza obbligatoria:
+
+1. Costruisci il modello di chiusura e **dichiara lo scope dentro il modello**:
+   `"scope": {"kind": "closing", "project": "<slug>", "session": "S<n>"}`.
+   Senza, il gate rifiuta: il progetto non compare nell'HTML, quindi una card non dichiarata non e'
+   attribuibile e il confronto col ri-render non se ne accorgerebbe (misurato S189).
+2. Rendi la card **con i flag di scope** (CARD-05, obbligatori):
+   `node ${CLAUDE_PLUGIN_ROOT}/skills/start/assets/render-card.mjs <model.json> --scope-kind=closing --scope-project=<slug> --scope-session=S<n> > <card.html>`
+3. Mostra la card con `show_widget`.
+4. **Esegui il gate e incolla l'esito:**
+   `node ${CLAUDE_PLUGIN_ROOT}/skills/end/assets/verify-close-card.mjs --project=<slug> --session=S<n> --kind=closing --model=<model.json> --card=<card.html>`
+
+Il verificatore controlla: scope presente e coerente · sessione del modello == sessione chiusa ·
+progetto dichiarato == progetto chiuso · il renderer **accetta** il modello con quello scope ·
+il ri-render coincide **byte per byte** con la card su disco · la card contiene la sessione.
+
+- **exit 0** -> scrive il token `.swe-close-ok.<project>.<session>` accanto alla card. Si procede.
+- **exit != 0** -> **STOP**. Si corregge il **modello** e si rirende. **Mai** l'HTML gia' reso: e' il
+  difetto misurato in S188 (card renderizzata e poi modificata a mano prima della visualizzazione).
+
+Per `cycle` il gate si esegue **due volte**: una per la closing card (`--kind=closing`) e una per la
+handoff card (`--kind=handoff`), prima di scrivere `S<n+1>_OPEN.md`.
+
+---
+
 ## §1 — STEP 1: UPDATE DOCUMENTAZIONE OBBLIGATORIA
 
 ### SESSION_LOG.md (formato D6)

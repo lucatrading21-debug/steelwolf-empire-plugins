@@ -12,9 +12,16 @@ try {
 Stai per eseguire /swe:end oppure /swe:cycle.
 
 STEP 0 — NON SALTABILE (prima di scrivere QUALSIASI testo o file di chiusura):
-  1. Costruisci il modello JSON di chiusura ("kind":"closing"); se cycle, anche handoff ("kind":"handoff").
-  2. Esegui il renderer:  node \${CLAUDE_PLUGIN_ROOT}/skills/start/assets/render-card.mjs <model.json>
+  1. Costruisci il modello JSON di chiusura con lo SCOPE dentro:
+     "scope": {"kind":"closing","project":"<slug>","session":"S<n>"}   (se cycle, anche "handoff").
+  2. Rendi la card CON I FLAG DI SCOPE (obbligatori da CARD-05, senza escono errore 3):
+     node \${CLAUDE_PLUGIN_ROOT}/skills/start/assets/render-card.mjs <model.json> \\
+          --scope-kind=closing --scope-project=<slug> --scope-session=S<n> > <card.html>
   3. Mostra l'HTML risultante con show_widget.
+  4. GATE CARD-04, fail-closed — esegui e incolla l'esito:
+     node \${CLAUDE_PLUGIN_ROOT}/skills/end/assets/verify-close-card.mjs \\
+          --project=<slug> --session=S<n> --kind=closing --model=<model.json> --card=<card.html>
+     exit != 0  ->  STOP: nessuna scrittura di chiusura. Correggi il MODELLO e rirendi, mai l'HTML.
 
 La Enriched Visual View di chiusura/handoff DEVE essere il PRIMO output visibile in Cowork.
 Se non l'hai ancora mostrata via show_widget, NON procedere al recap testuale ne' alla scrittura dei file

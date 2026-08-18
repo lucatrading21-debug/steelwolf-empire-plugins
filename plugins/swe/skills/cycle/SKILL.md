@@ -29,6 +29,15 @@ con un gate di sicurezza in mezzo e il confine di sessione LL-Empire-050 rispett
 
 ---
 
+## §0-quater — GATE CARD-04 (S189): vale per ENTRAMBE le fasi
+
+Il gate `verify-close-card.mjs` di `end` §0-quater e' **NON SALTABILE** e va eseguito **due volte**:
+`--kind=closing` prima delle scritture della FASE 1, e `--kind=handoff` prima di scrivere
+`SESSION_BRIEFINGS/S<n+1>_OPEN.md` nella FASE 2. Un FAIL ferma il ciclo: si corregge il **modello**
+e si rirende, mai l'HTML gia' reso.
+
+---
+
 ## §1 — FASE 1: CHIUSURA (skill `end`)
 
 Esegui l'intera skill `end` (protocollo D6):
