@@ -108,10 +108,11 @@ in `skills/start/SKILL.md`. Riferimento completo body: vedi SKILL.md.
    - **Colpo d'occhio**: sintesi `CHECKLIST` + `ROADMAP` (o `EMPIRE_DASHBOARD`) del progetto attivo, letti a runtime.
    - **Cowork**: widget di conferma (modulo elicitation, generato a runtime dall'assistente). **Claude Code CLI**: stesso contenuto in testo — il widget cliccabile esiste solo in Cowork.
 
-6-ter. **Persisti scheda apertura** (SKILL `start` §5-ter): scrivi lo snapshot
-   `hub/SESSION_BRIEFINGS/S<n>_OPEN.md` (PC · pull · briefing · carryover · priorita
-   pre-compilate) via bash-write (LL-Empire-063), cosi la predisposizione persiste
-   anche a chat chiusa. Scrittura non distruttiva, ammessa prima del GO (bookkeeping).
+6-ter. **Persisti scheda apertura** — destinazione e naming del briefing si derivano dalla
+   project entry risolta; **regola canonica UNICA: skill `start` §5-ter** (qui non si duplica).
+   Contenuto: PC · pull · briefing · carryover · priorita pre-compilate, via bash-write
+   (LL-Empire-063). Scrittura non distruttiva, ammessa prima del GO (bookkeeping). Prima
+   sessione di un progetto `bootstrap: on-demand`: vale la clausola SKILL `start` §0-ter.4-ter.
 
 7. **ATTENDI GO esplicito Luke** (LL-Empire-002 NON DEROGABILE)
    - Default state = WAIT

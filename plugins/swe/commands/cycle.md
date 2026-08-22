@@ -96,7 +96,7 @@ in `skills/cycle/SKILL.md`. Riferimento completo body: vedi SKILL.md.
 **Regola session-boundary (LL-050): la sessione successiva NON si apre in questa chat.**
 Aprire e lavorare nella stessa chat mescola i contesti. Quindi FASE 2:
 
-3. **Scrivi lo snapshot di apertura** in `hub/SESSION_BRIEFINGS/S<n+1>_OPEN.md` (via skill `start` §5-ter): PC · pull · briefing · carryover · priorità proposte, letti a runtime dal SESSION_LOG appena aggiornato. Persiste su disco anche a chat chiusa.
+3. **Scrivi il briefing di apertura** della sessione successiva nella destinazione derivata dalla project entry risolta — **regola canonica UNICA: skill `start` §5-ter** (qui non si duplica): PC · pull · briefing · carryover · priorità proposte, letti a runtime dal SESSION_LOG appena aggiornato. Persiste su disco anche a chat chiusa.
 
 4. **Emetti l'handoff** in chat: conferma che S<n> è chiusa e indica a Luke di **aprire una CHAT NUOVA** e lanciare `/swe:start $1`. Lo start ricostruirà (e ritroverà persistito) lo snapshot appena scritto.
 

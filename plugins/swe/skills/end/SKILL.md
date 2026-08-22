@@ -121,7 +121,7 @@ il ri-render coincide **byte per byte** con la card su disco · la card contiene
   difetto misurato in S188 (card renderizzata e poi modificata a mano prima della visualizzazione).
 
 Per `cycle` il gate si esegue **due volte**: una per la closing card (`--kind=closing`) e una per la
-handoff card (`--kind=handoff`), prima di scrivere `S<n+1>_OPEN.md`.
+handoff card (`--kind=handoff`), prima di scrivere il briefing della sessione successiva (destinazione e naming: **regola canonica UNICA in skill `start` §5-ter**).
 
 ---
 

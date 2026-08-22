@@ -41,9 +41,10 @@ Fonte unica interna SteelWolf (dominio separato N4). Binding: LL-Empire-023 (pul
 
 1. **Con argomento** `$1 = <slug>`: cerca in `projects[]`. Slug assente -> errore esplicito + lista slug validi (NON assumere).
 2. **Senza argomento** -> progetto con `default: true` (`predator`/hub) = comportamento storico (retro-compat, zero regressione).
-3. **Path-set risolto**: `repo . session_log . roadmap . session_prefix . branch . desk`. Da qui §2 (pull), §5 (SESSION_LOG), §5-bis (colpo d'occhio ROADMAP), §5-ter (S<n>_OPEN) usano i path DEL PROGETTO risolto, non hub.
-4. **Numero sessione** = +1 sull'ultima entry del `session_log` del progetto, usando la **numerazione nativa** del progetto. `session_prefix` valorizzato solo per catene che lo usano davvero (es. `BA-S` per bot-alliance); vuoto -> `Sn` (default hub, journal, ...). NON forzare prefissi non nativi.
+3. **Path-set risolto**: `repo . session_log . roadmap . briefings . session_prefix . branch . desk`. Da qui §2 (pull), §5 (SESSION_LOG), §5-bis (colpo d'occhio ROADMAP), §5-ter (briefing di apertura) usano i path DEL PROGETTO risolto, non hub. `briefings` + `session_prefix` sono i due campi da cui §5-ter deriva **destinazione e naming**: regola canonica in §5-ter, non riscriverla altrove.
+4. **Numero sessione** = +1 sull'ultima entry del `session_log` del progetto, usando la **numerazione nativa** del progetto. `session_prefix` valorizzato solo per catene che lo usano davvero (es. `BA-S` per bot-alliance). La mappatura prefisso -> nome del file di briefing (incluso il caso vuoto) e' enunciata **una sola volta** in §5-ter: non ridichiararla qui. NON forzare prefissi non nativi.
 4-bis. **Bootstrap on-demand** (voci con `bootstrap: on-demand`, es. `ta-analysis`/`ta-academy`/`ta-knowledge`/`ta-content`): il `session_log` puo' NON esistere ancora (il repo ha PROJECT_STATE/ROADMAP/CHECKLIST ma non SESSION_LOG). In tal caso: sessione = **S1**, colpo d'occhio da `PROJECT_ROADMAP.md`+`PROJECT_CHECKLIST.md`, e **crea il SESSION_LOG** del progetto alla prima chiusura (`end`/`cycle`) via bash-write (LL-063). La creazione del file vuoto/scheletro in apertura e' bookkeeping non distruttivo (ammessa pre-GO, come §5-ter). NON trattare il SESSION_LOG mancante come errore.
+4-ter. **Cartella briefing al primo bootstrap (S191).** Invariante DISTINTO da 4-bis (che governa il `SESSION_LOG`): stesso punto normativo, stesso ordine di valutazione, oggetto diverso. La cartella `briefings` dichiarata nell'index puo' essere creata come **bookkeeping del bootstrap** (bash-write, LL-063), e vi si scrive il primo briefing col naming nativo del progetto (§5-ter), **SOLO se valgono TUTTE insieme** queste condizioni: **(a)** identita' del progetto risolta senza ambiguita'; **(b)** `bootstrap: on-demand`; **(c)** `briefings` valorizzato nell'index; **(d)** stato effettivamente first-session; **(e)** la cartella project-owned dichiarata non esiste. Es. Lab: `steelwolf-strategy-lab/SESSION_BRIEFINGS/S1_OPEN.md` — `S1`, MAI `S01` (`S01` e' il pilot identifier, non il designatore di catena). **Se anche UNA sola condizione non vale -> STOP.** In particolare: progetto gia' avviato la cui cartella briefing risulta assente -> **STOP**, mai ricreazione silenziosa (potrebbe essere un danno); `briefings: null` -> **STOP**. Nessun fallback all'Hub, nessuna cartella inventata.
 5. **GUARD dominio ESTERNO (HARD-STOP binding)**: se il progetto risolto ha `swe_writes: false` (domini ESTERNI `repo: null`: `nexus`, `workdash`), **FERMATI SUBITO**. NON leggere doc, NON briefing, NON aprire, NON attendere GO. Emetti SOLO questo rifiuto e termina:
 
    > ⛔ `<slug>` e' un dominio ESTERNO (`<domain>`): ecosistema/piattaforma gestita altrove (plugin **nexus** per `nexus`, dominio **WorkDASH** per `workdash`). `swe` non apre sessioni qui. Apri dal suo strumento proprietario.
@@ -119,7 +120,7 @@ Lettura ordinata, token-economic:
 5. Ultime 20 righe `hub/steelwolf-empire-hub/SESSION_LOG.md`
 6. Indice `hub/steelwolf-empire-hub/LESSONS_LEARNED.md` (LL binding)
 7. Memory snapshot piu' recente in `hub/_memory-snapshot/`
-8. Snapshot apertura precedente in `hub/SESSION_BRIEFINGS/S<n>_OPEN.md` (se presente)
+8. Briefing di apertura precedente **del progetto risolto** (destinazione: regola canonica §5-ter), se presente
 9. Memoria Cowork `%APPDATA%\Claude\...\memory\MEMORY.md`
 
 ---
@@ -258,14 +259,23 @@ SSOT del modello: blocco fenced ```swe-model {json}``` dentro `SESSION_BRIEFINGS
 **Scopo:** la scheda d'apertura (predisposizioni) deve persistere anche a chat chiusa,
 non solo vivere nella conversazione (osservazione Luke S161).
 
-Ad ogni apertura, scrivi lo snapshot su disco:
+### Regola canonica — destinazione e naming del briefing (S191, UNICA)
+
+La destinazione si **deriva dalla project entry risolta** (§0-ter), mai da un percorso letterale:
 
 ```
-hub/SESSION_BRIEFINGS/S<n>_OPEN.md
+<briefings>/<session_prefix><n>_OPEN.md
 ```
 
-dove `<n>` = numero della sessione corrente (ricavato da +1 sull'ultima entry SESSION_LOG).
-Contenuto (markdown, conciso): PC · esito pull · briefing stato (§5) · carryover · priorita proposte pre-compilate. Scrivi **via bash-write** (LL-Empire-063; MAI Edit Cowork su hub). Il file resta su disco anche dopo la chiusura chat → la predisposizione e' recuperabile.
+- `<briefings>` = campo `briefings` della project entry, joinato alla radice `SteelWolf_Empire/`.
+- `<session_prefix>` = campo `session_prefix` **verbatim** (vuoto -> `S`). Es. `BA-S` -> `BA-S<n>_OPEN.md`; mai `BA_S<n>`, mai `S<n>`: il reader rende `-`/`_` intercambiabili e va in errore su due candidati con lo stesso numero.
+- `<n>` = numerazione **nativa** del progetto (§0-ter.4). Primo bootstrap: §0-ter.4-ter -> `S1`, senza zero-padding.
+
+**FAIL-CLOSED:** identita' del progetto non risolta o ambigua, oppure `briefings: null` -> **STOP**, zero write, **nessun fallback all'Hub**, nessuna cartella inventata. Unica eccezione: la clausola di prima sessione in **§0-ter.4-ter**, valutata prima e che la governa per intero.
+
+Questa e' l'**unica** regola. `§0-ter.3`, `§0-ter.4`, `commands/start.md`, `commands/cycle.md`, `skills/cycle/SKILL.md` e `skills/end/SKILL.md` la **referenziano** e non la riscrivono.
+
+Contenuto (markdown, conciso): PC · esito pull · briefing stato (§5) · carryover · priorita proposte pre-compilate. Scrivi **via bash-write** (LL-Empire-063; MAI Edit Cowork). Il file resta su disco anche dopo la chiusura chat -> la predisposizione e' recuperabile.
 
 Note:
 - Scrittura NON distruttiva (nuovo file) → ammessa in apertura anche prima del GO (bookkeeping, non lavoro di sessione). Il GATE GO §6 protegge il LAVORO, non la registrazione dello stato.
@@ -307,6 +317,6 @@ Per repo IronX: ironx-prime PRIMA di empire-start (firewall §11).
 - Chiusura: skill `end`
 - Ciclo end+handoff: skill `cycle`
 - Compact mid-session: skill `compact`
-- Snapshot apertura persistiti: `hub/SESSION_BRIEFINGS/S<n>_OPEN.md`
+- Briefing di apertura persistiti: destinazione derivata dalla project entry (regola canonica §5-ter)
 - Roadmap M1: `hub/ROADMAP_M1_M2_ANTHROPIC_2026_ALIGN.md` Action 1.2
 - LL critiche binding: 002, 008, 011, 014, 018, 019, 021, 023, 024, 050, 063
