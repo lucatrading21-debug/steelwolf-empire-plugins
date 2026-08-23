@@ -1,0 +1,29 @@
+<!-- SteelWolf Empire — CARD SHELL canonica (S192/R1). Struttura UNICA per opening | handoff | closing.
+     I kind riempiono solo gli slot di contenuto: non possono ridefinire header, identity/status,
+     riferimenti, azione/conferma, footer o stile. Vedi render-card.mjs -> KIND_SPEC. -->
+<div style="background:var(--surface-2); border:1px solid var(--border); border-radius:16px; padding:24px; max-width:780px;">
+  <div style="display:flex; align-items:center; gap:14px;">
+    <div style="flex:none; width:48px; height:48px; border-radius:12px; background:var(--text-accent); color:var(--surface-2); display:flex; align-items:center; justify-content:center; font-weight:500; font-size:19px; letter-spacing:0.5px;">SW</div>
+    <div style="flex:1;">
+      <div style="font-weight:500; font-size:20px; line-height:1.2;">SteelWolf Empire</div>
+      <div style="font-size:13px; color:var(--text-secondary); margin-top:2px;">{{SHELL_SUBTITLE}}</div>
+    </div>
+    <div style="flex:none; text-align:right;">
+      <div style="font-size:22px; font-weight:500; color:var(--text-accent); line-height:1;">{{SHELL_SESSION_VAL}}</div>
+      <div style="font-size:11px; color:var(--text-muted); margin-top:3px;">{{SHELL_SESSION_TAG}}</div>
+    </div>
+  </div>
+  <div style="margin-top:14px; display:flex; flex-wrap:wrap; gap:6px 10px; font-size:11.5px;">
+{{SHELL_META_CHIPS}}
+  </div>
+  <div style="margin-top:10px; font-size:11px; color:var(--text-muted);"><b style="color:var(--text-secondary); font-weight:500;">LL richiamate:</b> {{LL_LIST}}</div>
+{{SHELL_INTRO}}
+  <div style="height:1px; background:var(--border); margin:18px 0;"></div>
+{{SHELL_CONTROLS}}
+{{SHELL_REFERENCES}}
+{{SHELL_SECTIONS}}
+{{SHELL_INPUTS}}
+
+  <div style="margin-top:16px; font-size:11.5px; color:var(--text-muted);"><b>Cross-cutting:</b> {{CROSS_CUTTING}}{{SHELL_FOOTER_EXTRA}}</div>
+{{SHELL_ACTION}}
+</div>

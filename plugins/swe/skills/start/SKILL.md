@@ -160,7 +160,8 @@ Dopo il briefing, presenta l'apertura interattiva:
   - **Pull**: default **`già aggiornati`** SOLO se l'ultima entry `SESSION_LOG` registra un push completato in pari data sullo stesso PC (closure appena avvenuta → repo allineati); **altrimenti `da verificare`**. Mai indovinare `da fare`/`già fatto` senza questa evidenza.
   - **Numero sessione**: ultima entry `SESSION_LOG` + 1 (mai riusare un numero già chiuso).
   - **Priorità**: eredita il carryover "Prossimo passo" dell'ultima entry; pre-selezionala. Ogni voce va presentata NON come solo titolo ma nel **formato descrittivo canonico** (vedi §5-bis.1): *Cosa · Perché · Output · Rischio* + **ordine consigliato** + **ordine workflow**.
-- **Cowork**: rendi la card §5-bis.2 (Enriched Visual View, asset `opening-card.template.html`) via `show_widget`. **VIETATO** usare AskUserQuestion o widget elicitation nativo o card improvvisate.
+- **Cowork**: rendi la card canonica (§5-bis.2, `assets/card/`) via `show_widget`. **VIETATO** usare AskUserQuestion o widget elicitation nativo o card improvvisate.
+- **ORDINE BINDING (S192/R2)**: la card e' il **primo output visibile** del comando. Le letture e le misure che servono a costruirla vengono prima ed e' giusto cosi'; ma **nessun testo visibile e nessuna scrittura** — bookkeeping e briefing di apertura inclusi — precedono la card e la conferma dell'owner. Misurato in S192: la card arrivo' dopo il briefing e dopo `S192_OPEN.md`, perche' era questa sequenza a prescriverlo.
 - **Claude Code CLI / Chat**: stesso contenuto in **testo strutturato** (fallback §5-bis.2). Il widget cliccabile esiste solo in Cowork.
 
 Il rendering ricco (checklist/roadmap) si costruisce leggendo i file a runtime: non duplicare quei dati qui.
@@ -199,13 +200,16 @@ base UNICA per ogni sessione e ogni progetto (e blueprint Nexus).
 
 **IMPERATIVO (no divergenza tra istanze):** l'unica apertura ammessa è rendere QUESTO asset. È VIETATO costruire card alternative, usare AskUserQuestion o il widget elicitation nativo, o elencare le priorità come semplice testo. Se l'asset non è leggibile → fallback TESTO strutturato (sotto), mai una card improvvisata.
 
-**Asset (non riscrivere da zero — token-saving):**
-- Template: `${CLAUDE_PLUGIN_ROOT}/skills/start/assets/opening-card.template.html`
-- Regole+placeholder+schema: `${CLAUDE_PLUGIN_ROOT}/skills/start/assets/opening-card.README.md`
+**Asset canonici — infrastruttura CARD condivisa, non "di start" (S192/R1):**
+- Struttura, stile e comportamento **UNICI** (comuni a opening/handoff/closing):
+  `${CLAUDE_PLUGIN_ROOT}/assets/card/card-shell.html` · `card-core.css` · `card-behavior.js`
+- Contenuto del kind (chips · intro · controls · sections): `${CLAUDE_PLUGIN_ROOT}/assets/card/kinds/opening.parts.html`
+- Regole+placeholder+schema: `${CLAUDE_PLUGIN_ROOT}/assets/card/render-card.README.md`
 
-**Procedura:** clona il template → sostituisci i `{{PLACEHOLDER}}` coi dati del progetto risolto
-(§0-ter: {{SESSION}} {{DATE_TIME}} {{BRANCH_HEAD}} {{LAST_COMMIT}} {{LL_LIST}} checklist/roadmap
-parsate con flag, {{PRIORITIES}} dal carryover) → rendi con `show_widget`.
+**Procedura:** NON si clona e non si riempie a mano nulla. Si costruisce il **modello JSON**
+(§0-ter: SESSION, DATE_TIME, BRANCH_HEAD, ultimo commit, LL_LIST, checklist/roadmap parsate con
+flag, priorita' dal carryover) → `render-card.mjs` coi flag di scope → `verify-card.mjs` →
+`show_widget`. La struttura non e' un input: e' di proprieta' del renderer.
 
 **Vincoli BINDING:**
 - **Mai** AskUserQuestion o widget elicitation nativo per l'apertura (prefill non si accende, S161).
@@ -231,10 +235,11 @@ note) e poi ATTENDI GO (LL-002). L'ecosistema resta coerente cross-tool (Cowork/
 Per eliminare l'improvvisazione (card vuota / diversa tra istanze o scrivanie — vedi delirio S166),
 la card si genera in modo **deterministico** con `render-card.mjs`. L'istanza NON disegna l'HTML a mano:
 
-1. Raccoglie lo stato (git, SESSION_LOG, roadmap, indice) e costruisce un **modello JSON** (shape in `${CLAUDE_PLUGIN_ROOT}/skills/start/assets/render-card.README.md`).
-2. Esegue `node ${CLAUDE_PLUGIN_ROOT}/skills/start/assets/render-card.mjs <model.json> --scope-kind=opening --scope-project=<slug>` → HTML completo su stdout.
+1. Raccoglie lo stato (git, SESSION_LOG, roadmap, indice) e costruisce un **modello JSON** (shape in `${CLAUDE_PLUGIN_ROOT}/assets/card/render-card.README.md`).
+2. Esegue `node ${CLAUDE_PLUGIN_ROOT}/assets/card/render-card.mjs <model.json> --scope-kind=opening --scope-project=<slug>` → HTML completo su stdout.
    - **Lo scope e' obbligatorio (CARD-05, S189)**: senza `--scope-kind` e `--scope-project` il renderer rifiuta con exit 3. Rifiuta anche `kind` sconosciuto, scope in disaccordo col modello, modello di un altro progetto/sessione, schema minimo assente. Un modello vuoto NON produce piu' una card.
-   - **Fallback runtime**: se il bash della scrivania non raggiunge `${CLAUDE_PLUGIN_ROOT}`, copia `render-card.mjs` + `opening-card.template.html` in `outputs/` ed eseguilo lì.
+   - **Gate CARD-04 (S192/R3)**: dopo il render, `node ${CLAUDE_PLUGIN_ROOT}/assets/card/verify-card.mjs --kind=opening --project=<slug> --session=S<n> --model=<model.json> --card=<card.html>`. `exit != 0` → STOP, nessuna card e nessuna scrittura.
+   - **Fallback runtime**: se il bash della scrivania non raggiunge `${CLAUDE_PLUGIN_ROOT}`, copia l'INTERA cartella `assets/card/` (con `kinds/`) in `outputs/` ed eseguila lì.
 3. `show_widget(<HTML>)`.
 
 Il renderer riusa il template §5-bis.2 **INVARIATO** e le **stesse classi/CSS** → visual view **identica**,
@@ -242,13 +247,19 @@ solo prodotta da dati (separazione ragionamento↔rendering; pattern collaudato 
 Le priorità ragionate restano input dell'istanza (dentro il modello), ma incastrate in markup fisso.
 §5-bis.2 resta valido come **descrizione della card e fallback** se il renderer non è disponibile.
 
-### §5-bis.4 — HOOK PRE-RENDER (PRIMARIO, S166 Passo 2)
+### §5-bis.4 — HOOK PRE-RENDER (AIUTO, non garanzia — corretto in S192/R2)
 
-Meccanismo definitivo anti-improvvisazione: **è l'hook `SessionStart` che pre-renderizza la card**, non l'istanza. Ordine di precedenza a STEP 2:
+**Correzione S192.** L'hook non e' il meccanismo definitivo e non puo' esserlo: verificato sulla
+documentazione Anthropic corrente, **nessun hook puo' innescare una tool call**, e `SessionStart`
+e' context-only — puo' iniettare testo che l'istanza *puo'* scegliere di seguire, e non puo'
+bloccare. In piu', nel container Cowork cloud l'hook si autoesclude (CARD-06B, misurato S188 e
+di nuovo S192: `inSteelWolfDomain()` restituisce `false`). Un contratto che dipendesse da lui
+non sarebbe un contratto. La garanzia vive nel **corpo del comando** e nel **gate fail-closed**
+`verify-card.mjs`; l'hook resta un acceleratore quando c'e'. Ordine di precedenza a STEP 2:
 
-1. **Card pre-generata dall'hook (DEFAULT).** All'apertura il hook stampa `=== SWE RUNTIME STATUS S166 ===`. Se dice `card_ready: <path>`, la card è **già pronta**: l'istanza legge quel file (in Cowork è `.swe-open-card.html` nella cartella `outputs`) e passa il **contenuto ESATTO** a `show_widget`. NON costruire il modello, NON disegnare, NON usare AskUserQuestion/elicitation.
-2. **Renderer istanza (degradato).** Se `card_ready: no` (es. hub non montato sulla scrivania), l'istanza costruisce il modello JSON ed esegue `render-card.mjs` (§5-bis.3).
-3. **Manuale (ultimo fallback).** Card §5-bis.2 / testo strutturato in CLI.
+1. **Card pre-generata dall'hook (scorciatoia, quando c'e').** All'apertura il hook stampa `=== SWE RUNTIME STATUS S166 ===`. Se dice `card_ready: <path>`, la card è **già pronta**: l'istanza legge quel file (in Cowork è `.swe-open-card.html` nella cartella `outputs`) e passa il **contenuto ESATTO** a `show_widget`. NON costruire il modello, NON disegnare, NON usare AskUserQuestion/elicitation.
+2. **Renderer istanza (percorso NORMALE, non un ripiego).** Se `card_ready: no` — hub non montato, primo bootstrap di un progetto, `swe-model` mai persistito da una chiusura — l'istanza raccoglie lo stato con sole LETTURE, costruisce il modello JSON ed esegue il renderer (§5-bis.3). E' il caso ordinario, non un degrado: misurato in S192 su `ta-analysis` (nessun `SESSION_LOG`, nessun `SESSION_BRIEFINGS`, nessun `swe-model`) → render rc=0, gate CARD-04 PASS, zero scritture nel repo prima della conferma.
+3. **NESSUN terzo livello.** Non esiste un fallback "manuale": comporre una card a mano e' **VIETATO** dal CARD CONTRACT (Livello 3 = la violazione). Se il renderer non e' raggiungibile → **STOP** con la riga `SWE CARD BLOCKED`. Se `show_widget` non esiste (Code CLI / Chat) → nessuna card visuale, solo output testuale etichettato `SWE TEXT FALLBACK` derivato dagli STESSI dati del modello: non e' una card e non va presentato come equivalente.
 
 SSOT del modello: blocco fenced ```swe-model {json}``` dentro `SESSION_BRIEFINGS/S<n>_OPEN.md` (shape `render-card.README`), scritto alla chiusura da `end`/`cycle` — l'hook lo legge e rende. Fail-open: se il modello manca o il render fallisce, si degrada senza mai bloccare l'apertura.
 
@@ -277,8 +288,12 @@ Questa e' l'**unica** regola. `§0-ter.3`, `§0-ter.4`, `commands/start.md`, `co
 
 Contenuto (markdown, conciso): PC · esito pull · briefing stato (§5) · carryover · priorita proposte pre-compilate. Scrivi **via bash-write** (LL-Empire-063; MAI Edit Cowork). Il file resta su disco anche dopo la chiusura chat -> la predisposizione e' recuperabile.
 
+**QUANDO (S192/R2):** questa scrittura avviene **dopo** la card e **dopo** la conferma dell'owner.
+Resta non distruttiva e resta ammessa prima del **GO** di lavoro, ma il bookkeeping non e' una
+deroga all'ordine: in S192 fu proprio una write di bookkeeping ad arrivare prima della card.
+
 Note:
-- Scrittura NON distruttiva (nuovo file) → ammessa in apertura anche prima del GO (bookkeeping, non lavoro di sessione). Il GATE GO §6 protegge il LAVORO, non la registrazione dello stato.
+- Scrittura NON distruttiva (nuovo file) → ammessa in apertura prima del GO di lavoro (bookkeeping, non lavoro di sessione), ma **non prima della card e della conferma** (§5-bis, S192/R2). Il GATE GO §6 protegge il LAVORO; l'ordine della card protegge la CONSEGNA.
 - File untracked finche' Luke non committa; la persistenza su disco e' immediata e sufficiente allo scopo.
 - Usato anche da skill `cycle` FASE 2 (handoff) per pre-scrivere lo snapshot della sessione successiva.
 

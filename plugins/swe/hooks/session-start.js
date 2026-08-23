@@ -42,7 +42,7 @@ function extractModel(file) {
  * (`niente {{` + `len>200`) era inutile: un modello vuoto lo superava. Ora e' il renderer
  * a rifiutare (exit 3) e qui si riporta il motivo, invece di degradare in silenzio. */
 function renderHtml(modelJson, scopeProject, scopeSession) {
-  const R = path.join(__dirname, "..", "skills", "start", "assets", "render-card.mjs");
+  const R = path.join(__dirname, "..", "assets", "card", "render-card.mjs");
   if (!fs.existsSync(R)) return { error: "renderer non trovato: " + R };
   const args = [R, "--scope-kind=opening", "--scope-project=" + scopeProject];
   if (scopeSession) args.push("--scope-session=" + scopeSession);
@@ -125,7 +125,7 @@ if (cardPath) {
 } else if (project !== "NON RISOLTO" && !stop) {
   STEP2 = `STEP 2 - APERTURA INTERATTIVA (renderer istanza, livello L2 dichiarato):
 - Il progetto e' risolto: ${project}. Costruisci il modello JSON (shape render-card.README) SOLO con
-  briefing/checklist/roadmap DI QUESTO progetto, poi esegui skills/start/assets/render-card.mjs -> HTML -> show_widget.
+  briefing/checklist/roadmap DI QUESTO progetto, poi esegui assets/card/render-card.mjs -> HTML -> show_widget.
 - VIETATO AskUserQuestion / elicitation / card disegnate a mano. Dichiara il livello (L2).`;
 } else {
   STEP2 = `STEP 2 - STOP: identita' o briefing NON risolti (CARD-08, fail-closed).

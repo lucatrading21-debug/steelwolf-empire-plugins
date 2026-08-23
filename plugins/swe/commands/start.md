@@ -16,26 +16,49 @@ allowed-tools: Read Bash Grep Glob
 
 Prima di produrre qualunque output visuale di apertura, chiusura o handoff:
 
-1. **Individua il renderer canonico.**
-   `${CLAUDE_PLUGIN_ROOT}/skills/start/assets/render-card.mjs`
-   Template: `skills/start/assets/opening-card.template.html` ·
-   `skills/end/assets/closing-card.template.html` ·
-   `skills/cycle/assets/handoff-card.template.html`
+1. **Individua l'infrastruttura CARD canonica** — condivisa, non "di start" o "di end":
+   renderer `${CLAUDE_PLUGIN_ROOT}/assets/card/render-card.mjs` ·
+   verifier `${CLAUDE_PLUGIN_ROOT}/assets/card/verify-card.mjs`
+   Struttura, stile e comportamento sono UNICI: `assets/card/card-shell.html` ·
+   `card-core.css` · `card-behavior.js`. I kind forniscono solo contenuto:
+   `assets/card/kinds/{opening,closing,handoff}.parts.html`.
 
-2. **Costruisci il modello JSON** secondo `skills/start/assets/render-card.README.md`.
+2. **Costruisci il modello JSON** secondo `assets/card/render-card.README.md`.
    Campo `kind`: `opening` per start · `closing` per end · `handoff` per cycle.
    Riempi i campi coi dati reali del progetto risolto. Provenienza reale, mai
    inventata (LL-Empire-011).
 
-3. **Esegui** `node <percorso>/render-card.mjs <model.json>` → HTML completo su stdout.
+3. **Esegui il renderer CON I FLAG DI SCOPE** (obbligatori da CARD-05: senza, esce 3):
+   `node <percorso>/render-card.mjs <model.json> --scope-kind=<opening|handoff|closing> --scope-project=<slug> --scope-session=S<n> > <card.html>`
 
-4. **Mostra esclusivamente quell'HTML** con `show_widget`, senza modificarlo.
+4. **Passa il gate CARD-04, fail-closed** — esegui e incolla l'esito:
+   `node <percorso>/verify-card.mjs --kind=<k> --project=<slug> --session=S<n> --model=<model.json> --card=<card.html>`
+   `exit != 0` → **STOP**: nessuna card, nessuna scrittura. Si corregge il **MODELLO** e si rirende, mai l'HTML.
+
+5. **Mostra esclusivamente quell'HTML** con `show_widget`, senza modificarlo.
+
+### Ordine del workflow — BINDING (S192/R2)
+
+La card e' il **PRIMO OUTPUT VISIBILE** del comando. L'ordine non e' negoziabile:
+
+    letture/misure necessarie → costruzione del modello → render → verify (CARD-04)
+    → show_widget → CONFERMA DELL'OWNER → e solo allora: write / briefing / bookkeeping / recap / prosecuzione
+
+- **Prima** della card sono consentite tutte le letture e le misure che servono a costruirla
+  (git, SESSION_LOG, roadmap, index): senza, non ci sarebbe nulla da mostrare.
+- **Prima** della card e della conferma sono VIETATI: qualunque output testuale visibile
+  (briefing, recap, sintesi, elenco di priorita') e **qualunque scrittura su disco**, bookkeeping
+  e briefing di apertura inclusi.
+- Misurato in S192: l'apertura reale ha prodotto briefing testuale e `S192_OPEN.md` **prima** della
+  card, e la card e' arrivata solo dopo un intervento esplicito dell'owner. Non era improvvisazione:
+  era l'ordine che questa stessa sequenza prescriveva. Da qui non lo prescrive piu'.
+- **Il gate non dipende da `SessionStart`**: quell'evento e' context-only e non puo' bloccare
+  (doc Anthropic). La garanzia vive qui, nel corpo del comando.
 
 **Cowork cloud / sessione remota.** Il renderer non è raggiungibile via
-`${CLAUDE_PLUGIN_ROOT}`: i file stanno sulla macchina dell'utente. Copiali nella
-sandbox conservando il layout relativo — `skills/start/assets/`, `skills/end/assets/`,
-`skills/cycle/assets/` — ed esegui lì. Misurato funzionante in S187: RC=0, zero
-placeholder residui.
+`${CLAUDE_PLUGIN_ROOT}`: i file stanno sulla macchina dell'utente. Copia l'intera cartella
+`assets/card/` conservando il layout relativo (`card/`, `card/kinds/`) ed esegui lì.
+Misurato funzionante in S187 e di nuovo in S192: RC=0, zero placeholder residui.
 
 **Due vie legittime, una vietata.**
 
@@ -58,9 +81,11 @@ visual card SWE.** È ammesso soltanto un output testuale etichettato esplicitam
 `SWE TEXT FALLBACK`, derivato dagli stessi dati del modello. Non è una card canonica,
 non soddisfa il CARD FREEZE visuale, e non va presentato come equivalente.
 
-**Template congelato (CARD FREEZE S166).** I tre template non si modificano, non si
-semplificano, non si arricchiscono. Cambia il modello, mai l'interfaccia. Vale per
-l'hub e per ogni progetto SteelWolf: **un solo renderer, molti modelli**.
+**Card congelata (CARD FREEZE S166, resa strutturale in S192/R1).** La struttura, lo stile e
+il comportamento della card sono UNICI e di proprieta' del renderer: opening, handoff e closing
+sono varianti di **contenuto** della stessa card, non tre template indipendenti. Non si
+modificano, non si semplificano, non si arricchiscono. Cambia il modello, mai l'interfaccia.
+Vale per l'hub e per ogni progetto SteelWolf: **una sola card, un solo renderer, molti modelli**.
 
 **In più, per `end` e `cycle`:** persisti il blocco fenced `swe-model` nel briefing
 canonico della PROSSIMA sessione, risolto secondo il progetto/dominio corrente e la
@@ -78,9 +103,14 @@ in `skills/start/SKILL.md`. Riferimento completo body: vedi SKILL.md.
 
 ## Sequenza obbligatoria
 
+> **L'ordine e' quello del contratto sopra: letture → modello → render → verify → card → conferma → tutto il resto.**
+> I passi 1-6 sono LETTURE: servono a costruire la card e non producono output visibile ne' scritture.
+> Il passo 6-bis (la card) e' il primo output. Il passo 6-ter (scrittura) viene DOPO la conferma.
+
 0. **Step 0 — Dichiara PC + Pull** (guida apertura interattiva SteelWolf, dominio SteelWolf N4):
-   - Dichiara il PC attivo (**PREDATOR / ACE**). Se non lo rilevi, **chiedilo a Luke**.
-   - Fai o chiedi `git pull` sui repo attivi (pull-first, dettaglio al punto 1). Riporta esito: fatto / da fare.
+   - Rileva il PC attivo (**PREDATOR / ACE**) e lo stato del pull: sono **dati della card**, pre-accesi
+     nei controlli. Si dichiarano NELLA card, non in un preambolo testuale che la precede.
+   - Se il PC non e' deducibile, la card lo lascia da scegliere: si chiede a Luke **con** la card, non prima.
 
 1. **Pull-first protocol 11 repo** (LL-Empire-023 binding) — CMD da Luke Windows. Sequenza completa in `hub/SESSION_PROTOCOL.md` §2.2.
 
@@ -103,16 +133,24 @@ in `skills/start/SKILL.md`. Riferimento completo body: vedi SKILL.md.
    - Blocchi attivi (PROTOCOLLO GO pending, drift, ecc.)
    - TIER status corrente
 
-6-bis. **Apertura interattiva** (PC · pull · priorità + colpo d'occhio):
-   - **Conferma stato**: PC · esito `git pull` (fatto / da fare) · priorità sessione.
-   - **Colpo d'occhio**: sintesi `CHECKLIST` + `ROADMAP` (o `EMPIRE_DASHBOARD`) del progetto attivo, letti a runtime.
-   - **Cowork**: widget di conferma (modulo elicitation, generato a runtime dall'assistente). **Claude Code CLI**: stesso contenuto in testo — il widget cliccabile esiste solo in Cowork.
+6-bis. **CARD — primo output visibile** (PC · pull · priorità + colpo d'occhio):
+   - Costruisci il modello, rendi, **passa il gate CARD-04**, poi `show_widget`. Nient'altro prima.
+   - **Contenuto**: PC · esito `git pull` · priorità pre-compilate · sintesi `CHECKLIST` + `ROADMAP`
+     (o `EMPIRE_DASHBOARD`) del progetto attivo, letti a runtime.
+   - **Cowork**: la card canonica via `show_widget`. **VIETATO** `AskUserQuestion` e il widget
+     elicitation nativo: il prefill non si accende (S161) e la card non sarebbe quella canonica.
+   - **Claude Code CLI / Chat** (nessun `show_widget`): nessuna card visuale. È ammesso solo un
+     output testuale etichettato `SWE TEXT FALLBACK`, derivato dagli stessi dati del modello.
 
-6-ter. **Persisti scheda apertura** — destinazione e naming del briefing si derivano dalla
-   project entry risolta; **regola canonica UNICA: skill `start` §5-ter** (qui non si duplica).
-   Contenuto: PC · pull · briefing · carryover · priorita pre-compilate, via bash-write
-   (LL-Empire-063). Scrittura non distruttiva, ammessa prima del GO (bookkeeping). Prima
-   sessione di un progetto `bootstrap: on-demand`: vale la clausola SKILL `start` §0-ter.4-ter.
+6-bis.1. **ATTENDI LA CONFERMA DELL'OWNER sulla card.** Finché non arriva: nessun briefing testuale,
+   nessun recap, nessuna scrittura. Il passo successivo non parte da solo.
+
+6-ter. **Persisti scheda apertura — SOLO DOPO la card e la conferma.** Destinazione e naming del
+   briefing si derivano dalla project entry risolta; **regola canonica UNICA: skill `start` §5-ter**
+   (qui non si duplica). Contenuto: PC · pull · briefing · carryover · priorita confermate, via
+   bash-write (LL-Empire-063). Resta una scrittura non distruttiva e resta ammessa prima del **GO**
+   di lavoro — ma **non** prima della card: il bookkeeping non e' una deroga all'ordine (S192/R2).
+   Prima sessione di un progetto `bootstrap: on-demand`: vale la clausola SKILL `start` §0-ter.4-ter.
 
 7. **ATTENDI GO esplicito Luke** (LL-Empire-002 NON DEROGABILE)
    - Default state = WAIT

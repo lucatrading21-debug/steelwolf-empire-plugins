@@ -1,0 +1,85 @@
+<!--#part:chips-->
+    <span class="hchip"><i class="ti ti-calendar" aria-hidden="true"></i> Ciclo: {{DATE_TIME}}</span>
+    <span class="hchip"><i class="ti ti-git-branch" aria-hidden="true"></i> {{BRANCH_HEAD}}</span>
+    <span class="hchip"><i class="ti ti-arrow-right" aria-hidden="true"></i> Continuità: {{SESSION}} → {{NEXT_SESSION}}</span>
+    <span class="hchip"><i class="ti ti-device-desktop" aria-hidden="true"></i> Parità: {{PC_PARITY}}</span>
+    <span class="hchip"><i class="ti ti-git-commit" aria-hidden="true"></i> ultimo commit: {{LAST_COMMIT_HASH}} · {{LAST_COMMIT_DATE}} · {{LAST_COMMIT_MSG}}</span>
+<!--#part:intro-->
+  <div style="margin-top:10px; font-size:11.5px; color:var(--text-muted);"><i class="ti ti-info-circle"></i> <b style="color:var(--text-secondary);font-weight:500;">In parole povere:</b> il ponte tra la sessione chiusa e la prossima. Non fa partire il lavoro qui: dice cosa è stato fatto, cosa riprenderai (col piano dettagliato) e il comando da lanciare in una chat nuova.</div>
+<!--#part:controls-->
+
+<!--#part:sections-->
+
+  <!-- 1 · COSA SI È FATTO in S(n) -->
+  <div style="font-weight:500; font-size:14px; margin-bottom:10px;"><i class="ti ti-circle-check" style="color:var(--text-success)"></i> Cosa si è fatto in {{SESSION}} <span style="font-size:11px; font-weight:400; color:var(--text-muted);">· sessione chiusa</span></div>
+  <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:22px;">
+    <div style="padding:10px 12px; background:var(--surface-0); border:1px solid var(--border); border-radius:10px;">
+      <div class="hl">Obiettivo</div><div class="hv">{{OBIETTIVO}}</div>
+    </div>
+    <div style="padding:10px 12px; background:var(--surface-0); border:1px solid var(--border); border-radius:10px;">
+      <div class="hl">Cosa fatto <span class="glo">· in breve</span></div><div class="hv">{{DONE_SUMMARY}}</div>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <div style="flex:1; min-width:200px; padding:10px 12px; background:var(--surface-0); border:1px solid var(--border); border-radius:10px;">
+        <div class="hl">Commit generati</div><div class="hv">{{COMMITS}}</div>
+      </div>
+      <div style="flex:1; min-width:200px; padding:10px 12px; background:var(--surface-0); border:1px solid var(--border); border-radius:10px;">
+        <div class="hl">Working tree <span class="glo">· stato git</span></div><div class="hv">{{WT_CLEAN}}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2 · COSA SI FARÀ in S(n+1) — priorità con Dettagli a tendina (come opening-card) -->
+  <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:10px; gap:12px;">
+    <div><div style="font-weight:500; font-size:14px;"><i class="ti ti-player-track-next" style="color:var(--text-accent)"></i> Cosa si farà in {{NEXT_SESSION}}</div>
+    <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">continuazione · apri "Dettagli" per piano, skill, ricerche</div></div>
+    <button id="expall" type="button" class="ref"><i class="ti ti-chevrons-down"></i> Espandi tutti</button>
+  </div>
+  <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
+    <span class="chip"><i class="ti ti-device-desktop"></i> PC: {{PC}}</span>
+    <span class="chip"><i class="ti ti-refresh"></i> Pull: {{PULL_NEXT}}</span>
+  </div>
+  <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:16px;">
+    {{NEXT_PRIORITIES}}
+    <!-- BLOCCO RIPETIBILE priorità (identico a opening-card):
+    <div class="prio">
+      <div class="pbtn">
+        <span class="badge">Pn</span>
+        <span class="ptext"><span class="ptitle">Titolo</span><span class="pfai">Fai: ...</span>
+          <span class="meta"><span class="chip tipo"><i class="ti ti-tag"></i> Tipo: Doc|Codice|Ricerca|Infra|Design|Governance</span><span class="chip"><span class="dot dlow|dmed|dhigh"></span>basso|medio|alto</span><span class="chip"><i class="ti ti-clock"></i> stima · tok</span><span class="chip"><i class="ti ti-square"></i> Stato</span><span class="chip">Must|Should|Could</span></span></span>
+      </div>
+      <details><summary>Dettagli · piano, skill, ricerche</summary>
+        <div class="sec"><span class="lab">In parole semplici</span><div class="dd plain">Cos'è e a cosa serve, senza gergo.</div></div>
+        <div class="sec"><span class="lab">Piano <span class="glo">· cosa si fa passo per passo</span></span><ul><li>...</li></ul></div>
+        <div class="sec"><span class="lab">Prima → Dopo <span class="glo">· com'è ora vs come sarà</span></span><div class="ba"><span class="bef"><b>Prima:</b> ...</span><i class="ti ti-arrow-right"></i><span class="aft"><b>Dopo:</b> ...</span></div></div>
+        <div class="sec"><span class="lab">Serve / Dipende da <span class="glo">· cosa serve prima</span></span><div class="dd">...</div></div>
+        <div class="sec"><span class="lab">Dati richiesti <span class="glo">· cosa chiederti/cercare</span></span><div class="dd">...</div></div>
+        <div class="sec"><span class="lab">Analisi &amp; consultazione <span class="glo">· ricerche e verifica</span></span><div class="dd">Deep research Anthropic/GitHub/web + confronto + Pre-Mortem; fonti con LINK reale (mai inventato).</div></div>
+        <div class="sec"><span class="lab">Skill da usare <span class="glo">· skill/plugin da attivare</span></span><div class="dd">es. empire-research · empire-quality · data/build-dashboard · xlsx/docx · figma ...</div></div>
+        <div class="sec"><span class="lab">Rischi &amp; mitigazione <span class="glo">· cosa può andare storto</span></span><div class="dd">...</div></div>
+        <div class="sec"><span class="lab">Come sarà completato <span class="glo">· quando è finito davvero (DoD)</span></span><div class="dd">...</div></div>
+        <div class="sec"><span class="lab">Consiglio <span class="glo">· il mio suggerimento</span></span><div class="dd">...</div></div>
+      </details>
+    </div> -->
+  </div>
+  <div style="padding:10px 12px; background:var(--surface-0); border:1px solid var(--border); border-radius:10px; margin-bottom:20px;">
+    <div class="hl">Carryover <span class="glo">· il resto che resta aperto</span></div><div class="hv">{{CARRYOVER}}</div>
+  </div>
+
+  <!-- 3 · CHECKLIST & ROADMAP (drill-down, come opening) — nascondi se assente -->
+  <details class="cklist"><summary><i class="ti ti-list-check"></i> Checklist &amp; Roadmap progetto — {{CK_DONE}}/{{CK_TOTAL}} ({{PROGRESS_PCT}}%)</summary>
+    <div style="height:8px; background:var(--surface-0); border-radius:6px; overflow:hidden; margin:12px 0 14px;"><div style="width:{{PROGRESS_PCT}}%; height:100%; background:var(--text-accent);"></div></div>
+    <div class="ckcol">
+      {{CHECKLIST_MILESTONES}}
+    </div>
+  </details>
+
+  <!-- 4 · CTA BOUNDARY (LL-050) -->
+  <div style="margin-top:20px; padding:16px; background:var(--bg-accent); border:1px solid var(--border-accent); border-radius:12px;">
+    <div style="font-weight:500; font-size:14px; color:var(--text-accent); margin-bottom:6px;"><i class="ti ti-arrow-big-right-lines"></i> Prossimo passo — apri una CHAT NUOVA</div>
+    <div style="font-size:12.5px; color:var(--text-accent); line-height:1.6; margin-bottom:10px;"><b>Perché chat nuova?</b> <span style="opacity:0.9;">(LL-Empire-050) In parole povere: ogni sessione in una chat separata, così i contesti non si mescolano e non "si impazzisce". Questa card apposta NON apre nulla qui.</span></div>
+    <div style="font-family:var(--font-mono); font-size:13px; color:var(--text-accent); background:var(--surface-2); border:1px solid var(--border-accent); border-radius:8px; padding:10px 12px;">{{START_CMD}}</div>
+    <div style="font-size:11px; color:var(--text-muted); margin-top:8px;"><i class="ti ti-device-floppy"></i> Predisposizione già salvata su disco: <code>{{SNAPSHOT_PATH}}</code> — <code>/swe:start</code> la ritroverà.</div>
+  </div>
+
+<!--#part:end-->

@@ -47,13 +47,13 @@
     ],
     "UserPromptExpansion": [
       {
-        "matcher": "swe:cycle|swe:end",
+        "matcher": "swe:start|swe:cycle|swe:end",
         "hooks": [
           {
             "type": "command",
             "command": "node",
             "args": [
-              "${CLAUDE_PLUGIN_ROOT}/hooks/closing-card-guard.js"
+              "${CLAUDE_PLUGIN_ROOT}/hooks/card-guard.js"
             ],
             "timeout": 15
           }

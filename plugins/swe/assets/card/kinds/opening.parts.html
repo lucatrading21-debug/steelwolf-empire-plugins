@@ -1,0 +1,89 @@
+<!--#part:chips-->
+    <span class="hchip"><i class="ti ti-calendar" aria-hidden="true"></i> Apertura: {{DATE_TIME}}</span>
+    <span class="hchip"><i class="ti ti-git-branch" aria-hidden="true"></i> {{BRANCH_HEAD}}</span>
+    <span class="hchip"><i class="ti ti-arrow-right" aria-hidden="true"></i> Continuità: {{CONTINUITY}}</span>
+    <span class="hchip"><i class="ti ti-device-desktop" aria-hidden="true"></i> Parità: {{PC_PARITY}}</span>
+    <span class="hchip"><i class="ti ti-git-commit" aria-hidden="true"></i> ultimo commit: {{LAST_COMMIT_HASH}} · {{LAST_COMMIT_DATE}} · {{LAST_COMMIT_MSG}}</span>
+<!--#part:intro-->
+
+<!--#part:controls-->
+
+  <div style="display:flex; flex-direction:column; gap:16px;">
+    <div><div style="font-weight:500; margin-bottom:4px;">Da quale PC?</div>
+      <div class="qglo"><b>In parole povere:</b> da quale computer stai lavorando (casa PREDATOR / ufficio ACE). Serve per il pull e per tenere i due PC allineati (parità).</div>
+      <div class="grp" data-name="PC" style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="pill {{PC_PREDATOR_SEL}}" data-v="PREDATOR" type="button"><i class="ti ti-check chk"></i>PREDATOR (casa) <span class="ded">● dedotto</span></button>
+        <button class="pill {{PC_ACE_SEL}}" data-v="ACE" type="button"><i class="ti ti-check chk"></i>ACE (ufficio)</button>
+      </div></div>
+    <div><div style="font-weight:500; margin-bottom:4px;">Pull-first (hub + repo attivi)?</div>
+      <div class="qglo"><b>Termine tecnico:</b> pull-first (LL-Empire-023). <b>In parole povere:</b> scaricare le ultime modifiche da GitHub PRIMA di iniziare, così non lavori su versioni vecchie.</div>
+      <div class="grp" data-name="Pull" style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="pill {{PULL_VER_SEL}}" data-v="Da verificare" type="button"><i class="ti ti-check chk"></i>Da verificare <span class="ded">● dedotto</span></button>
+        <button class="pill {{PULL_OK_SEL}}" data-v="Fatto" type="button"><i class="ti ti-check chk"></i>Fatto, pulito</button>
+        <button class="pill {{PULL_TODO_SEL}}" data-v="Da fare" type="button"><i class="ti ti-check chk"></i>Da fare ora</button>
+      </div></div>
+  </div>
+
+<!--#part:sections-->
+
+  <!-- ECOSISTEMA (SOLO apertura hub/predator; ometti per sessioni su singolo progetto) -->
+  {{ECOSYSTEM_BLOCK}}
+  <!-- ECOSYSTEM_BLOCK =
+  <details class="cklist"><summary><i class="ti ti-hierarchy-2"></i> Ecosistema SteelWolf — {{ECO_SUMMARY}}</summary>
+    <div class="eco">
+      per progetto (dal registry):
+      <div class="er"><span class="ename">Nome</span><span class="ebadge ea|ew|ep|en"><span class="dot dlow|dmed"></span>stato</span><span class="emeta">descr</span><span class="edate"><i class="ti ti-clock"></i> ultima mod: YYYY-MM-DD</span><button class="mini" data-ask="Stato/Apri <slug>">apri</button></div>  (data = ultimo commit repo: git log -1 --date=format:%Y-%m-%d)
+    </div>
+  </details> -->
+
+  <!-- CHECKLIST/ROADMAP: nascondi il blocco se assente -->
+  <details class="cklist"><summary><i class="ti ti-list-check"></i> Checklist &amp; Roadmap progetto — {{CK_DONE}}/{{CK_TOTAL}} ({{PROGRESS_PCT}}%)</summary>
+    <div style="height:8px; background:var(--surface-0); border-radius:6px; overflow:hidden; margin:12px 0 14px;"><div style="width:{{PROGRESS_PCT}}%; height:100%; background:var(--text-accent);"></div></div>
+    <div class="ckcol">
+      {{CHECKLIST_MILESTONES}}
+      <!-- Drill-down per milestone (una <details> per milestone, voci dentro):
+      <details class="ms" [open se ha voci da fare]><summary><span class="msdone|mstodo">Mx</span> Titolo <span class="mscount">fatti/tot</span></summary>
+        <div class="ck done"><i class="ti ti-square-check"></i> voce fatta</div>
+        <div class="ck todo"><i class="ti ti-square"></i> voce da fare</div>
+      </details> -->
+    </div>
+  </details>
+
+  <div style="height:22px;"></div>
+  <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:14px; gap:12px;">
+    <div><div style="font-weight:500; font-size:16px;">Priorità di sessione</div>
+    <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">Ordine consigliato + workflow · apri “Dettagli” per il mini-brief</div></div>
+    <button id="expall" type="button" class="ref"><i class="ti ti-chevrons-down"></i> Espandi tutti</button>
+  </div>
+
+  <div class="grp" data-name="Priorità" style="display:flex; flex-direction:column; gap:14px;">
+    {{PRIORITIES}}
+    <!-- Per WORKFLOW inserisci prima del gruppo: <div class="wfh"><i class="ti ti-topology-ring"></i> Workflow N — titolo</div>
+    Blocco priorità ripetibile (aggiungi "on" alla prima .prio dedotta):
+    <div class="prio">
+      <button class="pbtn" data-v="Pn Titolo" type="button">
+        <span class="badge {{b1|nothing}}">Pn</span>
+        <span class="ptext"><span class="ptitle">Titolo</span><span class="pfai">Fai: ...</span>
+          <span class="meta"><span class="chip tipo"><i class="ti ti-tag"></i> Tipo: Doc|Codice|Ricerca|Infra|Design|Governance</span><span class="chip"><span class="dot dlow|dmed|dhigh"></span>basso|medio|alto</span><span class="chip"><i class="ti ti-clock"></i> stima · tok</span><span class="chip"><i class="ti ti-square"></i> Stato</span><span class="chip">Must|Should|Could</span></span></span>
+        <i class="ti ti-check chk2"></i>
+      </button>
+      <details><summary>Dettagli</summary>
+        <div class="sec"><span class="lab">In parole semplici</span><div class="dd plain">Cosa è questo upgrade e a cosa serve, in modo discorsiva: che funzioni aggiunge, cosa potrai fare dopo, perché migliora il lavoro. Niente gergo.</div></div>
+        <div class="sec"><span class="lab">Piano <span class="glo">· cosa si fa, passo per passo</span></span><ul><li>...</li></ul></div>
+        <div class="sec"><span class="lab">Prima → Dopo <span class="glo">· com'è ora vs come sarà</span></span><div class="ba"><span class="bef"><b>Prima:</b> ...</span><i class="ti ti-arrow-right"></i><span class="aft"><b>Dopo:</b> ...</span></div></div>
+        <div class="sec"><span class="lab">Serve / Dipende da <span class="glo">· cosa serve prima di partire</span></span><div class="dd">...</div></div>
+        <div class="sec"><span class="lab">Dati richiesti <span class="glo">· cosa mi serve chiederti o cercare</span></span><div class="dd">Input/dati necessari in base al contesto (es. file, preferenze, credenziali, metriche) — cosa chiedo a te e cosa cerco da solo.</div></div>
+        <div class="sec"><span class="lab">Analisi &amp; consultazione <span class="glo">· ricerca e verifica prima di agire</span></span><div class="dd">Analizzo tutto per scegliere la soluzione migliore in ordine di priorità/workflow (checklist+roadmap rispettate). Consulto Anthropic, GitHub e il web dei migliori ingegneri/forum AI (dashboard, UI innovativa, WEB-AI, gestionale, pagamenti automatici), confronto le opzioni, con Pre-Mortem. Non mi arrendo al primo ostacolo.</div></div>
+        <div class="sec"><span class="lab">Skill da usare <span class="glo">· gli strumenti/competenze che attivo</span></span><div class="dd">Scelte dall'analisi del task (es. empire-research per la ricerca, empire-quality pre-commit, data/build-dashboard per dashboard, xlsx/docx per documenti, figma per UI, ecc.). Così la sessione sa già cosa attivare.</div></div>
+        <div class="sec"><span class="lab">Rischi &amp; mitigazione <span class="glo">· cosa può andare storto e come lo evitiamo</span></span><div class="dd">...</div></div>
+        <div class="sec"><span class="lab">Come sarà completato <span class="glo">· quando è finito davvero</span></span><div class="dd">A lavoro finito: <risultato concreto> · criteri di accettazione.</div></div>
+        <div class="sec"><span class="lab">Consiglio <span class="glo">· il mio suggerimento</span></span><div class="dd">...</div></div>
+      </details>
+    </div> -->
+  </div>
+
+  <div style="margin-top:22px; padding:12px 14px; background:var(--bg-accent); border:1px solid var(--border-accent); border-radius:12px; font-size:13px; color:var(--text-accent);">
+    <i class="ti ti-arrow-right"></i> <b>Prossimo passo consigliato:</b> <span id="nextp">{{NEXT_STEP}}</span>
+  </div>
+
+<!--#part:end-->

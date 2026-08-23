@@ -49,13 +49,17 @@ La chiusura interattiva si rende SEMPRE con la **Enriched Visual View** — card
 
 **IMPERATIVO (no divergenza tra istanze):** l'unica chiusura interattiva ammessa è rendere QUESTO asset. È VIETATO costruire card alternative, usare AskUserQuestion o il widget elicitation nativo, o elencare i dati D6 come semplice testo (in Cowork). Se l'asset non è leggibile → fallback TESTO strutturato (sotto), mai una card improvvisata.
 
-**Asset (non riscrivere da zero — token-saving):**
-- Template: `${CLAUDE_PLUGIN_ROOT}/skills/end/assets/closing-card.template.html`
-- Regole+placeholder+schema: `${CLAUDE_PLUGIN_ROOT}/skills/end/assets/closing-card.README.md`
+**Asset canonici — infrastruttura CARD condivisa, non "di end" (S192/R1):**
+- Struttura, stile e comportamento **UNICI** (comuni a opening/handoff/closing):
+  `${CLAUDE_PLUGIN_ROOT}/assets/card/card-shell.html` · `card-core.css` · `card-behavior.js`
+- Contenuto del kind (chips · intro · controls · sections): `${CLAUDE_PLUGIN_ROOT}/assets/card/kinds/closing.parts.html`
+- Regole+placeholder+schema: `${CLAUDE_PLUGIN_ROOT}/assets/card/render-card.README.md`
+
+Non si clona e non si riempie a mano nulla: la struttura non e' un input, e' di proprieta' del renderer.
 
 **Procedura (renderer deterministico, S167 Passo 6 — come l'apertura):**
-1. **Costruisci il modello JSON** di chiusura (`kind:"closing"` + `scalars` coi campi §0-ter: SESSION · DATE_TIME · BRANCH_HEAD · LAST_COMMIT_* · OBIETTIVO · SCOPERTO · BLOCCO · DIRTY · NEW_LL · NEXT_STEP · CK_*; array `done[]` `{title,plain,used,fixed}`; array `commits[]` `{hash,type,msg}`; `checklist[]` a milestone; `sessionLogPreview`; pill `pc`/`tipo`/`backup`/`snap`/`dash`). Shape completo in `render-card.README.md` + `closing-card.README.md`.
-2. **Esegui il renderer**: `node ${CLAUDE_PLUGIN_ROOT}/skills/start/assets/render-card.mjs <model.json>` → HTML deterministico (template+CSS+classi FISSI → CARD FREEZE garantito meccanicamente, non "a memoria").
+1. **Costruisci il modello JSON** di chiusura (`kind:"closing"` + `scalars` coi campi §0-ter: SESSION · DATE_TIME · BRANCH_HEAD · LAST_COMMIT_* · OBIETTIVO · SCOPERTO · BLOCCO · DIRTY · NEW_LL · NEXT_STEP · CK_*; array `done[]` `{title,plain,used,fixed}`; array `commits[]` `{hash,type,msg}`; `checklist[]` a milestone; `sessionLogPreview`; pill `pc`/`tipo`/`backup`/`snap`/`dash`). Shape completo in `${CLAUDE_PLUGIN_ROOT}/assets/card/render-card.README.md`.
+2. **Esegui il renderer coi flag di scope (CARD-05)**: `node ${CLAUDE_PLUGIN_ROOT}/assets/card/render-card.mjs <model.json> --scope-kind=closing --scope-project=<slug> --scope-session=S<n>` → HTML deterministico (template+CSS+classi FISSI → CARD FREEZE garantito meccanicamente, non "a memoria").
 3. **`show_widget`** con quell'HTML. **NON** clonare/riempire il template a mano (vecchia procedura S165 → soggetta a card povere/improvvisate/dimenticate).
 
 **STEP OBBLIGATORIO — NON SALTABILE (gate anti-dimenticanza, S167):** rendi la Enriched Visual View **PRIMA** di qualsiasi recap testuale di chiusura. Se non hai ancora eseguito renderer→`show_widget`, **NON procedere** al testo né a §1. In Cowork la card è il PRIMO output della chiusura; il fallback testo vale SOLO su Code CLI/Chat (no `show_widget`).
@@ -107,10 +111,10 @@ Sequenza obbligatoria:
    Senza, il gate rifiuta: il progetto non compare nell'HTML, quindi una card non dichiarata non e'
    attribuibile e il confronto col ri-render non se ne accorgerebbe (misurato S189).
 2. Rendi la card **con i flag di scope** (CARD-05, obbligatori):
-   `node ${CLAUDE_PLUGIN_ROOT}/skills/start/assets/render-card.mjs <model.json> --scope-kind=closing --scope-project=<slug> --scope-session=S<n> > <card.html>`
+   `node ${CLAUDE_PLUGIN_ROOT}/assets/card/render-card.mjs <model.json> --scope-kind=closing --scope-project=<slug> --scope-session=S<n> > <card.html>`
 3. Mostra la card con `show_widget`.
 4. **Esegui il gate e incolla l'esito:**
-   `node ${CLAUDE_PLUGIN_ROOT}/skills/end/assets/verify-close-card.mjs --project=<slug> --session=S<n> --kind=closing --model=<model.json> --card=<card.html>`
+   `node ${CLAUDE_PLUGIN_ROOT}/assets/card/verify-card.mjs --project=<slug> --session=S<n> --kind=closing --model=<model.json> --card=<card.html>`
 
 Il verificatore controlla: scope presente e coerente · sessione del modello == sessione chiusa ·
 progetto dichiarato == progetto chiuso · il renderer **accetta** il modello con quello scope ·
@@ -265,6 +269,6 @@ in una CHAT NUOVA (handoff, LL-050).
 - Apertura: skill `start` (§5-bis.2 opening-card, schema gemello)
 - Ciclo end+start: skill `cycle`
 - Compact mid-session: skill `compact`
-- Asset chiusura: `skills/end/assets/closing-card.template.html` + `closing-card.README.md`
+- Asset CARD (condivisi): `assets/card/` — shell · core CSS · behavior · `kinds/closing.parts.html` · `render-card.README.md`
 - LL critiche binding: 002, 008, 011, 018, 019, 021, 024, 050, 063
 - ADR-005 cross-PC memory strategy
