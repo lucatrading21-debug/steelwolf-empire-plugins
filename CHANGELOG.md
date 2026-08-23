@@ -7,6 +7,84 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
 
 ---
 
+## [marketplace 1.17.0] - swe 1.15.0 - 2026-08-23
+
+> **Nota sul salto di numerazione.** Le release swe `1.13.0`, `1.13.1`, `1.14.0` e `1.14.1`
+> (marketplace `1.15.0`-`1.16.1`) sono state pubblicate **senza voce di changelog**. Non le
+> ricostruisco qui: non conosco il loro contenuto e inventarlo sarebbe peggio del vuoto. Il
+> salto e' dichiarato, non colmato.
+
+### Added
+- **Card canonica unica (S192/R1).** Nuova infrastruttura CARD **condivisa** in
+  `plugins/swe/assets/card/` — non piu' "di start" ne' "di end": `card-shell.html` (struttura
+  UNICA), `card-core.css` (stile UNICO, 97 regole), `card-behavior.js` (comportamento UNICO),
+  `card-blocks.html` (blocchi canonici references/inputs/action), `kinds/{opening,closing,handoff}.parts.html`
+  (SOLO contenuto: chips, intro, controls, sections), `render-card.mjs`, `verify-card.mjs`,
+  `render-card.README.md`. La struttura e' di proprieta' del renderer: un kind non puo' ridefinire
+  header, identity/status, riferimenti, azione/conferma, footer, ne' una sola regola di stile.
+- **`verify-card.mjs` — gate CARD-04 generalizzato (S192/R3).** Implementazione unica fail-closed
+  per `opening | handoff | closing`; prima esisteva solo per la chiusura e l'apertura non aveva
+  alcun verificatore. Prova modello/kind, scope, rendering deterministico, ri-render byte-identico,
+  caso negativo respinto. Flag `--allow-legacy-model` per le sole fixture storiche anteriori a
+  CARD-05: va chiesto esplicitamente e la deroga viene STAMPATA nel PASS, mai silenziosa.
+- **`hooks/card-guard.js` (S192/R2).** Guard `UserPromptExpansion` esteso a `swe:start` — prima
+  copriva solo `swe:cycle|swe:end`. `closing-card-guard.js` resta come delega di una riga.
+
+### Changed
+- **Ordine del workflow, BINDING (S192/R2).** Nel blocco `SWE CARD CONTRACT` dei tre comandi:
+  `letture/misure -> modello -> render -> verify -> show_widget -> CONFERMA OWNER -> write/briefing/bookkeeping/recap`.
+  Prima della card sono consentite le letture necessarie a costruirla; sono vietati ogni output
+  visibile e ogni scrittura, bookkeeping incluso. In `commands/start.md` la card sale a Step 6-bis
+  come primo output, con 6-bis.1 attesa conferma, e la persistenza del briefing (6-ter) passa
+  **dopo** la conferma.
+- **`skills/start/SKILL.md` §5-bis.4**: l'hook `SessionStart` declassato da "PRIMARIO" ad aiuto.
+  Verificato sulla documentazione Anthropic: nessun hook puo' innescare una tool call e
+  `SessionStart` e' context-only, non puo' bloccare. La garanzia vive nel corpo del comando e nel
+  gate fail-closed. Il "Livello 3 manuale" e' stato rimosso: comporre una card a mano resta
+  VIETATO dal contratto, e il "Renderer istanza" e' riqualificato da "degradato" a percorso NORMALE.
+- **Flag di scope CARD-05** aggiunti dove mancavano: riga 30 dei tre comandi, `skills/cycle/SKILL.md`
+  (handoff, che ne era privo), `skills/end/SKILL.md`. Presi alla lettera, quei comandi producevano
+  un'invocazione che il renderer rifiuta sempre con exit 3.
+- **Contraddizione elicitation risolta**: i comandi vietavano `AskUserQuestion` e il widget
+  elicitation nativo a riga 51 e lo prescrivevano a riga 109/84. Ora una sola direzione:
+  `show_widget`, oppure `SWE TEXT FALLBACK` dove `show_widget` non esiste.
+- **Riferimenti runtime legacy eliminati**: `skills/end/SKILL.md` e `skills/cycle/SKILL.md` non
+  prescrivono piu' di clonare o leggere template/README storici come sorgente operativa.
+
+### Deprecated
+- I cinque percorsi storici restano sul disco ma non contengono piu' implementazione:
+  `skills/start/assets/render-card.mjs` e `skills/end/assets/verify-close-card.mjs` escono con
+  **rc=9** indicando il canonico; i tre `*-card.template.html` diventano un rimando alla shell.
+  I quattro README dei vecchi asset (`opening-card`, `render-card`, `closing-card`, `handoff-card`)
+  sono ridotti a redirect puri verso `assets/card/render-card.README.md`, senza descrizione
+  tecnica duplicata. Nessun file rimosso: chi usa un riferimento vecchio lo scopre subito invece
+  di rendere con codice superato.
+
+### Fixed
+- **Deriva dei template, misurata e non piu' esprimibile.** I tre template indipendenti avevano
+  gia' sei regole CSS comuni divergenti su 97: `.lab` 11px vs 10.5px, `.sec` 10px vs 8px, `.dd`
+  con `margin-top` perso, `.pill` 14px vs 13.5px, piu' `.pbtn` e `.badge`. Risolte a favore della
+  variante `opening` (resa di riferimento owner, card S174); la variante accent di `handoff` e' resa
+  dalla classe canonica `.badge.b1` gia' esistente. Verificato: la struttura DOM di `opening` e'
+  **byte-identica** alla baseline pre-S192.
+- **Version pin che teneva Cowork `@synced` su contenuto stale.** Misurato in S192: runtime e source
+  dichiaravano entrambi `1.14.1` con `commands/start.md` diverso — runtime `fac844b4`, 3.018 B, zero
+  occorrenze di `SWE CARD CONTRACT`; source `64db00f1`, 6.645 B, contratto presente. Causa: la
+  versione esplicita in `plugin.json` e' la cache key e non veniva bumpata dal 2026-07-05, mentre i
+  file cambiavano fino al 2026-08-22 (48 giorni). Nel runtime mancavano anche `hooks/_swe-project.js`
+  e il verifier. Questa release bumpa la versione risolta: e' la condizione perche' il contenuto
+  arrivi. Il refresh `@synced` va poi verificato con fingerprint di contenuto, mai con la versione.
+
+### Note
+- Marketplace `1.16.1`→`1.17.0`; plugin `swe` `1.14.1`→`1.15.0`. Nessun altro plugin cambia
+  (`empire-core`, `empire-research`, `ironx-suite` restano `1.0.0`).
+- **Non ancora dimostrato da questa release**: che `show_widget` venga davvero chiamato, che la card
+  sia il primo output, che l'owner l'abbia confermata. Il gate CARD-04 prova l'ARTEFATTO; la consegna
+  resta acceptance LIVE su START/CYCLE/END reali. CARD-06B (hook che si autoescludono nel container
+  cloud) resta OPEN e non e' toccato: la card e' garantita dal comando, non dagli hook.
+
+---
+
 ## [marketplace 1.14.0] - swe 1.12.0 - 2026-07-04
 ### Added
 - swe Passo 4 (S166): `cycle` §3-bis scrive alla chiusura il blocco fenced ```swe-model {json}``` (modello COMPLETO/freeze) dentro `SESSION_BRIEFINGS/S<n+1>_OPEN.md` (SSOT). L'apertura successiva rende la card ricca in automatico via hook, deterministica, per hub e ogni progetto gestito da swe (ta-* nel loro repo; domini autonomi come Bot-Alliance restano fallback ricco).
