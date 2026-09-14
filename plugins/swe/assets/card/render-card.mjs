@@ -192,6 +192,40 @@ function prioritiesHandoff(m){
 }
 
 /* ─────────── assemblaggio: shell canonica + contenuto del kind ─────────── */
+
+/* Validate present checklist fields before considering missing measurements.
+ * Keep valid scalar spellings unchanged for byte-identical historical output. */
+function checklistSections(sections, sc){
+  const fields = ["CK_DONE", "CK_TOTAL", "PROGRESS_PCT"];
+  const has = k => Object.prototype.hasOwnProperty.call(sc, k);
+  const values = {};
+  for(const k of fields){
+    if(!has(k)) continue;
+    const v = sc[k];
+    const numeric = typeof v === "number" ||
+      (typeof v === "string" && /^[0-9]+(?:\.[0-9]+)?(?![\s\S])/.test(v));
+    const n = numeric ? Number(v) : NaN;
+    const valid = Number.isFinite(n) && n >= 0 &&
+      (k === "PROGRESS_PCT" ? n <= 100 : Number.isSafeInteger(n));
+    if(!valid) die("checklist " + k + " non valido: " + JSON.stringify(v));
+    values[k] = n;
+  }
+  if(has("CK_DONE") && has("CK_TOTAL") && values.CK_DONE > values.CK_TOTAL)
+    die("checklist CK_DONE non valido: " + JSON.stringify(sc.CK_DONE) +
+      " supera CK_TOTAL: " + JSON.stringify(sc.CK_TOTAL));
+  if(fields.every(has)) return sections;
+
+  /* Operate on template content, never on the rendered artifact. */
+  const summary = /<summary>[^\n]*\{\{PROGRESS_PCT\}\}[^\n]*<\/summary>/g;
+  const bar = /^ +<div style="height:8px;[^\n]*\{\{PROGRESS_PCT\}\}[^\n]*<\/div>\n/gm;
+  if((sections.match(summary)||[]).length !== 1 ||
+     (sections.match(bar)||[]).length !== 1)
+    die("checklist: struttura summary/bar non riconosciuta");
+  return sections.replace(summary,
+    '<summary><i class="ti ti-list-check"></i> Avanzamento non misurato</summary>')
+    .replace(bar, "");
+}
+
 function render(model){
   const kind = model.kind || "opening";
   const spec = KIND_SPEC[kind];
@@ -223,7 +257,7 @@ function render(model){
   sc.SHELL_META_CHIPS  = parts.chips || "";
   sc.SHELL_INTRO       = parts.intro || "";
   sc.SHELL_CONTROLS    = stripComments(parts.controls || "");
-  sc.SHELL_SECTIONS    = stripComments(parts.sections || "");
+  sc.SHELL_SECTIONS    = checklistSections(stripComments(parts.sections || ""), sc);
   sc.SHELL_REFERENCES  = spec.references ? blocks.references : "";
   sc.SHELL_INPUTS      = spec.inputs     ? blocks.inputs     : "";
   sc.SHELL_ACTION      = spec.action     ? blocks.action     : "";
