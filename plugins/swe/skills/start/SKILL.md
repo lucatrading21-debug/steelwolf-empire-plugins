@@ -42,7 +42,41 @@ Fonte unica interna SteelWolf (dominio separato N4). Binding: LL-Empire-023 (pul
 1. **Con argomento** `$1 = <slug>`: cerca in `projects[]`. Slug assente -> errore esplicito + lista slug validi (NON assumere).
 2. **Senza argomento** -> progetto con `default: true` (`predator`/hub) = comportamento storico (retro-compat, zero regressione).
 3. **Path-set risolto**: `repo . session_log . roadmap . briefings . session_prefix . branch . desk`. Da qui §2 (pull), §5 (SESSION_LOG), §5-bis (colpo d'occhio ROADMAP), §5-ter (briefing di apertura) usano i path DEL PROGETTO risolto, non hub. `briefings` + `session_prefix` sono i due campi da cui §5-ter deriva **destinazione e naming**: regola canonica in §5-ter, non riscriverla altrove.
-4. **Numero sessione** = +1 sull'ultima entry del `session_log` del progetto, usando la **numerazione nativa** del progetto. `session_prefix` valorizzato solo per catene che lo usano davvero (es. `BA-S` per bot-alliance). La mappatura prefisso -> nome del file di briefing (incluso il caso vuoto) e' enunciata **una sola volta** in §5-ter: non ridichiararla qui. NON forzare prefissi non nativi.
+4. **Numero sessione** = deciso dal **gate**, tramite un **ENTRYPOINT UNICO**. L'istanza passa
+   radice e slug. Non risolve percorsi, non legge l'index, non sceglie la policy, non compone il
+   designatore, non chiama un secondo strumento.
+
+   **a) PRE-CARD (read-only assoluto).**
+   `node ${CLAUDE_PLUGIN_ROOT}/assets/session/session-gate.mjs --mode=check --root=<radice SteelWolf_Empire> --slug=<slug>`
+   Senza `--session` il gate **calcola da solo** il designatore nativo (`BA-S59`, non `S59`) e lo
+   restituisce. `--mode=check` non crea e non modifica alcun file: e' l'unico verbo ammesso prima
+   della card e della conferma (ordine S192/R2).
+
+   **b) POLICY `session_gate` — tre valori, nessuna interpretazione.**
+   - `enforce` — progetto MIGRATO (ha il blocco STATO NUMERAZIONE): `exit != 0` e' **STOP**
+     fail-closed; nessun briefing, nessuna card, nessuna scrittura; all'owner **tutti** i codici.
+   - `bootstrap` — primo avvio accertato: registro assente ammesso, numero `S1`.
+   - `hold-migration` — progetto ATTIVO e NON migrato: **apertura VIETATA** finche' la sessione in
+     corso non e' chiusa; nessun numero proposto.
+   - Campo **assente** => `hold-migration`. Il default e' il piu' restrittivo. Non esiste un esito
+     "consultivo": un gate che riporta e non blocca non e' un gate.
+
+   **c) DOPO la conferma dell'owner**, con `--session=<numero CONFERMATO sulla card>` (obbligatorio
+   qui, dove non va piu' calcolato ma confermato):
+   `--mode=commit --receipt=<repo>/_session/receipts/<designatore>.json` (scrittura **esclusiva**),
+   poi `--mode=verify --receipt=<lo stesso>` subito prima di scrivere il briefing.
+   Il receipt e' una **prova pre-booking**: attesta lo stato *prima* che il briefing esista. Creato
+   il briefing, la fingerprint dei briefing cambia e un `--mode=verify` successivo lo dichiarera'
+   OBSOLETO. E' corretto: quella prova e' **consumata**, vale per l'apertura che ha autorizzato.
+   Il receipt vive **fuori** da `SESSION_BRIEFINGS`: dentro, altererebbe la fingerprint che il gate
+   stesso confronta.
+
+   **d) Entrypoint non eseguibile** -> **STOP**: `SWE SESSION NUMBER BLOCKED - gate non raggiungibile: <cosa manca>.`
+
+   **ABROGATA "ultima entry + 1"**: ambigua sul verso del registro (Hub crescente, Journal
+   decrescente) e confondeva "numero occupato" con "sessione chiusa". Misurato in S204: sullo
+   stesso registro dava `S2` oppure `S45` secondo l'interpretazione, nessuna delle due corretta.
+   Resta valida la **numerazione nativa** del progetto. `session_prefix` valorizzato solo per catene che lo usano davvero (es. `BA-S` per bot-alliance). La mappatura prefisso -> nome del file di briefing (incluso il caso vuoto) e' enunciata **una sola volta** in §5-ter: non ridichiararla qui. NON forzare prefissi non nativi.
 4-bis. **Bootstrap on-demand** (voci con `bootstrap: on-demand`, es. `ta-analysis`/`ta-academy`/`ta-knowledge`/`ta-content`): il `session_log` puo' NON esistere ancora (il repo ha PROJECT_STATE/ROADMAP/CHECKLIST ma non SESSION_LOG). In tal caso: sessione = **S1**, colpo d'occhio da `PROJECT_ROADMAP.md`+`PROJECT_CHECKLIST.md`, e **crea il SESSION_LOG** del progetto alla prima chiusura (`end`/`cycle`) via bash-write (LL-063). La creazione del file vuoto/scheletro in apertura e' bookkeeping non distruttivo (ammessa pre-GO, come §5-ter). NON trattare il SESSION_LOG mancante come errore.
 4-ter. **Cartella briefing al primo bootstrap (S191).** Invariante DISTINTO da 4-bis (che governa il `SESSION_LOG`): stesso punto normativo, stesso ordine di valutazione, oggetto diverso. La cartella `briefings` dichiarata nell'index puo' essere creata come **bookkeeping del bootstrap** (bash-write, LL-063), e vi si scrive il primo briefing col naming nativo del progetto (§5-ter), **SOLO se valgono TUTTE insieme** queste condizioni: **(a)** identita' del progetto risolta senza ambiguita'; **(b)** `bootstrap: on-demand`; **(c)** `briefings` valorizzato nell'index; **(d)** stato effettivamente first-session; **(e)** la cartella project-owned dichiarata non esiste. Es. Lab: `steelwolf-strategy-lab/SESSION_BRIEFINGS/S1_OPEN.md` — `S1`, MAI `S01` (`S01` e' il pilot identifier, non il designatore di catena). **Se anche UNA sola condizione non vale -> STOP.** In particolare: progetto gia' avviato la cui cartella briefing risulta assente -> **STOP**, mai ricreazione silenziosa (potrebbe essere un danno); `briefings: null` -> **STOP**. Nessun fallback all'Hub, nessuna cartella inventata.
 5. **GUARD dominio ESTERNO (HARD-STOP binding)**: se il progetto risolto ha `swe_writes: false` (domini ESTERNI `repo: null`: `nexus`, `workdash`), **FERMATI SUBITO**. NON leggere doc, NON briefing, NON aprire, NON attendere GO. Emetti SOLO questo rifiuto e termina:

@@ -87,6 +87,34 @@ conferma D6 + GATE git clean (LL-002/024). L'esperienza resta coerente cross-too
 `/swe:end <progetto>` risolve via `hub/steelwolf-empire-hub/_status/_PROJECTS_INDEX.yaml` (stesso resolver di `start` §0-ter):
 - **Con `$1 = <slug>`** -> usa `session_log`/`roadmap`/`session_prefix` del progetto. Senza argomento -> `default` (`predator`/hub).
 - **§1 SESSION_LOG** si scrive nel `session_log` DEL PROGETTO (es. `steelwolf-trading-journal/docs/SESSION_LOG.md`, entry `JOURNAL-Sn`), NON nella catena hub.
+- **§1-bis BLOCCO STATO NUMERAZIONE (obbligatorio in chiusura).** In testa al `session_log` del progetto esiste **UN SOLO** blocco delimitato, che la chiusura **aggiorna** e non duplica mai (un secondo blocco rompe il lettore: `BLOCK_DUPLICATED`):
+  ```
+  <!-- STATO NUMERAZIONE - aggiornato <data reale> -->
+  ULTIMO NUMERO OCCUPATO : <designatore nativo>
+  ULTIMA SESSIONE CHIUSA : <designatore nativo>
+  PROSSIMO NUMERO LIBERO : <designatore nativo>
+  ```
+  **Transizioni esatte** — `C` = sessione che si sta chiudendo:
+
+  | caso | ULTIMO OCCUPATO | ULTIMA CHIUSA | PROSSIMO LIBERO | hold |
+  |---|---|---|---|---|
+  | **chiusura normale** | `C` | `C` | `C+1` | nessuno |
+  | **interruzione** (C non chiusa) | `C` | la precedente realmente chiusa | `C+1` | `SOSPESO` su PROSSIMO |
+
+  `SOSPESO` qualifica **il numero successivo**: dichiara che non e' apribile senza decisione owner.
+  **Nessun marcatore `ATTIVA` in questo blocco**: il blocco lo scrive la CHIUSURA, e una sessione
+  attiva non e' chiusa. Lo stato "attiva" e' la **prenotazione** — il briefing
+  `<designatore>_OPEN.md` — che il gate legge da solo (`SESSION_ALREADY_BOOKED`). Mai inventarlo.
+
+- **§1-ter MIGRAZIONE DELLA POLICY (due repository, un solo atto deliberato).** Scrivere il blocco
+  rende il progetto migrabile, **ma non cambia la sua policy**: il blocco vive nel registro del
+  progetto, `session_gate` vive in `hub/steelwolf-empire-hub/_status/_PROJECTS_INDEX.yaml`. La
+  chiusura quindi **non modifica l'index**: produce un **candidato D7-policy** con PRE/POST, hash e
+  diff della sola riga `session_gate` del progetto, e lo consegna all'owner con i comandi Hub.
+  Transizioni ammesse: `hold-migration -> enforce` (blocco ora presente) · `bootstrap -> enforce`
+  (registro ora creato, con blocco). Nessuna transizione verso valori piu' permissivi, mai
+  automatica. Finche' l'owner non applica e **pubblica** il delta sull'Hub, il progetto conserva la
+  policy precedente: la chiusura lo dichiara esplicitamente nella consegna.
 - **Roll-up ADR-029**: sovrascrivi `hub/_status/<slug>.yaml` (one-file-per-desk) -> `empire_rollup.py` -> `EMPIRE_STATE.md`. E' il canale con cui il lavoro di progetto risale all'hub SENZA scrivere la catena hub.
 - **GUARD dominio ESTERNO**: `swe_writes: false` (repo:null: `nexus`/`workdash`) -> rifiuta, rimanda al suo strumento. (`bot-alliance` da S166 e' SteelWolf `swe_writes:true`, catena `BA-S`.)
 - **COERENZA SCRIVANIA↔PROGETTO (S166 · riscritta S189)**: la chiusura deve combaciare con la scrivania corrente (basename radice mount -> `desk_mount`). Scrivania-progetto X + chiudi Y -> **RIFIUTA**. **INVARIANTE (owner directive S189, ADR-027 §4):** ogni progetto SteelWolf possiede la propria scrivania e la propria catena di sessioni. Una scrivania puo' aprire, ciclare e chiudere ESCLUSIVAMENTE sessioni del progetto che rappresenta. **L'Hub NON e' un lanciatore.** L'Hub chiude SOLO `predator`. **Identita' del progetto FAIL-CLOSED**: se non si stabilisce, o due segnali si contraddicono -> STOP, nessuna chiusura e nessuna scrittura cross-project. Deterministico su CLI (hook exit 2), prosa in Cowork (CARD-06B). Vedi `start` §0-ter.5-6.

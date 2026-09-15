@@ -1,0 +1,34 @@
+projects:
+  - slug: p-enforce
+    repo: fixtures-repo
+    session_log: reg.md
+    briefings: fixtures-brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: p-hold
+    repo: fixtures-repo
+    session_log: reg.md
+    briefings: fixtures-brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: hold-migration
+  - slug: p-nogate
+    repo: fixtures-repo
+    session_log: reg.md
+    briefings: fixtures-brief
+    session_prefix: ""
+    swe_writes: true
+  - slug: p-bad
+    repo: fixtures-repo
+    session_log: reg.md
+    briefings: fixtures-brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: observe
+  - slug: p-external
+    repo: null
+    session_log: x
+    briefings: null
+    session_prefix: ""
+    swe_writes: false

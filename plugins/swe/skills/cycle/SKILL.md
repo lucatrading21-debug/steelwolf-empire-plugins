@@ -43,6 +43,7 @@ e si rirende, mai l'HTML gia' reso.
 Esegui l'intera skill `end` (protocollo D6):
 1. §0-bis chiusura interattiva — raccolta dati D6 con **Enriched Visual View di chiusura** (`end` §0-bis.2, asset `closing-card` via `show_widget` in Cowork / testo strutturato in CLI).
 2. Update SESSION_LOG + LESSONS_LEARNED (se LL nuove) + EMPIRE_DASHBOARD (se status cambiato) + memory snapshot.
+   **Incluso il blocco `STATO NUMERAZIONE`** in testa al `session_log` del progetto: aggiornare l'unico blocco esistente, mai aggiungerne un secondo. Formato e regola completa: skill `end` §1-bis (qui non si duplica).
 3. Commit atomic LL-Empire-018 (file specifici, MAI `git add -A`).
 4. **GATE LL-Empire-024:** `git status` clean su **CMD Windows**.
 5. Push delegato Luke (V1 parity) + V6 backup se la prossima sessione è filesystem-destructive.
