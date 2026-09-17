@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# PKG8 (S205, LL-Empire-079): il payload del session-gate e verificato per hash di byte -> mai conversione di fine-riga
+plugins/swe/assets/session/** text eol=lf
