@@ -15,6 +15,7 @@ on:
     paths:
       - '**/plugin.json'
       - '.claude-plugin/marketplace.json'
+      - '.github/workflows/plugin-schema-validate.yml'
 
 jobs:
   validate-plugin-manifest:
@@ -70,3 +71,11 @@ jobs:
               print(f"marketplace.json: {e}")
               sys.exit(1)
           PYEOF
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: claude plugin validate (strict)
+        run: npx -y @anthropic-ai/claude-code@latest plugin validate ./plugins/swe --strict
