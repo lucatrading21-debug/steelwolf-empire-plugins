@@ -7,6 +7,34 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
 
 ---
 
+## [marketplace 1.18.0] - swe 1.16.0 - 2026-09-18
+
+> **Perche' questa release esiste.** Cowork scarica una nuova copia del plugin solo quando
+> cambia `version` (LL-Empire-083). Dal rilascio `1.15.0` (`a3660aa`) sono entrati in `main`
+> cinque commit senza alcun bump: il runtime Cowork e' rimasto fermo a pre-S204 mentre il repo
+> avanzava. Il commit di bump in se' non cambia codice; a cambiare, per chi riceve
+> l'aggiornamento, e' tutto cio' che questi cinque commit avevano gia' portato nel repo.
+
+### Contenuto che questa versione propaga (commit gia' in `main`)
+- `3601c7d` FIX(card): una checklist senza misura non rende piu' la barra piena.
+- `815d54d` FEAT(s204): gate del numero di sessione con entrypoint unico e policy; abrogata la
+  regola "ultima entry + 1". Nuovo payload `plugins/swe/assets/session/**`.
+- `647a1c5` FIX(s204): rimossa dalla skill `start` (§5-bis) la regola abrogata.
+- `ba41509` FIX(s204): `hub-untracked-check` con doppia vista operativa/audit + letture git
+  senza lock opzionali.
+- `c3c2b88` FIX(s205): PKG8 — `.gitattributes` `text eol=lf` sul payload del session-gate, cosi'
+  il manifesto e' verificabile anche su checkout Windows (LL-Empire-079).
+
+### Changed
+- `plugins/swe/.claude-plugin/plugin.json`: `version` `1.15.0` -> `1.16.0`.
+- `.claude-plugin/marketplace.json`: voce `swe` `1.15.0` -> `1.16.0`; marketplace `1.17.0` -> `1.18.0`.
+
+### Verificato
+- `verify-manifest.mjs --dir=plugins/swe/assets/session`: PASS 32/32 prima e dopo il bump (il
+  payload non cambia).
+
+---
+
 ## [marketplace 1.17.0] - swe 1.15.0 - 2026-08-23
 
 > **Nota sul salto di numerazione.** Le release swe `1.13.0`, `1.13.1`, `1.14.0` e `1.14.1`
