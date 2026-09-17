@@ -75,7 +75,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: claude plugin validate (strict)
         run: npx -y @anthropic-ai/claude-code@latest plugin validate ./plugins/swe --strict
