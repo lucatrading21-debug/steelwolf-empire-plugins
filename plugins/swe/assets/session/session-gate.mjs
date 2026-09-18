@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* session-gate — ENTRYPOINT UNICO. Legge index + slug, applica la policy, esegue il gate.
  * L'istanza passa root e slug: non risolve percorsi, non sceglie la policy, non compone la decisione.
- *   --mode=check   PRE-CARD, read-only assoluto
+ *   --mode=check   PRE-CARD, read-only assoluto (a sessione gia aperta con prova: OPEN S<n>, S209)
  *   --mode=commit  POST-CONFERMA, receipt esclusivo
  *   --mode=verify  ricontrollo del receipt (identita completa + rilettura)
  *   --mode=close   IN CHIUSURA, read-only: prova che il registro dichiara S<n> chiusa (S209, D13)
@@ -84,6 +84,29 @@ if (mode === "verify") {
   if (r.status !== "OK") bad.push(...r.blockers.map(b => `non piu valido alla rilettura: [${b.code}] ${b.message}`));
   if (bad.length) die(2, bad);
   console.log(`SESSION GATE: receipt VALIDO — ${rec.project} / ${rec.session} (policy ${rec.policy})`); process.exit(0);
+}
+/* OPEN S<n> in check (S209, D13 — S208_D13_DESIGN sez. 4). Informativo, READ-ONLY, exit 0.
+ * Solo se l'UNICO briefing oltre l'occupato e' S<next>_OPEN.md e il receipt di apertura di S<next>
+ * esiste ed e' coerente: stessa identita', stesso registro, e impronta briefing = quella di PRIMA del
+ * briefing (il receipt certifica lo stato pre-booking). Qualunque altro caso resta STOP come prima.
+ * Non e' un via libera: la sessione e' GIA aperta, nessuna nuova apertura. */
+const OPEN_OK = new Set(["SESSION_ALREADY_BOOKED", "BRIEFINGS_REGISTRY_MISMATCH"]);
+if (mode === "check" && r.status !== "OK" && r.proposed && r.lastOccupied && r.codes.every(c => OPEN_OK.has(c)) && br.exists) {
+  const esc = P.prefix.replace(/[.*+?^${}()|[\]\\-]/g, "\\$&");
+  const occ = parseInt(String(r.lastOccupied).slice(P.prefix.length), 10);
+  const re = new RegExp("^" + esc + "(\\d+)_(OPEN|CLOSE)\\.md$", "i");
+  const beyond = br.names.filter(x => { const m = x.match(re); return m && parseInt(m[1], 10) > occ; });
+  const rp = join(P.repoPath, "_session", "receipts", `${P.slug}_${r.proposed}.json`);
+  if (beyond.length === 1 && beyond[0].toLowerCase() === `${r.proposed}_OPEN.md`.toLowerCase() && existsSync(rp)) {
+    let rec = null; try { rec = JSON.parse(readFileSync(rp, "utf8")); } catch { rec = null; }
+    const pre = sha(JSON.stringify(br.names.filter(x => x !== beyond[0]).sort()));
+    const same = rec && rec.kind === "session-number" && rec.briefingsFingerprint === pre &&
+      ["project", "prefix", "session", "policy", "bootstrap", "registryPath", "briefingsPath", "registrySha256"].every(k => rec[k] === ident[k]);
+    if (same) {
+      console.log(`SESSION GATE: OPEN ${r.proposed} — ${P.slug} (sessione GIA APERTA: ${beyond[0]} + receipt di apertura coerente; informativo, mode=check READ-ONLY, NESSUNA nuova apertura)`);
+      console.log(JSON.stringify({ ...ident, status: "open", session: r.proposed, receipt: rp, source: r.source })); process.exit(0);
+    }
+  }
 }
 if (r.status !== "OK") die(2, r.blockers.map(b => `[${b.code}] ${b.message}`));
 if (mode === "check") {

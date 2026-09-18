@@ -5,7 +5,7 @@
   "census.mjs": "4182934047bd02648ba434eb994f3519fef5b7ce6738ab05f7233841eb41a8a9",
   "hub-untracked-check.mjs": "6bde2ef9b6255b30b7b2b78fb85358178a673fbf3ca17a3b8e1cffe28224404e",
   "policy.mjs": "0dfcfce782bee4ac90ac3b0ed86be93ed228a4fd2354c3f5b774b3fb788253a9",
-  "session-gate.mjs": "60fba6ccd5c1b1d176d4c85483abe337069f19640624b801b01ed8177446212d",
+  "session-gate.mjs": "3062dcc358da5bfa3d8eb90ceca5c972c76f03c59359ed755c722caf8a9fd019",
   "swe-next-session.mjs": "d335b6538f47cc41d203a8aa69812a6de4026e60bf0da2dea6fcdc00e7b2888f",
   "tests/fixtures/b_S1_prenotata/S1_OPEN.md": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "tests/fixtures/b_S46_prenotata/S46_OPEN.md": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -44,7 +44,7 @@
   "tests/fixtures/jt_brief_vuota/.keep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "tests/fixtures/root/fixtures-brief/.keep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "tests/fixtures/root/fixtures-repo/reg.md": "fa9e2796dea9d64600b58a8b447641bd9528c38cd539ad42bfddf52324cc1b39",
-  "tests/run-tests.mjs": "1afc38cb3f90d08b45419285147b6423fa19a4f878d2b2266e6b7822a1aac9a7",
+  "tests/run-tests.mjs": "a722efe2ec0aa8fc60816a3393d2ef32257ec9f9230cee764a9558f094f536c2",
   "verify-manifest.mjs": "10131be53628f07bb4f19b17fb53eefbd408b3154348c7c857ecf403c17956ab"
  },
  "version": 2
