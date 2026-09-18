@@ -124,6 +124,17 @@ in `skills/end/SKILL.md`. Riferimento completo body: vedi SKILL.md.
    DIRTY: YYYY-MM-DD - ...
    Timestamp: YYYY-MM-DD sessione <env> Tipo X ~HH:MM CEST.
    ```
+   Poi aggiorna l'unico blocco `STATO NUMERAZIONE` in testa al log (chiusura normale: `C` / `C` / `C+1`; regola in skill `end` §1-bis).
+
+1-bis. **Rotazione del log** (S209, D13 — skill `end` §1.1): se `wc -l` del log > 500, sposta le entry piu' vecchie in
+   `audit/session-log/SESSION_LOG_S<a>-S<b>.md` lasciando le ultime 15 sessioni; il blocco resta nel vivo;
+   ricomposizione con **SHA-256 identico** all'originale, altrimenti STOP e ripristino. Sostituisce la CI di archiviazione.
+
+1-ter. **GATE `session-gate --mode=close`** (S209, D13 — skill `end` §1.2, FAIL-CLOSED), DOPO log + blocco (+ rotazione)
+   e PRIMA del manifest:
+   `node ${CLAUDE_PLUGIN_ROOT}/assets/session/session-gate.mjs --mode=close --root=<radice SteelWolf_Empire> --slug=<slug> --session=S<n>`
+   **`exit != 0` = la sessione NON e' dichiarabile chiusa**: niente manifest, niente pubblicazione. Si corregge il
+   registro e si riesegue. Con `cycle` gira PRIMA che la FASE 2 scriva `S<n+1>_OPEN.md`.
 
 2. **Update LESSONS_LEARNED.md** se nuove LL emerse:
    - Aggiungi entry indice (riga tabella, severità CRITICA/ALTA/MEDIA)
@@ -135,13 +146,19 @@ in `skills/end/SKILL.md`. Riferimento completo body: vedi SKILL.md.
 4. **Memory snapshot ADR-005 FALLBACK 2** per closure critica:
    `hub/_memory-snapshot/<YYYY-MM-DD>-<scope>.md`
 
-5. **Commit atomic** (LL-Empire-018 binding):
+5. **Commit atomic** (LL-Empire-018 binding). **Hub / `predator`:** solo dopo il gate 1-ter PASS, scrivi il manifest
+   `_session/publish/S<n>-close.files.txt` coi file reali della chiusura (lista esplicita, include se stesso); il commit lo fa `swe-publish.ps1` (step 7).
    - File specifici, MAI `git add -A`
    - Convention D8: `FEAT` / `FIX` / `DOCS` / `REFACTOR` / `TEST` / `SECURITY` / `TIER0/1/2` / `M0.x/M1/M2`
 
 6. **GATE BINDING (LL-Empire-024):** `git status` DEVE essere clean su **CMD Windows** prima di dichiarare closure. Sandbox bash NON è autoritativo.
 
-7. **Push delegato Luke** (V1 parity verify diretta):
+7. **Pubblicazione delegata Luke** (V1 parity verify diretta). **Hub / `predator` — comando canonico** (PowerShell, prima `-DryRun`, poi reale scrivendo `PUBBLICA`):
+   ```powershell
+   .\scripts\swe-publish.ps1 -Session S<n> -Kind close -Manifest _session\publish\S<n>-close.files.txt -Message "DOCS(s<n>): chiusura D6 - <sintesi>"
+   ```
+   Chiusa = pubblicata: lo script verifica `ls-remote = HEAD` e scrive `_session/receipts/<slug>_S<n>_CLOSE.json`.
+   Altri repository (senza lo script):
    ```cmd
    git push origin <branch>
    git rev-parse HEAD == git rev-parse origin/<branch>
