@@ -7,6 +7,39 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
 
 ---
 
+## [marketplace 1.19.0] - swe 1.17.0 - 2026-09-18
+
+> **D13 lato plugin: "chiusura = pubblicata, o non e' chiusura".** Esegue da specifica le decisioni
+> chiuse in S208 (`hub: audit/closures/S208/S208_D13_DESIGN.md`, sez. 3-6). Branch `chore/s209-d13`.
+
+### Added
+- `session-gate --mode=close` (`137b0bf`): gate del numero di sessione IN CHIUSURA, read-only. Passa solo se il
+  registro dimostra `OCCUPATO = CHIUSA = S<n>`, `PROSSIMO = S<n+1>`, briefing `S<n>_OPEN.md` e intestazione nel
+  log vivo. Test C1-C7 (1 positivo, 6 negativi: caso S206, blocco in archivio, gap, briefing mancante, numero
+  errato, `--session` assente).
+- Esito `OPEN S<n>` in `--mode=check`: a sessione gia' aperta con receipt coerente risponde `OPEN` (exit 0,
+  informativo) invece di STOP. Test O1-O5 (1 positivo, 4 negativi). `verify` invariato.
+- `swe:end` (comando + skill v1.4): rotazione del log in chiusura (> 500 righe, ultime 15 sessioni, SHA-256 di
+  ricomposizione) al posto della CI; gate `--mode=close` fail-closed prima del manifest; comando canonico di
+  pubblicazione `swe-publish.ps1 -Kind close`.
+- `swe:start` (comando + skill v1.7): controllo pre-card della ricevuta `_CLOSE.json` della sessione precedente
+  (head = remote), "S<n-1> chiusa ma NON pubblicata" come prima priorita' obbligata; esito `OPEN` documentato.
+
+### Changed
+- `plugins/swe/.claude-plugin/plugin.json`: `version` `1.16.0` -> `1.17.0`.
+- `.claude-plugin/marketplace.json`: voce `swe` `1.16.0` -> `1.17.0`; marketplace `1.18.0` -> `1.19.0`.
+- `plugins/swe/assets/session/MANIFEST.json`: 32 -> 45 file (fixture `tests/fixtures/close/`).
+
+### Verificato
+- `run-tests.mjs --runs=<dir>`: 50 PASS / 0 FAIL / 2 SKIP (linux, node 22); i 2 SKIP sono i casi `[LIVE]`.
+- `verify-manifest.mjs`: PASS 45/45.
+- Invariati: card (`assets/card/**`), semantica di `check`/`commit`/`verify` fuori dall'esito OPEN.
+
+### Fuori da questa release
+- Ritiro del workflow `auto-archive-session-logs.yml`: e' nel repo Hub, entra nella chiusura S209.
+
+---
+
 ## [marketplace 1.18.0] - swe 1.16.0 - 2026-09-18
 
 > **Perche' questa release esiste.** Cowork scarica una nuova copia del plugin solo quando
