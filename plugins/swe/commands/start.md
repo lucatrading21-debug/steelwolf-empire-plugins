@@ -112,6 +112,16 @@ in `skills/start/SKILL.md`. Riferimento completo body: vedi SKILL.md.
      nei controlli. Si dichiarano NELLA card, non in un preambolo testuale che la precede.
    - Se il PC non e' deducibile, la card lo lascia da scegliere: si chiede a Luke **con** la card, non prima.
 
+0-bis. **Ricevuta di chiusura della sessione precedente** (S209, D13 — skill `start` §0-ter.4-e). Lettura pre-card:
+   `<repo>/_session/receipts/<slug>_S<n-1>_CLOSE.json`, con `S<n-1>` = ULTIMA SESSIONE CHIUSA del registro.
+   - Presente e `head` = `remote` → la card lo dichiara (Continuita' / Parita' PC).
+   - **Assente, o `head` != `remote`** → la card mostra **"S<n-1> chiusa ma NON pubblicata"** e la **prima priorita'
+     obbligata** e' pubblicarla (`swe-publish.ps1 -Kind close`). Nessuna altra priorita' puo' precederla.
+   - Vale da quando la catena ha la prima ricevuta `_CLOSE.json` (Hub/`predator`: da S208). Non retroattivo.
+   - Il segnale passa dai campi del **modello**: la card non si modifica (CARD FREEZE).
+   - Se il gate (`--mode=check`) risponde **`OPEN S<n>`**, la sessione e' **gia' aperta**: nessuna nuova apertura,
+     nessun `--mode=commit`; si riprende quella sessione.
+
 1. **Pull-first protocol 11 repo** (LL-Empire-023 binding) — CMD da Luke Windows. Sequenza completa in `hub/SESSION_PROTOCOL.md` §2.2.
 
 2. **CLAUDE.md hierarchy** Anthropic 2026:
