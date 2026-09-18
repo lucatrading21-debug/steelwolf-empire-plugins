@@ -16,6 +16,7 @@ Apertura sessione Empire — Cowork, Code o Chat. Token-saving target: 3-5K read
 > v1.4 (S164/A5): §5-bis.2 Enriched Visual View base ufficiale (card HTML custom pre-accesa + asset template + fallback testo).
 > v1.5 (S166): §5-bis.4 hook pre-render PRIMARIO (l'hook genera la card, l'istanza fa solo show_widget del file); fix template commento annidato.
 > v1.5 (S165): Ecosistema (hub-only) + checklist drill-down per milestone + chip Continuità/Parità-PC + commit data-ora forzata + lingua italiana binding.
+> v1.7 (S209, D13): §0-ter.4-e ricevuta di chiusura della sessione precedente (`_CLOSE.json`, head = remote) + esito `OPEN S<n>` del gate in check.
 > v1.6 (S165): simmetria con `end` — glosse "in parole povere" (`.qglo`) su PC/Pull + principio tracciabilità (termine tecnico + parole povere + provenienza) condiviso con la closing card.
 > Binding: LL-Empire-002 (PROTOCOLLO GO), LL-Empire-008 (verifica empirica), LL-Empire-023 (pull-first), LL-Empire-024 (sandbox stale), LL-Empire-050 (session boundary), LL-Empire-063 (bash-write hub).
 
@@ -52,6 +53,10 @@ Fonte unica interna SteelWolf (dominio separato N4). Binding: LL-Empire-023 (pul
    restituisce. `--mode=check` non crea e non modifica alcun file: e' l'unico verbo ammesso prima
    della card e della conferma (ordine S192/R2).
 
+   **a-bis) Esito `OPEN S<n>` (S209, D13).** Se `check` risponde `OPEN S<n>` (exit 0) la sessione S<n> e' **gia'
+   aperta**: esiste `S<n>_OPEN.md` ed esiste il receipt di apertura coerente. Non e' un via libera: nessuna nuova
+   apertura, nessun `--mode=commit` (il gate lo rifiuterebbe comunque: un numero, un receipt). Si riprende S<n>.
+
    **b) POLICY `session_gate` — tre valori, nessuna interpretazione.**
    - `enforce` — progetto MIGRATO (ha il blocco STATO NUMERAZIONE): `exit != 0` e' **STOP**
      fail-closed; nessun briefing, nessuna card, nessuna scrittura; all'owner **tutti** i codici.
@@ -70,6 +75,19 @@ Fonte unica interna SteelWolf (dominio separato N4). Binding: LL-Empire-023 (pul
    OBSOLETO. E' corretto: quella prova e' **consumata**, vale per l'apertura che ha autorizzato.
    Il receipt vive **fuori** da `SESSION_BRIEFINGS`: dentro, altererebbe la fingerprint che il gate
    stesso confronta.
+
+   **e) Ricevuta di chiusura della sessione precedente (S209, D13 — S208_D13_DESIGN sez. 6). Pre-card, sola lettura.**
+   Con `S<n-1>` = ULTIMA SESSIONE CHIUSA del registro, cerca `<repo>/_session/receipts/<slug>_S<n-1>_CLOSE.json`
+   (scritta da `swe-publish.ps1 -Kind close`).
+   - Presente, `kind: session-close`, `session` = `S<n-1>`, `head` = `remote` → S<n-1> e' **chiusa e pubblicata**:
+     la card lo dichiara in Continuita' / Parita' PC.
+   - **Assente, illeggibile, o `head` != `remote`** → la card mostra **"S<n-1> chiusa ma NON pubblicata"** e la
+     **prima priorita' obbligata** e' pubblicarla (manifest + `swe-publish.ps1 -Kind close`, skill `end` §3).
+     Nessun'altra priorita' la precede. L'apertura non e' bloccata dal gate: e' il primo passo di lavoro.
+   - **Transizione:** vale da quando la catena del progetto ha la prima ricevuta `_CLOSE.json` (Hub/`predator`:
+     da S208, quindi dall'apertura di S209). Non retroattivo: una catena senza alcuna ricevuta non viene segnalata.
+   - La ricevuta resta non tracciata finche' non entra nel primo commit della sessione corrente.
+   - Il segnale passa dai campi del **modello** (CONTINUITY, PC_PARITY, `priorities[0]`): la card non si tocca.
 
    **d) Entrypoint non eseguibile** -> **STOP**: `SWE SESSION NUMBER BLOCKED - gate non raggiungibile: <cosa manca>.`
 

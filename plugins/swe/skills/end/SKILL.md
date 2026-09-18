@@ -12,6 +12,7 @@ Chiusura sessione Empire — protocollo D6. Massimo 7 righe output finale.
 > Creata 2026-04-26 in `hub/steelwolf-empire-hub/.claude/skills/`. Split da empire-session §4 (deprecato).
 > v1.1 (S160): aggiunta §0-bis chiusura interattiva simmetrica all'apertura `/swe:start`.
 > v1.3 (S166 Passo 4): CARD FREEZE (closing-card INVARIATA) + il modello card lo scrive `cycle` §3-bis.
+> v1.4 (S209, D13): §1.1 rotazione del log in chiusura (sostituisce la CI) + §1.2 GATE `session-gate --mode=close` fail-closed + §2/§3 pubblicazione Hub con manifest e `swe-publish.ps1 -Kind close`.
 > v1.2 (S165): §0-bis.2 Enriched Visual View di CHIUSURA base ufficiale (asset `closing-card.template.html`, gemella dell'opening) — sostituisce il widget elicitation nativo; + §0-lang lingua italiana binding.
 > Binding: LL-Empire-002 (GO), LL-Empire-018 (atomic commit), LL-Empire-019 (V1 parity), LL-Empire-021 (mai checkout --ours/--theirs su append-only), LL-Empire-024 (sandbox stale → CMD Windows autoritativo), LL-Empire-050 (session boundary), LL-Empire-063 (bash-write hub).
 
@@ -178,6 +179,48 @@ Timestamp: YYYY-MM-DD sessione <env> Tipo X ~HH:MM CEST.
 
 **Tipo sessione (tabella canonica condivisa con skill `start` §1):** A=architettura/skill/governance/ricerca · B=sviluppo/docs/design/fix/planning/migration · C=operations (deploy/git/security/cleanup) · D=analisi/review/audit/cross-check · E=closure post-recovery · K=TIER closure / handoff cross-PC. Classifica per **tipo di lavoro** svolto (es. S158-S160 = Tipo A build governance).
 
+### §1.1 — Rotazione del log in chiusura (S209, D13 — S208_D13_DESIGN sez. 5)
+
+Sostituisce il workflow CI `auto-archive-session-logs.yml` (ritirato: inerte, tagliava per data con una
+politica diversa). La rotazione sta dove si aggiorna gia' il blocco. Si esegue DOPO aver scritto la entry
+D6 e il blocco §1-bis, PRIMA del gate §1.2.
+
+- **Soglia:** `wc -l <session_log>` **> 500** alla chiusura. Sotto soglia: nessuna rotazione, nulla da fare.
+- **Taglio:** restano nel log vivo le **ultime 15 sessioni** (15 intestazioni `## ` di sessione, la corrente
+  compresa) e tutto cio' che precede la prima entry (blocco STATO NUMERAZIONE, note al blocco, titolo, nota di
+  rotazione). Le entry piu' vecchie vanno in `audit/session-log/SESSION_LOG_S<a>-S<b>.md` (designatori nativi,
+  S<a> = prima entry spostata, S<b> = ultima), **byte-identiche**.
+- **Il blocco STATO NUMERAZIONE resta SEMPRE nel log vivo.** Spostarlo nell'archivio fa fallire §1.2 con
+  `NO_AUTHORITATIVE_SOURCE` + `CLOSE_NO_BLOCK`: e' voluto.
+- **Intestazione dell'archivio** (formato S208): titolo, sorgente `SESSION_LOG.md @ <hash>`, SHA-256 del log
+  prima della rotazione, righe spostate, "contenuto byte-identico all'originale", "non contiene il blocco".
+  Nel vivo, una nota di rotazione che punta all'archivio.
+- **Prova obbligatoria:** la ricomposizione (testa del vivo + entry archiviate + resto del vivo, senza le righe
+  aggiunte) deve avere lo **stesso SHA-256** del log prima della rotazione. SHA diverso = STOP, si ripristina
+  il file e si chiude senza rotazione dichiarandolo. Procedura provata in S208 (`b6bc6c4`, 5e148246).
+- Archivio e log vivo entrano nel manifest di chiusura (§2). Se un archivio con lo stesso nome esiste gia':
+  STOP, mai sovrascrivere.
+
+### §1.2 — GATE `session-gate --mode=close` (S209, D13 — FAIL-CLOSED, NON SALTABILE)
+
+Causa (S206): aggiornare il blocco dipendeva dalla memoria di chi chiude. DOPO entry D6 + blocco §1-bis
+(+ rotazione §1.1 se dovuta) e PRIMA di scrivere il manifest di pubblicazione:
+
+    node ${CLAUDE_PLUGIN_ROOT}/assets/session/session-gate.mjs --mode=close --root=<radice SteelWolf_Empire> --slug=<slug> --session=<designatore della sessione che si chiude>
+
+- **Read-only** come `check`. Passa solo se il registro appena scritto dimostra la chiusura: fonte = blocco,
+  `OCCUPATO = CHIUSA = S<n>`, `PROSSIMO = S<n+1>`, briefing `S<n>_OPEN.md` presente, intestazione `## ... S<n>` nel
+  log vivo, nessun blocco strutturale (sospensione inclusa).
+- **`exit != 0` = la sessione NON e' dichiarabile chiusa.** Niente manifest, niente pubblicazione, niente
+  "SESSIONE CHIUSA": si corregge il registro (mai il gate) e si riesegue. All'owner **tutti** i codici.
+- **Ordine con `cycle`:** il gate gira nella FASE 1 (questa chiusura), PRIMA che la FASE 2 scriva
+  `S<n+1>_OPEN.md`. Dopo, il gate vedrebbe `S<n+1>` gia' prenotata e fermerebbe (corretto: la prova va presa prima).
+- **Interruzione** (tabella §1-bis, `SOSPESO`): il gate fallisce per costruzione (`HOLD_MARKER`,
+  `CLOSE_NOT_MARKED_CLOSED`). Una sessione interrotta non e' una sessione chiusa: si dichiara l'interruzione,
+  non la chiusura.
+- **Plugin non ancora caricato** (bump non mergiato, LL-083): si esegue a mano dal repo plugin sul branch,
+  `node plugins/swe/assets/session/session-gate.mjs ...`, e lo si dichiara nella entry.
+
 ### LESSONS_LEARNED.md (se nuove LL emerse)
 
 - Aggiungi entry indice (riga tabella, severita': CRITICA/ALTA/MEDIA)
@@ -198,6 +241,12 @@ Timestamp: YYYY-MM-DD sessione <env> Tipo X ~HH:MM CEST.
 
 ## §2 — STEP 2: COMMIT ATOMIC (LL-Empire-018 binding)
 
+**Hub / `predator` (S209, D13): la chiusura si pubblica con manifest + `swe-publish.ps1`.** Solo dopo §1.2
+PASS, scrivi `_session/publish/S<n>-close.files.txt` (un path relativo per riga, `#` = commento, nessuna
+wildcard; il manifest elenca anche se stesso) coi file REALI della chiusura, poi consegna all'owner il comando
+di §3. Lo script stagia solo il manifest, committa, integra il remoto, pusha e scrive la ricevuta
+`_session/receipts/<slug>_S<n>_CLOSE.json`. Il blocco CMD qui sotto resta per i repository senza lo script.
+
 **BINDING (S165):** al termine, `end` EMETTE AUTOMATICAMENTE il blocco commit **pronto-incolla** coi **file REALI toccati** (calcolati da `git status`/`git diff --stat`), **un blocco per ogni repo interessato** (hub e/o repo di progetto e/o plugin). NON un template generico: i path sono quelli effettivamente modificati nella sessione. Luke esegue il commit e **pusha lui** (V1 parity, §3). Il blocco va in chat come CMD copia-incolla (mai "apri il file e segui").
 
 ```cmd
@@ -213,6 +262,19 @@ Convention message (D8): `FEAT` / `FIX` / `DOCS` / `REFACTOR` / `TEST` / `SECURI
 ---
 
 ## §3 — STEP 3: PUSH DELEGATO LUKE (V1 binding)
+
+**Hub / `predator` — comando canonico di chiusura (S209, D13).** L'owner, in PowerShell, prima `-DryRun`
+(LL-090), poi reale, scrivendo `PUBBLICA` alla richiesta:
+
+```powershell
+cd $env:USERPROFILE\SteelWolf_Empire\hub\steelwolf-empire-hub
+.\scripts\swe-publish.ps1 -Session S<n> -Kind close -Manifest _session\publish\S<n>-close.files.txt -Message "DOCS(s<n>): chiusura D6 - <sintesi>" -DryRun
+.\scripts\swe-publish.ps1 -Session S<n> -Kind close -Manifest _session\publish\S<n>-close.files.txt -Message "DOCS(s<n>): chiusura D6 - <sintesi>"
+```
+
+La chiusura e' pubblicata solo quando lo script stampa `ls-remote = HEAD` e scrive la ricevuta `_CLOSE.json`.
+La ricevuta resta non tracciata ed entra nel primo commit della sessione successiva (la controlla `start`).
+Per gli altri repository vale la procedura manuale qui sotto.
 
 **Cowork NON pusha automaticamente.** Luke esegue push da CMD Windows per V1 parity verify diretta:
 

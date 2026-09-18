@@ -1,0 +1,36 @@
+projects:
+  - slug: c-ok
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-s206
+    repo: c-s206
+    session_log: reg.md
+    briefings: c-s206/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-archived
+    repo: c-archived
+    session_log: reg.md
+    briefings: c-archived/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-gap
+    repo: c-gap
+    session_log: reg.md
+    briefings: c-gap/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-nobrief
+    repo: c-nobrief
+    session_log: reg.md
+    briefings: c-nobrief/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
