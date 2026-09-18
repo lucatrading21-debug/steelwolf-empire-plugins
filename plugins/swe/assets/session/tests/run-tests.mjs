@@ -102,6 +102,26 @@ chk(g.code === 3 && /--session obbligatorio/.test(g.out), "P7", "commit senza --
 g = run([...base, "--slug=p-enforce", "--mode=commit", "--session=S46"]);
 chk(g.code === 2 && /cartella receipts assente/.test(g.out), "P8", "commit senza cartella receipts: STOP, non la crea il gate", `      exit=${g.code}`);
 
+/* ---------- --mode=close (S209, D13 — S208_D13_DESIGN sez. 3): gate numerazione IN CHIUSURA ----------
+ * Fixture statiche in fixtures/close/: nessuna scrittura, quindi nessuna --runs richiesta. */
+const CX = join(FX, "close"), cb = (s) => [`--root=${CX}`, `--index=${join(CX, "idx.yaml")}`, `--slug=${s}`, "--mode=close"];
+const cinv = () => ["c-ok/reg.md"].map(x => sha(readFileSync(join(CX, x)))).join("|") + "#" + inv(join(CX, "c-ok", "brief"));
+const c0 = cinv();
+g = run([...cb("c-ok"), "--session=S45"]);
+chk(g.code === 0 && /CLOSE PASS S45/.test(g.out) && /READ-ONLY/.test(g.out) && cinv() === c0, "C1", "close positivo: OCCUPATO=CHIUSA=S45, PROSSIMO=S46, briefing e intestazione presenti; registro e briefing invariati", `      exit=${g.code}`);
+g = run([...cb("c-s206"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_OCCUPIED_MISMATCH/.test(g.out) && /CLOSE_NOT_MARKED_CLOSED/.test(g.out) && /REGISTRY_HEADING_BEYOND_OCCUPIED/.test(g.out), "C2", "close NEGATIVO caso S206: blocco non aggiornato in chiusura", `      exit=${g.code}`);
+g = run([...cb("c-archived"), "--session=S45"]);
+chk(g.code === 2 && /NO_AUTHORITATIVE_SOURCE/.test(g.out) && /CLOSE_NO_BLOCK/.test(g.out), "C3", "close NEGATIVO: blocco assente dal log vivo (finito in archivio)", `      exit=${g.code}`);
+g = run([...cb("c-gap"), "--session=S45"]);
+chk(g.code === 2 && /NUMBERING_GAP/.test(g.out), "C4", "close NEGATIVO: gap di numerazione (PROSSIMO != OCCUPATO+1)", `      exit=${g.code}`);
+g = run([...cb("c-nobrief"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_BRIEFING_MISSING/.test(g.out), "C5", "close NEGATIVO: briefing S45_OPEN.md assente", `      exit=${g.code}`);
+g = run([...cb("c-ok"), "--session=S44"]);
+chk(g.code === 2 && /CLOSE_OCCUPIED_MISMATCH/.test(g.out), "C6", "close NEGATIVO: numero diverso dall'occupato dichiarato", `      exit=${g.code}`);
+g = run(cb("c-ok"));
+chk(g.code === 3 && /--session obbligatorio/.test(g.out), "C7", "close senza --session: uso errato (exit 3)", `      exit=${g.code}`);
+
 if (!RUNS) { for (const id of ["G1","G2","G3","G4","G5"]) skipped(id, "caso receipt", "--runs=<dir> non indicata"); }
 else {
   const dir = join(resolve(RUNS), "run-" + new Date().toISOString().replace(/[:.]/g, "-"));

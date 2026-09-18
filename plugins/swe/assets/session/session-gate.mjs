@@ -4,18 +4,19 @@
  *   --mode=check   PRE-CARD, read-only assoluto
  *   --mode=commit  POST-CONFERMA, receipt esclusivo
  *   --mode=verify  ricontrollo del receipt (identita completa + rilettura)
+ *   --mode=close   IN CHIUSURA, read-only: prova che il registro dichiara S<n> chiusa (S209, D13)
  * exit 0 PASS · 2 STOP · 3 uso errato. (c) 2026 Luke SteelWolf. */
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import { join, resolve as resolvePath } from "node:path";
 import { createHash } from "node:crypto";
-import { nextSession } from "./swe-next-session.mjs";
+import { nextSession, headingNumbers } from "./swe-next-session.mjs";
 import { resolveBriefings } from "./briefings.mjs";
 import { resolveProject } from "./policy.mjs";
 const A = (k, d) => { const a = process.argv.find(v => v.startsWith("--" + k + "=")); return a ? a.slice(k.length + 3) : d; };
 const sha = (s) => createHash("sha256").update(s).digest("hex");
 const die = (c, l) => { console.error("SESSION GATE: STOP\n" + l.map(x => "  · " + x).join("\n")); process.exit(c); };
 const mode = A("mode", "check");
-if (!["check", "commit", "verify"].includes(mode)) die(3, [`--mode="${mode}": check | commit | verify`]);
+if (!["check", "commit", "verify", "close"].includes(mode)) die(3, [`--mode="${mode}": check | commit | verify | close`]);
 const root = A("root"), slug = A("slug");
 if (!root || !slug) die(3, ["--root e --slug sono obbligatori"]);
 const P = resolveProject(root, slug, A("index", null));
@@ -45,6 +46,32 @@ const ident = { project: P.slug, prefix: P.prefix, session, policy: P.gate, boot
   registryPath: P.registry, briefingsPath: P.briefings,
   registrySha256: exists ? sha(text) : null,
   briefingsFingerprint: br.exists ? sha(JSON.stringify([...br.names].sort())) : null };
+/* --mode=close (S209, D13 — S208_D13_DESIGN sez. 3). Gira in swe:end DOPO aver scritto log e blocco
+ * e PRIMA del manifest di pubblicazione. READ-ONLY come check: non crea e non modifica nulla.
+ * Passa solo se il registro appena scritto DIMOSTRA la chiusura di S<n>: fonte = blocco,
+ * OCCUPATO = CHIUSA = S<n>, PROSSIMO = S<n+1>, briefing S<n>_OPEN.md presente, intestazione
+ * `## ... S<n>` nel log vivo, nessun blocco strutturale di nextSession (sospensione inclusa).
+ * Causa (S206): aggiornare il blocco dipendeva dalla memoria di chi chiude. */
+if (mode === "close") {
+  const esc = P.prefix.replace(/[.*+?^${}()|[\]\\-]/g, "\\$&");
+  const m = String(session).match(new RegExp("^" + esc + "(\\d+)$"));
+  if (!m) die(3, [`--session="${session}" non interpretabile per il prefisso "${P.prefix}"`]);
+  const n = parseInt(m[1], 10), S = (k) => P.prefix + k, bad = [];
+  const c = nextSession(text, { prefix: P.prefix, briefings: br, registryExists: exists, bootstrap: P.bootstrap });
+  bad.push(...c.blockers.map(b => `[${b.code}] ${b.message}`));
+  if (c.source !== "block") bad.push(`[CLOSE_NO_BLOCK] nel log vivo non c'e' un blocco STATO NUMERAZIONE leggibile (fonte=${c.source}): la chiusura non e' dimostrabile`);
+  else {
+    if (c.lastOccupied !== S(n)) bad.push(`[CLOSE_OCCUPIED_MISMATCH] ULTIMO NUMERO OCCUPATO = ${c.lastOccupied}, atteso ${S(n)}: blocco non aggiornato in chiusura`);
+    if (c.lastClosed !== S(n)) bad.push(`[CLOSE_NOT_MARKED_CLOSED] ULTIMA SESSIONE CHIUSA = ${c.lastClosed}, atteso ${S(n)}`);
+    if (c.proposed !== S(n + 1)) bad.push(`[CLOSE_NEXT_MISMATCH] PROSSIMO NUMERO LIBERO = ${c.proposed}, atteso ${S(n + 1)}`);
+  }
+  const want = `${P.prefix}${n}_OPEN.md`.toLowerCase();
+  if (!br.exists || !br.names.some(x => x.toLowerCase() === want)) bad.push(`[CLOSE_BRIEFING_MISSING] ${P.prefix}${n}_OPEN.md assente in ${P.briefings}`);
+  if (!exists || !headingNumbers(text, P.prefix).includes(n)) bad.push(`[CLOSE_HEADING_MISSING] nessuna intestazione "## ... ${S(n)}" nel log vivo`);
+  if (bad.length) die(2, [`CLOSE ${S(n)} NON dimostrata: la sessione NON e' dichiarabile chiusa`, ...bad]);
+  console.log(`SESSION GATE: CLOSE PASS ${S(n)} — ${P.slug} (policy ${P.gate}, mode=close READ-ONLY: nessun file creato o modificato)`);
+  console.log(JSON.stringify({ ...ident, closed: S(n), next: S(n + 1), source: c.source })); process.exit(0);
+}
 const r = nextSession(text, { prefix: P.prefix, requested: session, briefings: br, registryExists: exists, bootstrap: P.bootstrap });
 
 if (mode === "verify") {

@@ -28,6 +28,19 @@ function headings(text, prefix) {
   }
   return out;
 }
+/* S209 (D13): TUTTI i numeri citati nelle intestazioni `## ` del log vivo (non solo il massimo per riga).
+ * Serve a `session-gate --mode=close`, che deve provare che esiste un'intestazione contenente S<n>.
+ * Stessa regola di riconoscimento di headings(); headings() e nextSession() restano invariati. */
+export function headingNumbers(text, prefix = "S") {
+  const esc = prefix.replace(/[.*+?^${}()|[\]\\-]/g, "\\$&");
+  const re = new RegExp("(?:^|[^A-Za-z0-9_-])" + esc + "(\\d+)(?![0-9])", "g");
+  const out = new Set();
+  for (const line of String(text).split(/\r?\n/)) {
+    if (!/^##\s+/.test(line)) continue;
+    for (const m of line.replace(/^##\s+/, " ").matchAll(re)) out.add(parseInt(m[1], 10));
+  }
+  return [...out];
+}
 function block(text, prefix, add) {
   const marks = [...text.matchAll(OPEN_MARK)];
   const stray = Object.fromEntries(Object.entries(G).map(([k, re]) => [k, [...text.matchAll(re)].length]));
