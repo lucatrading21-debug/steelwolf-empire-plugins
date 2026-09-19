@@ -51,7 +51,7 @@
   "tests/fixtures/receipt/r-hold/reg.md": "aa7148d18bc716e3cb1d5bb46b59b5e3cd1a660e516e7dd9e0fc7e00653d7bf2",
   "tests/fixtures/root/fixtures-brief/.keep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "tests/fixtures/root/fixtures-repo/reg.md": "fa9e2796dea9d64600b58a8b447641bd9528c38cd539ad42bfddf52324cc1b39",
-  "tests/publish/run-publish-tests.ps1": "976b63434a22f088921ba4d73f4bc1ad6802c16d306d94e5e1d3be42ebe6c8c3",
+  "tests/publish/run-publish-tests.ps1": "ef3161b5c07dfa64f4268177f251c8b1ad78f99a4730da1f768fb2103af72be0",
   "tests/run-tests.mjs": "f97a5575927fba26b16a65080a73e306c82861272a1b8fe6beaf6dbd05771dbe",
   "verify-manifest.mjs": "10131be53628f07bb4f19b17fb53eefbd408b3154348c7c857ecf403c17956ab"
  },

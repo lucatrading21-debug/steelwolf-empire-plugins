@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  run-publish-tests.ps1 v0.3 - test T1-T9 del publisher + T12/T13 gate win32 swe-publish.ps1 v2 su fixture git REALI in %TEMP% (S210/S211, D13 Empire-wide).
+  run-publish-tests.ps1 v0.4 - test T1-T9 + T11 del publisher + T12/T13 gate win32 swe-publish.ps1 v2 su fixture git REALI in %TEMP% (S210/S211, D13 Empire-wide).
 .DESCRIPTION
   Crea in $env:TEMP una finta radice SteelWolf_Empire (index minimo), un repo bare "origin", un clone "repo" (il progetto) e un
   secondo clone "bot" (che simula il rollup). Poi invoca il publisher con -Root e -Yes e confronta exit code, ls-remote, ricevute.
@@ -96,7 +96,7 @@ function Sw-Manifest([string]$repo, [string]$name, [string[]]$lines) {
 function Sw-Remote([hashtable]$F) { return ((Sw-Git $F.repo @('ls-remote', 'origin', ('refs/heads/' + $F.branch)) | Select-Object -First 1) -split '\s+' | Select-Object -First 1) }
 function Sw-Head([hashtable]$F) { return (Sw-Git $F.repo @('rev-parse', 'HEAD') | Select-Object -First 1) }
 
-Write-Host ("run-publish-tests v0.3 | publisher " + $Publisher + " | artefatti in " + $T) -ForegroundColor Cyan
+Write-Host ("run-publish-tests v0.4 | publisher " + $Publisher + " | artefatti in " + $T) -ForegroundColor Cyan
 
 # --- T1: DryRun con una modifica reale -> exit 0, stage vuoto, nessun commit
 $F = Sw-Fixture 't1'
@@ -186,6 +186,24 @@ $mb = Sw-Manifest $repoBa 'BA-S45-close.files.txt' @('SESSION_LOG.md', '_session
 $r = Sw-Run @('-Root', $Fb.root, '-Slug', 'p-ba', '-Session', 'BA-S45', '-Kind', 'close', '-Manifest', $mb, '-Message', 'DOCS(ba-s45): chiusura D6 - prova prefisso', '-Yes')
 $rpb = Join-Path $repoBa '_session\receipts\p-ba_BA-S45_CLOSE.json'
 Sw-Check (($r.code -eq 0) -and (Test-Path $rpb)) 'T8b' 'prefisso nativo: ricevuta p-ba_BA-S45_CLOSE.json scritta e pubblicata' ("exit=" + $r.code)
+
+# --- T11 (S211): -Kind close con il SECONDO push bloccato (hook pre-receive sul bare della fixture) -> PARZIALE, exit 2.
+# Comportamento reale di swe-publish.ps1 2.0.1: la ricevuta viene committata in LOCALE prima del secondo push; se il push
+# fallisce, il remoto resta fermo alla chiusura (head della ricevuta = ls-remote) e HEAD locale e' il commit della ricevuta.
+$F11 = Sw-Fixture 't11'
+$hook = @('#!/bin/sh', 'while read old new ref; do', '  if git log --format=%s "$old..$new" | grep -q "ricevuta di pubblicazione"; then', '    echo "T11: secondo push rifiutato dal fixture" >&2', '    exit 1', '  fi', 'done', 'exit 0')
+[System.IO.File]::WriteAllText((Join-Path $F11.bare 'hooks\pre-receive'), (($hook -join "`n") + "`n"), (New-Object System.Text.UTF8Encoding($false)))
+Set-Content (Join-Path $F11.repo 'SESSION_LOG.md') "registro`r`nchiusura`r`n" -Encoding Ascii
+$m11 = Sw-Manifest $F11.repo 'S45-close.files.txt' @('SESSION_LOG.md', '_session/publish/S45-close.files.txt')
+$r = Sw-Run @('-Root', $F11.root, '-Slug', 'p-test', '-Session', 'S45', '-Kind', 'close', '-Manifest', $m11, '-Message', 'DOCS(s45): chiusura D6 - prova secondo push', '-Yes')
+$rp11 = Join-Path $F11.repo '_session\receipts\p-test_S45_CLOSE.json'
+$rec11 = $null; if (Test-Path $rp11) { $rec11 = Get-Content $rp11 -Raw | ConvertFrom-Json }
+$remote11 = Sw-Remote $F11
+$head11 = Sw-Head $F11
+$last11 = (Sw-Git $F11.repo @('log', '-1', '--format=%s') | Select-Object -First 1)
+$ok11 = ($r.code -eq 2) -and ($r.out -match 'PARZIALE') -and ($null -ne $rec11) -and ($rec11.head -eq $remote11) -and ($head11 -ne $remote11) -and ($last11 -eq 'DOCS(s45): ricevuta di pubblicazione S45')
+Sw-Check $ok11 'T11' 'secondo push bloccato: exit 2, PARZIALE, ricevuta committata solo in locale, remoto fermo alla chiusura (head ricevuta = ls-remote != HEAD)' ("exit=" + $r.code + " rec=" + ($null -ne $rec11) + " remote=" + $remote11.Substring(0, 7) + " head=" + $head11.Substring(0, 7) + " last='" + $last11 + "'")
+if (-not $ok11) { Write-Host $r.out }
 
 # --- T12/T13: gate patchato (drafts/gate) su win32 - integrazione publisher -> --mode=receipt, poi suite run-tests.mjs con --runs
 # Posizione: dentro il plugin (assets/session/tests/publish) il gate e' gia' in ..\.. ; nei drafts dell'Hub e' in .\gate + plugin 6 livelli sopra
