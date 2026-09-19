@@ -5,8 +5,10 @@
  *   --mode=commit  POST-CONFERMA, receipt esclusivo
  *   --mode=verify  ricontrollo del receipt (identita completa + rilettura)
  *   --mode=close   IN CHIUSURA, read-only: prova che il registro dichiara S<n> chiusa (S209, D13)
+ *   --mode=receipt PRE-CARD, read-only: ricevuta di pubblicazione dell'ULTIMA SESSIONE CHIUSA (S211, D13 Empire-wide)
  * exit 0 PASS · 2 STOP · 3 uso errato. (c) 2026 Luke SteelWolf. */
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { join, resolve as resolvePath } from "node:path";
 import { createHash } from "node:crypto";
 import { nextSession, headingNumbers } from "./swe-next-session.mjs";
@@ -16,11 +18,55 @@ const A = (k, d) => { const a = process.argv.find(v => v.startsWith("--" + k + "
 const sha = (s) => createHash("sha256").update(s).digest("hex");
 const die = (c, l) => { console.error("SESSION GATE: STOP\n" + l.map(x => "  · " + x).join("\n")); process.exit(c); };
 const mode = A("mode", "check");
-if (!["check", "commit", "verify", "close"].includes(mode)) die(3, [`--mode="${mode}": check | commit | verify | close`]);
+if (!["check", "commit", "verify", "close", "receipt"].includes(mode)) die(3, [`--mode="${mode}": check | commit | verify | close | receipt`]);
 const root = A("root"), slug = A("slug");
 if (!root || !slug) die(3, ["--root e --slug sono obbligatori"]);
 const P = resolveProject(root, slug, A("index", null));
 if (P.error) die(2, [P.error]);
+
+/* --mode=receipt (S211, D13 Empire-wide — S210_D13_EMPIRE_DESIGN sez. 5.2 + 7-ter F2/F3). PRE-CARD, READ-ONLY.
+ * Applica start §0-ter.4-e per slug: la ricevuta di pubblicazione dell'ULTIMA SESSIONE CHIUSA e' una decisione della
+ * macchina, non una lettura in prosa. ORDINE (F3): prima la catena (nessuna <slug>_*_CLOSE.json -> transizione, exit 0),
+ * poi il blocco, poi il file. Gira PRIMA della policy hold-migration: e' informativo, non apre nulla.
+ * Esiti: PASS 0 · CHAIN_WITHOUT_RECEIPTS 0 · PASS_UNVERIFIED_GIT 0 · NOT_PUBLISHED 2 · NOT_PULLED 2 · NO_AUTHORITATIVE_SOURCE 2 */
+if (mode === "receipt") {
+  const rdir = join(P.repoPath, "_session", "receipts");
+  const mine = (n) => n.toLowerCase().startsWith((P.slug + "_").toLowerCase()) && n.toLowerCase().endsWith("_close.json");
+  const closes = existsSync(rdir) ? readdirSync(rdir).filter(mine) : [];
+  const say = (verdict, code, extra) => {
+    console.log(`SESSION GATE: RECEIPT ${verdict}${extra && extra.session ? " " + extra.session : ""} — ${P.slug} (mode=receipt READ-ONLY: nessun file creato o modificato)`);
+    console.log(JSON.stringify({ project: P.slug, prefix: P.prefix, policy: P.gate, mode: "receipt", verdict, receiptsDir: rdir, ...extra }));
+    process.exit(code);
+  };
+  if (!closes.length) say("CHAIN_WITHOUT_RECEIPTS", 0, { dirExists: existsSync(rdir), note: "transizione D13: la catena non ha ancora una ricevuta di chiusura; non retroattivo, non bloccante" });
+  const rex = existsSync(P.registry), rtx = rex ? readFileSync(P.registry, "utf8") : "";
+  const c = nextSession(rtx, { prefix: P.prefix, briefings: resolveBriefings(P.briefings), registryExists: rex, bootstrap: P.bootstrap });
+  if (c.source !== "block" || !c.lastClosed) die(2, [`RECEIPT NO_AUTHORITATIVE_SOURCE — ${P.slug}: la catena ha ricevute (${closes.length}) ma il registro non ha un blocco STATO NUMERAZIONE leggibile (fonte=${c.source}): l'ultima sessione chiusa non e' determinabile`]);
+  const S = c.lastClosed, want = `${P.slug}_${S}_CLOSE.json`;
+  const hit = readdirSync(rdir).find(n => n.toLowerCase() === want.toLowerCase());
+  const bad = [];
+  if (!hit) bad.push(`ricevuta ${want} assente in ${rdir} (ricevute presenti: ${closes.join(", ")})`);
+  let rec = null, rp = hit ? join(rdir, hit) : null;
+  if (hit) { try { rec = JSON.parse(readFileSync(rp, "utf8")); } catch (e) { bad.push(`ricevuta illeggibile: ${e.message}`); } }
+  if (rec) {
+    if (rec.kind !== "session-close") bad.push(`kind "${rec.kind}", atteso "session-close"`);
+    if (rec.project !== P.slug) bad.push(`project "${rec.project}", atteso "${P.slug}"`);
+    if (rec.session !== S) bad.push(`session "${rec.session}", attesa "${S}"`);
+    if (P.branch && rec.branch !== P.branch) bad.push(`branch "${rec.branch}", atteso "${P.branch}" (index)`);
+    if (!/^[0-9a-f]{40}$/.test(String(rec.head || ""))) bad.push(`head non e' uno sha a 40 hex`);
+    else if (rec.head !== rec.remote) bad.push(`head ${rec.head} != remote ${rec.remote}: pubblicazione non dimostrata`);
+  }
+  if (bad.length) die(2, [`RECEIPT NOT_PUBLISHED ${S} — ${P.slug}: "${S} chiusa ma NON pubblicata". Prima priorita' obbligata: pubblicarla (manifest + swe-publish.ps1 -Kind close).`, ...bad]);
+  /* git: tracciata (F2, parita' dual-PC) e head antenato di HEAD (F3, PC indietro). Read-only, mai un lock. */
+  const env = { ...process.env, GIT_OPTIONAL_LOCKS: "0" };
+  const git = (args) => { try { execFileSync("git", ["-C", P.repoPath, ...args], { stdio: "ignore", env }); return true; } catch (e) { return e && e.code === "ENOENT" ? null : false; } };
+  const tracked = git(["ls-files", "--error-unmatch", "--", rp]);
+  if (tracked === null) say("PASS_UNVERIFIED_GIT", 0, { session: S, receipt: rp, head: rec.head, note: "git non eseguibile: ricevuta coerente, ma tracciamento e antenato NON verificati" });
+  if (tracked === false) die(2, [`RECEIPT NOT_PUBLISHED ${S} — ${P.slug}: ricevuta presente ma NON committata (${rp}). Il secondo push del publisher e' mancato o e' una ricevuta v1: committala (swe-publish.ps1 -Kind work con manifest = la ricevuta).`]);
+  const anc = git(["merge-base", "--is-ancestor", rec.head, "HEAD"]);
+  if (anc === false) die(2, [`RECEIPT NOT_PULLED ${S} — ${P.slug}: la chiusura ${rec.head.slice(0, 7)} e' pubblicata ma NON e' nella storia locale: questo PC e' indietro. Rimedio: pull-first (SESSION_PROTOCOL §2.2), non ripubblicare.`]);
+  say("PASS", 0, { session: S, receipt: rp, head: rec.head, branch: rec.branch, tracked: true, ancestor: true });
+}
 
 /* POLICY hold-migration: nessuna apertura, e il rimedio e' nominato. */
 if (P.gate === "hold-migration")

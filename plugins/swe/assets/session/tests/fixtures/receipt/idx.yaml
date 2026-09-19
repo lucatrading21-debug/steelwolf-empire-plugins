@@ -1,0 +1,18 @@
+projects:
+  - slug: r-boot
+    repo: r-boot
+    session_log: reg.md
+    briefings: r-boot/brief
+    session_prefix: ""
+    branch: dev
+    swe_writes: true
+    session_gate: bootstrap
+    bootstrap: on-demand
+  - slug: r-hold
+    repo: r-hold
+    session_log: reg.md
+    briefings: r-hold/brief
+    session_prefix: ""
+    branch: dev
+    swe_writes: true
+    session_gate: hold-migration

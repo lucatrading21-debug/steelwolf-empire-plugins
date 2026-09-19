@@ -146,18 +146,20 @@ in `skills/end/SKILL.md`. Riferimento completo body: vedi SKILL.md.
 4. **Memory snapshot ADR-005 FALLBACK 2** per closure critica:
    `hub/_memory-snapshot/<YYYY-MM-DD>-<scope>.md`
 
-5. **Commit atomic** (LL-Empire-018 binding). **Hub / `predator`:** solo dopo il gate 1-ter PASS, scrivi il manifest
-   `_session/publish/S<n>-close.files.txt` coi file reali della chiusura (lista esplicita, include se stesso); il commit lo fa `swe-publish.ps1` (step 7).
+5. **Commit atomic** (LL-Empire-018 binding). **Ogni progetto `swe_writes: true`:** solo dopo il gate 1-ter PASS, scrivi il manifest
+   `<repo>/_session/publish/<S>-close.files.txt` coi file reali della chiusura (lista esplicita, include se stesso); il commit lo fa il publisher `swe-publish.ps1` del plugin (step 7).
    - File specifici, MAI `git add -A`
    - Convention D8: `FEAT` / `FIX` / `DOCS` / `REFACTOR` / `TEST` / `SECURITY` / `TIER0/1/2` / `M0.x/M1/M2`
 
 6. **GATE BINDING (LL-Empire-024):** `git status` DEVE essere clean su **CMD Windows** prima di dichiarare closure. Sandbox bash NON è autoritativo.
 
-7. **Pubblicazione delegata Luke** (V1 parity verify diretta). **Hub / `predator` — comando canonico** (PowerShell, prima `-DryRun`, poi reale scrivendo `PUBBLICA`):
+7. **Pubblicazione delegata Luke** (V1 parity verify diretta). **Comando canonico per ogni progetto** (S211, D13 Empire-wide; PowerShell 5.1, da qualunque cwd, prima `-DryRun`, poi reale scrivendo `PUBBLICA`):
    ```powershell
-   .\scripts\swe-publish.ps1 -Session S<n> -Kind close -Manifest _session\publish\S<n>-close.files.txt -Message "DOCS(s<n>): chiusura D6 - <sintesi>"
+   $pub = "$env:USERPROFILE\SteelWolf_Empire\plugin\steelwolf-empire-plugins\plugins\swe\assets\session\swe-publish.ps1"
+   & $pub -Slug <slug> -Session <S> -Kind close -Manifest _session\publish\<S>-close.files.txt -Message "DOCS(<s>): chiusura D6 - <sintesi>"
    ```
-   Chiusa = pubblicata: lo script verifica `ls-remote = HEAD` e scrive `_session/receipts/<slug>_S<n>_CLOSE.json`.
+   Chiusa = pubblicata: lo script verifica `ls-remote = HEAD`, scrive `<repo>/_session/receipts/<slug>_<S>_CLOSE.json` e la committa+pusha
+   in un secondo commit (`PUBBLICATA ANCHE LA RICEVUTA`). `PARZIALE` = ricevuta scritta ma non pubblicata: `-Kind work` con manifest = la ricevuta.
    Altri repository (senza lo script):
    ```cmd
    git push origin <branch>

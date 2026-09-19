@@ -16,6 +16,7 @@ Apertura sessione Empire — Cowork, Code o Chat. Token-saving target: 3-5K read
 > v1.4 (S164/A5): §5-bis.2 Enriched Visual View base ufficiale (card HTML custom pre-accesa + asset template + fallback testo).
 > v1.5 (S166): §5-bis.4 hook pre-render PRIMARIO (l'hook genera la card, l'istanza fa solo show_widget del file); fix template commento annidato.
 > v1.5 (S165): Ecosistema (hub-only) + checklist drill-down per milestone + chip Continuità/Parità-PC + commit data-ora forzata + lingua italiana binding.
+> v1.8 (S211, D13 Empire-wide, ADR-037): §0-ter.4-e via `session-gate --mode=receipt` (decisione della macchina, esiti PASS/NOT_PUBLISHED/NOT_PULLED/CHAIN_WITHOUT_RECEIPTS) + §0-ter.4-quater cartelle `_session/*` col pattern README + publisher unico nel plugin.
 > v1.7 (S209, D13): §0-ter.4-e ricevuta di chiusura della sessione precedente (`_CLOSE.json`, head = remote) + esito `OPEN S<n>` del gate in check.
 > v1.6 (S165): simmetria con `end` — glosse "in parole povere" (`.qglo`) su PC/Pull + principio tracciabilità (termine tecnico + parole povere + provenienza) condiviso con la closing card.
 > Binding: LL-Empire-002 (PROTOCOLLO GO), LL-Empire-008 (verifica empirica), LL-Empire-023 (pull-first), LL-Empire-024 (sandbox stale), LL-Empire-050 (session boundary), LL-Empire-063 (bash-write hub).
@@ -76,19 +77,25 @@ Fonte unica interna SteelWolf (dominio separato N4). Binding: LL-Empire-023 (pul
    Il receipt vive **fuori** da `SESSION_BRIEFINGS`: dentro, altererebbe la fingerprint che il gate
    stesso confronta.
 
-   **e) Ricevuta di chiusura della sessione precedente (S209, D13 — S208_D13_DESIGN sez. 6). Pre-card, sola lettura.**
-   Con `S<n-1>` = ULTIMA SESSIONE CHIUSA del registro, cerca `<repo>/_session/receipts/<slug>_S<n-1>_CLOSE.json`
-   (scritta da `swe-publish.ps1 -Kind close`).
-   - Presente, `kind: session-close`, `session` = `S<n-1>`, `head` = `remote` → S<n-1> e' **chiusa e pubblicata**:
-     la card lo dichiara in Continuita' / Parita' PC.
-   - **Assente, illeggibile, o `head` != `remote`** → la card mostra **"S<n-1> chiusa ma NON pubblicata"** e la
-     **prima priorita' obbligata** e' pubblicarla (manifest + `swe-publish.ps1 -Kind close`, skill `end` §3).
-     Nessun'altra priorita' la precede. L'apertura non e' bloccata dal gate: e' il primo passo di lavoro.
-   - **Transizione:** vale da quando la catena del progetto ha la prima ricevuta `_CLOSE.json` (Hub/`predator`:
-     da S208, quindi dall'apertura di S209). Non retroattivo: una catena senza alcuna ricevuta non viene segnalata.
-   - La ricevuta resta non tracciata finche' non entra nel primo commit della sessione corrente.
-   - Il segnale passa dai campi del **modello** (CONTINUITY, PC_PARITY, `priorities[0]`): la card non si tocca.
-
+   **e) Ricevuta di pubblicazione della sessione precedente (S209 D13; S211 D13 Empire-wide, ADR-037). Pre-card, sola lettura.**
+   Non si legge il JSON a mano: si esegue il gate, per slug, con la stessa radice degli altri mode:
+   `node <assets>/session/session-gate.mjs --mode=receipt --root=<radice> --slug=<slug>`.
+   Il gate calcola `S<n-1>` = ULTIMA SESSIONE CHIUSA dal blocco del registro e cerca
+   `<repo>/_session/receipts/<slug>_<designatore>_CLOSE.json` (designatore = prefisso nativo + numero: `S209`, `BA-S59`),
+   scritta e COMMITTATA da `swe-publish.ps1 -Kind close` (publisher unico nel plugin, `assets/session/`).
+   Esiti e cosa fa la card (cambiano i campi del MODELLO — CONTINUITY, PC_PARITY, `priorities[0]` —, la card no):
+   - `RECEIPT PASS <S>` (exit 0) → S<n-1> e' **chiusa e pubblicata** (head = remote, ricevuta tracciata, chiusura nella
+     storia locale): Continuita' / Parita' PC lo dichiarano.
+   - `RECEIPT NOT_PUBLISHED <S>` (exit 2) → la card mostra **"S<n-1> chiusa ma NON pubblicata"** e la **prima priorita'
+     obbligata** e' pubblicarla (manifest + publisher `-Kind close`, skill `end` §3); se il gate dice "ricevuta presente ma
+     NON committata", il rimedio e' committarla (`-Kind work` con manifest = la ricevuta). Nessun'altra priorita' la precede.
+     L'apertura non e' bloccata dal gate: e' il primo passo di lavoro.
+   - `RECEIPT NOT_PULLED <S>` (exit 2) → la chiusura e' pubblicata ma questo PC non la ha: prima priorita' = pull-first
+     (SESSION_PROTOCOL §2.2). NON si ripubblica.
+   - `RECEIPT CHAIN_WITHOUT_RECEIPTS` (exit 0) → **transizione**: la catena non ha ancora ricevute (hold-migration,
+     bootstrap, catene pre-D13). Dichiarato in Continuita'; non e' un blocco ne' una priorita'. Non retroattivo.
+   - `RECEIPT NO_AUTHORITATIVE_SOURCE` (exit 2) → ricevute presenti ma registro senza blocco: STOP come per `check`.
+   - `RECEIPT PASS_UNVERIFIED_GIT` (exit 0) → git non eseguibile dal contesto: ricevuta coerente, tracciamento non verificato; dichiararlo.
    **d) Entrypoint non eseguibile** -> **STOP**: `SWE SESSION NUMBER BLOCKED - gate non raggiungibile: <cosa manca>.`
 
    **ABROGATA "ultima entry + 1"**: ambigua sul verso del registro (Hub crescente, Journal
@@ -97,6 +104,14 @@ Fonte unica interna SteelWolf (dominio separato N4). Binding: LL-Empire-023 (pul
    Resta valida la **numerazione nativa** del progetto. `session_prefix` valorizzato solo per catene che lo usano davvero (es. `BA-S` per bot-alliance). La mappatura prefisso -> nome del file di briefing (incluso il caso vuoto) e' enunciata **una sola volta** in §5-ter: non ridichiararla qui. NON forzare prefissi non nativi.
 4-bis. **Bootstrap on-demand** (voci con `bootstrap: on-demand`, es. `ta-analysis`/`ta-academy`/`ta-knowledge`/`ta-content`): il `session_log` puo' NON esistere ancora (il repo ha PROJECT_STATE/ROADMAP/CHECKLIST ma non SESSION_LOG). In tal caso: sessione = **S1**, colpo d'occhio da `PROJECT_ROADMAP.md`+`PROJECT_CHECKLIST.md`, e **crea il SESSION_LOG** del progetto alla prima chiusura (`end`/`cycle`) via bash-write (LL-063). La creazione del file vuoto/scheletro in apertura e' bookkeeping non distruttivo (ammessa pre-GO, come §5-ter). NON trattare il SESSION_LOG mancante come errore.
 4-ter. **Cartella briefing al primo bootstrap (S191).** Invariante DISTINTO da 4-bis (che governa il `SESSION_LOG`): stesso punto normativo, stesso ordine di valutazione, oggetto diverso. La cartella `briefings` dichiarata nell'index puo' essere creata come **bookkeeping del bootstrap** (bash-write, LL-063), e vi si scrive il primo briefing col naming nativo del progetto (§5-ter), **SOLO se valgono TUTTE insieme** queste condizioni: **(a)** identita' del progetto risolta senza ambiguita'; **(b)** `bootstrap: on-demand`; **(c)** `briefings` valorizzato nell'index; **(d)** stato effettivamente first-session; **(e)** la cartella project-owned dichiarata non esiste. Es. Lab: `steelwolf-strategy-lab/SESSION_BRIEFINGS/S1_OPEN.md` — `S1`, MAI `S01` (`S01` e' il pilot identifier, non il designatore di catena). **Se anche UNA sola condizione non vale -> STOP.** In particolare: progetto gia' avviato la cui cartella briefing risulta assente -> **STOP**, mai ricreazione silenziosa (potrebbe essere un danno); `briefings: null` -> **STOP**. Nessun fallback all'Hub, nessuna cartella inventata.
+4-quater. **Cartelle `_session/receipts` e `_session/publish` (S211, D13 Empire-wide — design S210 7-ter F1).** Il gate
+   `--mode=commit` esige `<repo>/_session/receipts/` e NON la crea (decisione S204, invariata); git non traccia cartelle
+   vuote, quindi una cartella creata su un PC non esiste sull'altro. Pattern README, come per `SESSION_BRIEFINGS`: se il
+   progetto e' `swe_writes: true` e una delle due cartelle manca, l'istanza le crea con il loro `README.md` (testo canonico
+   in `assets/session/README-receipts.md` e `README-publish.md`) come **bookkeeping non distruttivo**, DOPO la conferma
+   della card e PRIMA di `--mode=commit`; i README entrano nel primo commit della sessione (manifest di apertura). Vale per
+   ogni progetto dalla SUA scrivania (ADR-027): nessuna scrivania crea cartelle in repo altrui. Progetto non risolto o
+   `swe_writes: false` → nessuna creazione.
 5. **GUARD dominio ESTERNO (HARD-STOP binding)**: se il progetto risolto ha `swe_writes: false` (domini ESTERNI `repo: null`: `nexus`, `workdash`), **FERMATI SUBITO**. NON leggere doc, NON briefing, NON aprire, NON attendere GO. Emetti SOLO questo rifiuto e termina:
 
    > ⛔ `<slug>` e' un dominio ESTERNO (`<domain>`): ecosistema/piattaforma gestita altrove (plugin **nexus** per `nexus`, dominio **WorkDASH** per `workdash`). `swe` non apre sessioni qui. Apri dal suo strumento proprietario.
