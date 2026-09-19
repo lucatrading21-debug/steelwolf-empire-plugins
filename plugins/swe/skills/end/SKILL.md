@@ -12,6 +12,7 @@ Chiusura sessione Empire — protocollo D6. Massimo 7 righe output finale.
 > Creata 2026-04-26 in `hub/steelwolf-empire-hub/.claude/skills/`. Split da empire-session §4 (deprecato).
 > v1.1 (S160): aggiunta §0-bis chiusura interattiva simmetrica all'apertura `/swe:start`.
 > v1.3 (S166 Passo 4): CARD FREEZE (closing-card INVARIATA) + il modello card lo scrive `cycle` §3-bis.
+> v1.5 (S211, D13 Empire-wide, ADR-037): §2/§3 pubblicazione per OGNI progetto col publisher unico nel plugin (`assets/session/swe-publish.ps1`, slug dall'index, ricevuta committata in un secondo push, D-S210-1).
 > v1.4 (S209, D13): §1.1 rotazione del log in chiusura (sostituisce la CI) + §1.2 GATE `session-gate --mode=close` fail-closed + §2/§3 pubblicazione Hub con manifest e `swe-publish.ps1 -Kind close`.
 > v1.2 (S165): §0-bis.2 Enriched Visual View di CHIUSURA base ufficiale (asset `closing-card.template.html`, gemella dell'opening) — sostituisce il widget elicitation nativo; + §0-lang lingua italiana binding.
 > Binding: LL-Empire-002 (GO), LL-Empire-018 (atomic commit), LL-Empire-019 (V1 parity), LL-Empire-021 (mai checkout --ours/--theirs su append-only), LL-Empire-024 (sandbox stale → CMD Windows autoritativo), LL-Empire-050 (session boundary), LL-Empire-063 (bash-write hub).
@@ -241,11 +242,14 @@ Causa (S206): aggiornare il blocco dipendeva dalla memoria di chi chiude. DOPO e
 
 ## §2 — STEP 2: COMMIT ATOMIC (LL-Empire-018 binding)
 
-**Hub / `predator` (S209, D13): la chiusura si pubblica con manifest + `swe-publish.ps1`.** Solo dopo §1.2
-PASS, scrivi `_session/publish/S<n>-close.files.txt` (un path relativo per riga, `#` = commento, nessuna
-wildcard; il manifest elenca anche se stesso) coi file REALI della chiusura, poi consegna all'owner il comando
-di §3. Lo script stagia solo il manifest, committa, integra il remoto, pusha e scrive la ricevuta
-`_session/receipts/<slug>_S<n>_CLOSE.json`. Il blocco CMD qui sotto resta per i repository senza lo script.
+**Ogni progetto `swe_writes: true` (S209 D13; S211 D13 Empire-wide, ADR-037): la chiusura si pubblica con manifest +
+publisher unico.** Solo dopo §1.2 PASS, scrivi `<repo>/_session/publish/<S>-close.files.txt` (un path relativo AL REPO per
+riga, `#` = commento, nessuna wildcard; il manifest elenca anche se stesso) coi file REALI della chiusura, poi consegna
+all'owner il comando di §3. Il publisher vive nel plugin (`assets/session/swe-publish.ps1`, coperto dal MANIFEST) e
+risolve il progetto per slug dall'index: stagia solo il manifest, committa, integra il remoto, pusha, verifica
+`ls-remote` = HEAD, scrive la ricevuta `<repo>/_session/receipts/<slug>_<S>_CLOSE.json` e la pubblica in un SECONDO
+commit (D-S210-1: la ricevuta viaggia col repo, parita' dual-PC). Il blocco CMD qui sotto resta SOLO per repository
+`swe_writes: false` (oggi nessuno fra quelli che swe apre).
 
 **BINDING (S165):** al termine, `end` EMETTE AUTOMATICAMENTE il blocco commit **pronto-incolla** coi **file REALI toccati** (calcolati da `git status`/`git diff --stat`), **un blocco per ogni repo interessato** (hub e/o repo di progetto e/o plugin). NON un template generico: i path sono quelli effettivamente modificati nella sessione. Luke esegue il commit e **pusha lui** (V1 parity, §3). Il blocco va in chat come CMD copia-incolla (mai "apri il file e segui").
 
@@ -263,18 +267,20 @@ Convention message (D8): `FEAT` / `FIX` / `DOCS` / `REFACTOR` / `TEST` / `SECURI
 
 ## §3 — STEP 3: PUSH DELEGATO LUKE (V1 binding)
 
-**Hub / `predator` — comando canonico di chiusura (S209, D13).** L'owner, in PowerShell, prima `-DryRun`
-(LL-090), poi reale, scrivendo `PUBBLICA` alla richiesta:
+**Comando canonico di chiusura per ogni progetto (S211, D13 Empire-wide).** L'owner, in PowerShell 5.1, da qualunque
+cwd, prima `-DryRun` (LL-090), poi reale, scrivendo `PUBBLICA` alla richiesta. `-Manifest` e' SEMPRE esplicito:
 
 ```powershell
-cd $env:USERPROFILE\SteelWolf_Empire\hub\steelwolf-empire-hub
-.\scripts\swe-publish.ps1 -Session S<n> -Kind close -Manifest _session\publish\S<n>-close.files.txt -Message "DOCS(s<n>): chiusura D6 - <sintesi>" -DryRun
-.\scripts\swe-publish.ps1 -Session S<n> -Kind close -Manifest _session\publish\S<n>-close.files.txt -Message "DOCS(s<n>): chiusura D6 - <sintesi>"
+$pub = "$env:USERPROFILE\SteelWolf_Empire\plugin\steelwolf-empire-plugins\plugins\swe\assets\session\swe-publish.ps1"
+& $pub -Slug <slug> -Session <S> -Kind close -Manifest _session\publish\<S>-close.files.txt -Message "DOCS(<s>): chiusura D6 - <sintesi>" -DryRun
+& $pub -Slug <slug> -Session <S> -Kind close -Manifest _session\publish\<S>-close.files.txt -Message "DOCS(<s>): chiusura D6 - <sintesi>"
 ```
 
-La chiusura e' pubblicata solo quando lo script stampa `ls-remote = HEAD` e scrive la ricevuta `_CLOSE.json`.
-La ricevuta resta non tracciata ed entra nel primo commit della sessione successiva (la controlla `start`).
-Per gli altri repository vale la procedura manuale qui sotto.
+La chiusura e' pubblicata solo quando lo script stampa `PUBBLICATA ANCHE LA RICEVUTA: ls-remote = HEAD = <sha2> (certifica
+la chiusura <sha1>)`. Se stampa `PARZIALE`, la chiusura e' pubblicata ma la ricevuta no: `-Kind work` con manifest = la sola
+ricevuta. La ricevuta e' tracciata dal secondo commit: nessun file untracked da portare nella sessione successiva, che la
+verifica con `session-gate --mode=receipt`. Il checkout del plugin sul PC e' allineato dal pull-first §2.2.
+Per i repository `swe_writes: false` vale la procedura manuale qui sotto.
 
 **Cowork NON pusha automaticamente.** Luke esegue push da CMD Windows per V1 parity verify diretta:
 

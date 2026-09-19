@@ -122,7 +122,16 @@ chk(g.code === 2 && /CLOSE_OCCUPIED_MISMATCH/.test(g.out), "C6", "close NEGATIVO
 g = run(cb("c-ok"));
 chk(g.code === 3 && /--session obbligatorio/.test(g.out), "C7", "close senza --session: uso errato (exit 3)", `      exit=${g.code}`);
 
-if (!RUNS) { for (const id of ["G1","G2","G3","G4","G5","O1","O2","O3","O4","O5"]) skipped(id, "caso receipt", "--runs=<dir> non indicata"); }
+/* R9 (statico): progetto bootstrap senza registro e senza cartella receipts -> CHAIN_WITHOUT_RECEIPTS, exit 0 (F3: prima della policy) */
+{
+  const R9 = join(FX, "receipt");
+  const g9 = run([`--root=${R9}`, `--index=${join(R9, "idx.yaml")}`, "--slug=r-boot", "--mode=receipt"]);
+  chk(g9.code === 0 && /CHAIN_WITHOUT_RECEIPTS/.test(g9.out) && /"dirExists":false/.test(g9.out), "R9", "bootstrap senza registro ne' cartella: transizione, exit 0 (non NO_AUTHORITATIVE_SOURCE)", `      exit=${g9.code}`);
+  const g9b = run([`--root=${R9}`, `--index=${join(R9, "idx.yaml")}`, "--slug=r-hold", "--mode=receipt"]);
+  chk(g9b.code === 0 && /CHAIN_WITHOUT_RECEIPTS/.test(g9b.out), "R9b", "hold-migration senza ricevute: receipt risponde (informativo) e non applica la policy di apertura", `      exit=${g9b.code}`);
+}
+
+if (!RUNS) { for (const id of ["G1","G2","G3","G4","G5","O1","O2","O3","O4","O5","R1","R2","R3","R4","R5","R6","R7","R8"]) skipped(id, "caso receipt", "--runs=<dir> non indicata"); }
 else {
   const dir = join(resolve(RUNS), "run-" + new Date().toISOString().replace(/[:.]/g, "-"));
   mkdirSync(join(dir, "repo", "_session", "receipts"), { recursive: true });
@@ -172,6 +181,70 @@ else {
   g = run([...r3, "--mode=check"]);
   chk(g.code === 2 && !/OPEN S46/.test(g.out), "O5", "OPEN NEGATIVO: registro modificato dopo il receipt di apertura -> STOP", `      exit=${g.code}`);
   console.log(`  artefatti conservati: ${d3}`);
+
+  /* ---------- --mode=receipt (S211, D13 Empire-wide — S210 design 5.2/7-ter): ricevuta di pubblicazione ----------
+   * Repo git REALI in --runs (serve `tracked` e `ancestor`). Registri generati qui, senza designatori nella prosa (LL-091). */
+  const gitq = (cwd, args) => execFileSync("git", ["-C", cwd, ...args], { encoding: "utf8", env: { ...process.env, GIT_OPTIONAL_LOCKS: "0", GIT_AUTHOR_NAME: "t", GIT_AUTHOR_EMAIL: "t@t", GIT_COMMITTER_NAME: "t", GIT_COMMITTER_EMAIL: "t@t" } }).trim();
+  const REG = (pfx) => `<!-- STATO NUMERAZIONE -->\nULTIMO NUMERO OCCUPATO : ${pfx}45\nULTIMA SESSIONE CHIUSA : ${pfx}45\nPROSSIMO NUMERO LIBERO : ${pfx}46\n\n## 2026-01-02 | Tipo A | ${pfx}45 — chiusa\n\ntesto\n`;
+  const IDX = (slug, pfx, gate, extra) => `projects:\n  - slug: ${slug}\n    repo: repo\n    session_log: reg.md\n    briefings: brief\n    session_prefix: "${pfx}"\n    branch: dev\n    swe_writes: true\n    session_gate: ${gate}\n${extra || ""}`;
+  const mkRepo = (d, slug, pfx, gate, withReg = true) => {
+    mkdirSync(join(d, "repo", "_session", "receipts"), { recursive: true }); mkdirSync(join(d, "brief"), { recursive: true });
+    writeFileSync(join(d, "idx.yaml"), IDX(slug, pfx || "", gate));
+    gitq(join(d, "repo"), ["init", "-q", "-b", "dev"]);
+    if (withReg) { writeFileSync(join(d, "repo", "reg.md"), REG(pfx || "S")); gitq(join(d, "repo"), ["add", "reg.md"]); gitq(join(d, "repo"), ["commit", "-q", "-m", "chiusura"]); }
+    return withReg ? gitq(join(d, "repo"), ["rev-parse", "HEAD"]) : null;
+  };
+  const REC = (slug, S, head, remote) => JSON.stringify({ kind: "session-close", project: slug, session: S, branch: "dev", head, remote: remote ?? head, message: "chiusura", files: ["reg.md"], pc: "TEST", publishedAt: "2026-01-02T00:00:00+00:00", tool: "test" }, null, 1);
+  const rr = (d, slug) => run([`--root=${d}`, `--index=${join(d, "idx.yaml")}`, `--slug=${slug}`, "--mode=receipt"]);
+  const stamp = () => new Date().toISOString().replace(/[:.]/g, "-") + "-" + Math.random().toString(36).slice(2, 6);
+  /* R1 PASS: ricevuta coerente, tracciata, head nella storia */
+  let dR = join(resolve(RUNS), "rcpt-R1-" + stamp()); let h = mkRepo(dR, "p-r", "", "enforce");
+  writeFileSync(join(dR, "repo", "_session", "receipts", "p-r_S45_CLOSE.json"), REC("p-r", "S45", h));
+  gitq(join(dR, "repo"), ["add", "_session/receipts/p-r_S45_CLOSE.json"]); gitq(join(dR, "repo"), ["commit", "-q", "-m", "ricevuta"]);
+  const i1 = inv(join(dR, "repo", "_session", "receipts"));
+  g = rr(dR, "p-r");
+  chk(g.code === 0 && /RECEIPT PASS S45/.test(g.out) && /"tracked":true/.test(g.out) && /"ancestor":true/.test(g.out) && inv(join(dR, "repo", "_session", "receipts")) === i1, "R1", "receipt PASS: coerente, tracciata, head antenato di HEAD; receipts invariati", `      exit=${g.code}`);
+  /* R2 NOT_PUBLISHED: head != remote */
+  dR = join(resolve(RUNS), "rcpt-R2-" + stamp()); h = mkRepo(dR, "p-r", "", "enforce");
+  writeFileSync(join(dR, "repo", "_session", "receipts", "p-r_S45_CLOSE.json"), REC("p-r", "S45", h, "0".repeat(40)));
+  gitq(join(dR, "repo"), ["add", "-A", "_session"]); gitq(join(dR, "repo"), ["commit", "-q", "-m", "ricevuta"]);
+  g = rr(dR, "p-r");
+  chk(g.code === 2 && /NOT_PUBLISHED S45/.test(g.out) && /head .* != remote/.test(g.out), "R2", "receipt NEGATIVO: head != remote -> chiusa ma NON pubblicata", `      exit=${g.code}`);
+  /* R3 NOT_PUBLISHED: file dell'ultima chiusa assente, ma la catena e' nel regime (c'e' una ricevuta precedente) */
+  dR = join(resolve(RUNS), "rcpt-R3-" + stamp()); h = mkRepo(dR, "p-r", "", "enforce");
+  writeFileSync(join(dR, "repo", "_session", "receipts", "p-r_S44_CLOSE.json"), REC("p-r", "S44", h));
+  g = rr(dR, "p-r");
+  chk(g.code === 2 && /NOT_PUBLISHED S45/.test(g.out) && /assente/.test(g.out), "R3", "receipt NEGATIVO: ricevuta dell'ultima chiusa assente con catena nel regime", `      exit=${g.code}`);
+  /* R4 CHAIN_WITHOUT_RECEIPTS: cartella presente ma senza ricevute di chiusura (solo receipt di apertura) */
+  dR = join(resolve(RUNS), "rcpt-R4-" + stamp()); h = mkRepo(dR, "p-r", "", "enforce");
+  writeFileSync(join(dR, "repo", "_session", "receipts", "p-r_S45.json"), "{}");
+  g = rr(dR, "p-r");
+  chk(g.code === 0 && /CHAIN_WITHOUT_RECEIPTS/.test(g.out) && /"dirExists":true/.test(g.out), "R4", "transizione: nessuna _CLOSE.json (solo receipt di apertura) -> exit 0, non bloccante", `      exit=${g.code}`);
+  /* R5 NO_AUTHORITATIVE_SOURCE: catena nel regime ma registro senza blocco */
+  dR = join(resolve(RUNS), "rcpt-R5-" + stamp()); h = mkRepo(dR, "p-r", "", "enforce");
+  writeFileSync(join(dR, "repo", "reg.md"), readFileSync(join(FX, "f4_crescente.md"), "utf8"));
+  writeFileSync(join(dR, "repo", "_session", "receipts", "p-r_S45_CLOSE.json"), REC("p-r", "S45", h));
+  g = rr(dR, "p-r");
+  chk(g.code === 2 && /NO_AUTHORITATIVE_SOURCE/.test(g.out), "R5", "receipt NEGATIVO: ricevute presenti ma registro senza blocco -> ultima chiusa indeterminabile", `      exit=${g.code}`);
+  /* R6 prefisso nativo BA-S: nome file bot_BA-S45_CLOSE.json */
+  dR = join(resolve(RUNS), "rcpt-R6-" + stamp()); h = mkRepo(dR, "p-ba", "BA-S", "enforce");
+  writeFileSync(join(dR, "repo", "_session", "receipts", "p-ba_BA-S45_CLOSE.json"), REC("p-ba", "BA-S45", h));
+  gitq(join(dR, "repo"), ["add", "-A", "_session"]); gitq(join(dR, "repo"), ["commit", "-q", "-m", "ricevuta"]);
+  g = rr(dR, "p-ba");
+  chk(g.code === 0 && /RECEIPT PASS BA-S45/.test(g.out), "R6", "prefisso nativo BA-S: ricevuta <slug>_BA-S<n>_CLOSE.json riconosciuta", `      exit=${g.code}`);
+  /* R7 NOT_PUBLISHED: ricevuta valida ma NON tracciata (F2: parita' dual-PC) */
+  dR = join(resolve(RUNS), "rcpt-R7-" + stamp()); h = mkRepo(dR, "p-r", "", "enforce");
+  writeFileSync(join(dR, "repo", "_session", "receipts", "p-r_S45_CLOSE.json"), REC("p-r", "S45", h));
+  g = rr(dR, "p-r");
+  chk(g.code === 2 && /NOT_PUBLISHED S45/.test(g.out) && /NON committata/.test(g.out), "R7", "receipt NEGATIVO: ricevuta coerente ma untracked -> non viaggia col repo", `      exit=${g.code}`);
+  /* R8 NOT_PULLED: ricevuta tracciata ma head non antenato di HEAD (PC indietro / storia diversa) */
+  dR = join(resolve(RUNS), "rcpt-R8-" + stamp()); h = mkRepo(dR, "p-r", "", "enforce");
+  const fakeHead = "f".repeat(39) + "0";
+  writeFileSync(join(dR, "repo", "_session", "receipts", "p-r_S45_CLOSE.json"), REC("p-r", "S45", fakeHead));
+  gitq(join(dR, "repo"), ["add", "-A", "_session"]); gitq(join(dR, "repo"), ["commit", "-q", "-m", "ricevuta"]);
+  g = rr(dR, "p-r");
+  chk(g.code === 2 && /NOT_PULLED S45/.test(g.out) && /pull-first/.test(g.out), "R8", "receipt NEGATIVO: chiusura pubblicata ma non nella storia locale -> NOT_PULLED (rimedio pull, non ripubblicare)", `      exit=${g.code}`);
+  console.log(`  artefatti receipt conservati sotto: ${resolve(RUNS)}/rcpt-*`);
   console.log(`\n  artefatti conservati: ${dir}`);
 }
 console.log(`\nRISULTATO: ${pass} PASS / ${fail} FAIL / ${skip} SKIP su ${pass + fail + skip}  ·  ${process.platform}`);

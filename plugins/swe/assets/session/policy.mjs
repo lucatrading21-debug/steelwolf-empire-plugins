@@ -11,7 +11,7 @@ export function loadProjects(indexPath) {
   const out = []; let cur = null;
   for (const line of readFileSync(indexPath, "utf8").split(/\r?\n/)) {
     let m;
-    if ((m = line.match(/^\s*-\s*slug:\s*([^\s#]+)/))) { cur = { slug: m[1], repo: null, session_log: null, briefings: null, prefix: "", swe_writes: null, bootstrap: null, gate: null }; out.push(cur); continue; }
+    if ((m = line.match(/^\s*-\s*slug:\s*([^\s#]+)/))) { cur = { slug: m[1], repo: null, session_log: null, briefings: null, prefix: "", swe_writes: null, bootstrap: null, gate: null, branch: null }; out.push(cur); continue; }
     if (!cur) continue;
     if ((m = line.match(/^\s*repo:\s*([^\s#]+)/))) cur.repo = m[1] === "null" ? null : m[1];
     else if ((m = line.match(/^\s*session_log:\s*([^\s#]+)/))) cur.session_log = m[1];
@@ -20,6 +20,7 @@ export function loadProjects(indexPath) {
     else if ((m = line.match(/^\s*swe_writes:\s*(true|false)/))) cur.swe_writes = m[1] === "true";
     else if ((m = line.match(/^\s*bootstrap:\s*([^\s#]+)/))) cur.bootstrap = m[1];
     else if ((m = line.match(/^\s*session_gate:\s*([^\s#]+)/))) cur.gate = m[1];
+    else if ((m = line.match(/^\s*branch:\s*([^\s#]+)/))) cur.branch = m[1] === "null" ? null : m[1];   /* S211 (D13 Empire-wide): usato SOLO da --mode=receipt */
   }
   return out;
 }
@@ -36,7 +37,7 @@ export function resolveProject(root, slug, indexPath) {
   if (!p.briefings) return { error: `BRIEFINGS_NULL: "${slug}" non dichiara una cartella briefings` };
   const gate = p.gate || "hold-migration";
   if (!POLICIES.includes(gate)) return { error: `POLICY_UNKNOWN: session_gate="${gate}" per "${slug}" — ammessi: ${POLICIES.join(" | ")}` };
-  return { slug: p.slug, prefix: p.prefix || "S", gate, declared: !!p.gate,
+  return { slug: p.slug, prefix: p.prefix || "S", gate, declared: !!p.gate, branch: p.branch,
     bootstrap: gate === "bootstrap" ? "on-demand" : null,
     repoPath: resolve(join(root, p.repo)),
     registry: resolve(join(root, p.repo, p.session_log)),

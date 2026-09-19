@@ -7,6 +7,54 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
 
 ---
 
+## [marketplace 1.20.0] - swe 1.18.0 - 2026-09-19
+
+> **D13 Empire-wide: "ogni progetto pubblica la propria chiusura e la prova viaggia col repo" (ADR-037 PROPOSED).**
+> Decisione e bozze in S210 (`hub: audit/closures/S210/S210_D13_EMPIRE_DESIGN.md`, `drafts/`), esecuzione sul branch
+> `chore/s211-d13-empire`. Pre-mortem P1: `hub: audit/closures/S211/S211_PREMORTEM_P1_RECEIPT.md` (G1-G14).
+
+### Added
+- `assets/session/swe-publish.ps1` v2.0.1: publisher UNICO per ogni progetto `swe_writes: true`. Risolve il progetto per
+  slug dall'index dell'Hub (`repo`, `branch`, `session_prefix`, `swe_writes`), `-Root` esplicito o risalita da
+  `$PSScriptRoot` fino all'index, lettura UTF-8 dell'index, prefisso nativo validato (`BA-S<n>`), manifest sempre
+  esplicito, `-Kind close` con **doppia pubblicazione** (D-S210-1): commit di chiusura + push + `ls-remote` = HEAD,
+  ricevuta `<repo>/_session/receipts/<slug>_<S>_CLOSE.json`, poi secondo commit `DOCS(s<n>): ricevuta di pubblicazione <S>`
+  + push + `ls-remote` = HEAD2; esito `PARZIALE` (exit 2) se il secondo passo fallisce. La shell dell'owner torna dov'era.
+- `session-gate --mode=receipt` (read-only, per slug): applica `start` §0-ter.4-e come decisione della macchina. Ordine:
+  catena senza `<slug>_*_CLOSE.json` -> `CHAIN_WITHOUT_RECEIPTS` (exit 0, transizione, PRIMA della policy e del blocco);
+  poi blocco (`NO_AUTHORITATIVE_SOURCE`), file, `kind/project/session/branch`, `head` = `remote`, ricevuta **tracciata**
+  (`NOT_PUBLISHED` "non committata"), `head` antenato di HEAD (`NOT_PULLED`, rimedio pull-first); git assente ->
+  `PASS_UNVERIFIED_GIT`.
+- `policy.mjs`: `loadProjects` legge `branch` (usato solo da `receipt`; il receipt di apertura `session-number v4` e'
+  invariato, `verify` invariato).
+- `assets/session/README-receipts.md` e `README-publish.md`: testi canonici per `<repo>/_session/receipts/README.md` e
+  `_session/publish/README.md` (pattern README: git non traccia cartelle vuote; il gate `--mode=commit` non le crea).
+- Test: `tests/run-tests.mjs` +R1-R8 (repo git reali in `--runs`) +R9/R9b (statici, `tests/fixtures/receipt/`);
+  `tests/publish/run-publish-tests.ps1` v0.3 (T1-T9, T8b, T12, T12b, T13; fixture bare+clone+bot in `%TEMP%`, nessuna
+  cancellazione).
+- `swe:start` (comando + skill v1.8): §0-ter.4-e via `--mode=receipt` (esiti e priorita' obbligata); NUOVA §0-ter.4-quater
+  (cartelle `_session/*` col pattern README, bookkeeping dopo la conferma della card e prima di `--mode=commit`).
+- `swe:end` (comando + skill v1.5): §2/§3 pubblicazione per OGNI progetto col publisher del plugin, comando canonico con
+  `-Slug`, `PARZIALE` documentato; blocco CMD manuale solo per `swe_writes: false`.
+
+### Changed
+- `plugins/swe/.claude-plugin/plugin.json`: `version` `1.17.0` -> `1.18.0`.
+- `.claude-plugin/marketplace.json`: voce `swe` `1.17.0` -> `1.18.0`; marketplace `1.19.0` -> `1.20.0`.
+- `plugins/swe/assets/session/MANIFEST.json`: 45 -> 53 file.
+
+### Verificato
+- `run-tests.mjs --runs=<dir>`: 60 PASS / 0 FAIL / 2 SKIP su linux (container e VM scrivania, radice reale) e su
+  **win32** (T13, PowerShell 5.1 owner); senza `--runs` 42/0/20. I 2 SKIP sono i casi `[LIVE]`.
+- `run-publish-tests.ps1` su PowerShell 5.1.26100 e git reali: 14 PASS / 0 FAIL (incl. T8 doppia pubblicazione con bot
+  avanti, T12 integrazione publisher -> gate). `sw-ps-check` 0.1.1: OVERALL PASS su entrambi gli script.
+- `--mode=receipt` LIVE read-only sui 9 progetti reali: predator `PASS S209`, gli altri `CHAIN_WITHOUT_RECEIPTS`, nexus `STOP`.
+- `verify-manifest.mjs`: PASS 53/53. Invariati: card (`assets/card/**`), semantica di `check`/`commit`/`verify`/`close`/`OPEN`.
+
+### Fuori da questa release
+- Ritiro di `hub/scripts/swe-publish.ps1` (repo Hub) dopo T-HUB (prima chiusura reale col publisher nuovo) · ADR-037
+  ACCEPTED (owner, dopo acceptance) · prima misura del gate da una scrivania-progetto (`--root=$HOME/mnt`) · T11
+  (secondo push bloccato a meta').
+
 ## [marketplace 1.19.0] - swe 1.17.0 - 2026-09-18
 
 > **D13 lato plugin: "chiusura = pubblicata, o non e' chiusura".** Esegue da specifica le decisioni
