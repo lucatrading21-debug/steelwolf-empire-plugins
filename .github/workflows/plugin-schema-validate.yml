@@ -78,4 +78,6 @@ jobs:
           node-version: '22'
 
       - name: claude plugin validate (strict)
-        run: npx -y @anthropic-ai/claude-code@latest plugin validate ./plugins/swe --strict
+        # versione fissata (S214): con @latest il risultato poteva cambiare senza alcun commit nel repo. 2.1.289 = 03/10/2026 (almeno 2 settimane),
+        # provata il 19/10 su swe 1.19.0: passa, come 2.1.303. Aggiornarla con una PR, come ubuntu-24.04 e le azioni per SHA.
+        run: npx -y @anthropic-ai/claude-code@2.1.289 plugin validate ./plugins/swe --strict

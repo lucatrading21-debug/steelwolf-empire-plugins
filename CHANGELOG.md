@@ -7,6 +7,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
 
 ---
 
+## [Unreleased] - CI - 2026-10-19
+
+### Changed
+- `.github/workflows/plugin-schema-validate.yml`: `@anthropic-ai/claude-code@latest` -> `@2.1.289` (03/10/2026). Con `@latest` la validazione
+  poteva fallire o cambiare senza alcun commit nel repo. Provato il 19/10: `plugin validate ./plugins/swe --strict` passa con 2.1.289 e con 2.1.303
+  (l'ultima). Nessun cambio a plugin o versioni dei plugin.
+
 ## [marketplace 1.21.0] - swe 1.19.0 - 2026-10-18
 
 > **S214 (Hub, PREDATOR): il file `_status/` dei progetti non si dimentica piu' + niente bypass degli hook git.**
