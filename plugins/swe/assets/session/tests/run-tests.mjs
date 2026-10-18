@@ -121,6 +121,19 @@ g = run([...cb("c-ok"), "--session=S44"]);
 chk(g.code === 2 && /CLOSE_OCCUPIED_MISMATCH/.test(g.out), "C6", "close NEGATIVO: numero diverso dall'occupato dichiarato", `      exit=${g.code}`);
 g = run(cb("c-ok"));
 chk(g.code === 3 && /--session obbligatorio/.test(g.out), "C7", "close senza --session: uso errato (exit 3)", `      exit=${g.code}`);
+/* A1-bis (S214): _status/<slug>.yaml accanto all'index deve dichiarare la sessione che si chiude (ADR-029). */
+g = run([...cb("c-ok-nostatus"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_MISSING/.test(g.out) && /_TEMPLATE\.yaml/.test(g.out), "C8", "close NEGATIVO A1-bis: _status/<slug>.yaml assente (rimedio: template)", `      exit=${g.code}`);
+g = run([...cb("c-ok-stale"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_STALE/.test(g.out) && /last_session = S44/.test(g.out), "C9", "close NEGATIVO A1-bis: _status fermo alla sessione precedente (caso Journal S53)", `      exit=${g.code}`);
+g = run([...cb("c-ok-olddate"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_DATE/.test(g.out) && /precedente/.test(g.out) && !/CLOSE_STATUS_STALE/.test(g.out), "C10", "close NEGATIVO A1-bis: date precedente all'intestazione della sessione", `      exit=${g.code}`);
+g = run([...cb("c-ok-future"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_DATE/.test(g.out) && /nel futuro/.test(g.out), "C11", "close NEGATIVO A1-bis: date nel futuro", `      exit=${g.code}`);
+g = run([...cb("c-ok-comment"), "--session=S45"]);
+chk(g.code === 0 && /CLOSE PASS S45/.test(g.out), "C12", "close positivo A1-bis: commenti YAML in riga (formato reale di predator.yaml) accettati", `      exit=${g.code}`);
+g = run([...cb("c-ok-bom"), "--session=S45"]);
+chk(g.code === 0 && /CLOSE PASS S45/.test(g.out), "C13", "close positivo A1-bis: file con BOM (Windows PowerShell 5.1) accettato; fixture LF per la regola eol=lf del payload", `      exit=${g.code}`);
 
 /* R9 (statico): progetto bootstrap senza registro e senza cartella receipts -> CHAIN_WITHOUT_RECEIPTS, exit 0 (F3: prima della policy) */
 {

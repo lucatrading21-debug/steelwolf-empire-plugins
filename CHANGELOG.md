@@ -7,6 +7,45 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
 
 ---
 
+## [marketplace 1.21.0] - swe 1.19.0 - 2026-10-18
+
+> **S214 (Hub, PREDATOR): il file `_status/` dei progetti non si dimentica piu' + niente bypass degli hook git.**
+> Origine: `hub: SESSION_BRIEFINGS/DA_PROGETTI_steelwolf-trading-journal_2026-10-18.md` §2 (b) e §4.1. Il Journal ha
+> chiuso S54, S55 e S56 con `_status/steelwolf-trading-journal.yaml` fermo a S53. GO owner 18/10 22:49.
+
+### Added
+- `session-gate --mode=close`: controlla anche `_status/<slug>.yaml` accanto all'index (ADR-029). Passa solo se
+  `last_session` = sessione che si chiude e `date` (YYYY-MM-DD) cade tra la data dell'intestazione `## <data> ... S<n>`
+  del log e oggi. Codici nuovi: `CLOSE_STATUS_MISSING` (rimedio: `_TEMPLATE.yaml`), `CLOSE_STATUS_STALE`,
+  `CLOSE_STATUS_DATE`. Read-only come prima; BOM (PowerShell 5.1) e CRLF accettati (fixture BOM in LF: regola
+  `eol=lf` del payload, LL-Empire-079). Non retroattivo. NON cambia chi
+  pubblica cosa: la pubblicazione del file nell'Hub resta quella di oggi.
+- `hooks/git-guard.js` (PreToolUse, `Bash|PowerShell`): rifiuta agli agenti `git commit --no-verify`/`-n` (non `-mn`),
+  `--no-verify` (anche abbreviato) su push/merge/am/rebase/cherry-pick/revert/pull, `git -c core.hooksPath[=...]`,
+  `--config-env`, `GIT_CONFIG_KEY_<n>`/`GIT_CONFIG_PARAMETERS` con hooksPath, scritture `git config core.hooksPath`,
+  alias con `--no-verify`. Tokenizer con virgolette (contenuto = un argomento, confronto per argomento intero), comandi
+  annidati in bash/sh/pwsh/powershell/cmd, righe spezzate, sottoshell, percorsi Windows non quotati. Heredoc esclusi.
+  Fail-open su ogni errore; no-op in Cowork (CARD-06B). Limiti noti scritti nell'intestazione: HUSKY=0, SKIP=,
+  cancellazione di .git/hooks, commit-tree + update-ref. Test: `hooks/git-guard.test.js` (56 casi).
+- Test: `tests/run-tests.mjs` +C8-C13; fixture `tests/fixtures/close/c-ok*.yaml` e 6 voci in `idx.yaml`.
+
+### Changed
+- `skills/end/SKILL.md` §1.2: il roll-up `_status/<slug>.yaml` va fatto PRIMA del gate di chiusura.
+- `plugins/swe/.claude-plugin/plugin.json`: `version` `1.18.0` -> `1.19.0`.
+- `.claude-plugin/marketplace.json`: voce `swe` `1.18.0` -> `1.19.0`; marketplace `1.20.0` -> `1.21.0`.
+- `plugins/swe/assets/session/MANIFEST.json`: 53 -> 59 file.
+- `.github/workflows/*-schema-validate.yml`: `ubuntu-latest` -> `ubuntu-24.04` (Ubuntu 26 dal 19/10/2026), azioni per SHA
+  (checkout v7.0.1, setup-python v7.0.0, setup-node v7.1.0), `jsonschema==4.26.0`, `pyyaml==6.0.3`. actionlint 1.7.12: pulito.
+
+### Verificato (VM Linux, node 22)
+- `node tests/run-tests.mjs --root=<SteelWolf_Empire> --runs=<dir>`: 66 PASS / 0 FAIL / 2 SKIP.
+- `node hooks/git-guard.test.js`: 56 PASS / 0 FAIL. `verify-manifest.mjs`: PASS 59 file.
+- Revisore indipendente a contesto pulito (LL-Empire-094): "OK con correzioni"; accolte tutte (virgolette, `-mn`,
+  BOM, shell annidate, righe spezzate, alias/GIT_CONFIG_*, letture di config) tranne quelle scritte come limiti noti.
+- Prova sui dati reali: Journal S56 e Hub S213 senza errori `_status`; Hub S214 aperta -> `CLOSE_STATUS_STALE` (atteso).
+- Da fare sul PREDATOR (Windows): stessi test, prova negativa reale dello stdin dell'hook da PowerShell e da Git Bash
+  (deve uscire 2), `tests/publish/run-publish-tests.ps1` (publisher non toccato).
+
 ## [marketplace 1.20.0] - swe 1.18.0 - 2026-09-19
 
 > **D13 Empire-wide: "ogni progetto pubblica la propria chiusura e la prova viaggia col repo" (ADR-037 PROPOSED).**
