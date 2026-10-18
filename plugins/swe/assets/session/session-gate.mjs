@@ -5,11 +5,12 @@
  *   --mode=commit  POST-CONFERMA, receipt esclusivo
  *   --mode=verify  ricontrollo del receipt (identita completa + rilettura)
  *   --mode=close   IN CHIUSURA, read-only: prova che il registro dichiara S<n> chiusa (S209, D13)
+ *                  + il file _status/<slug>.yaml dell'Hub dichiara S<n> (S214, A1-bis, ADR-029)
  *   --mode=receipt PRE-CARD, read-only: ricevuta di pubblicazione dell'ULTIMA SESSIONE CHIUSA (S211, D13 Empire-wide)
  * exit 0 PASS · 2 STOP · 3 uso errato. (c) 2026 Luke SteelWolf. */
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import { execFileSync } from "node:child_process";
-import { join, resolve as resolvePath } from "node:path";
+import { join, dirname, resolve as resolvePath } from "node:path";
 import { createHash } from "node:crypto";
 import { nextSession, headingNumbers } from "./swe-next-session.mjs";
 import { resolveBriefings } from "./briefings.mjs";
@@ -114,6 +115,26 @@ if (mode === "close") {
   const want = `${P.prefix}${n}_OPEN.md`.toLowerCase();
   if (!br.exists || !br.names.some(x => x.toLowerCase() === want)) bad.push(`[CLOSE_BRIEFING_MISSING] ${P.prefix}${n}_OPEN.md assente in ${P.briefings}`);
   if (!exists || !headingNumbers(text, P.prefix).includes(n)) bad.push(`[CLOSE_HEADING_MISSING] nessuna intestazione "## ... ${S(n)}" nel log vivo`);
+  /* A1-bis (S214, DA_PROGETTI §2 b). Causa: il Journal ha chiuso S54, S55 e S56 con _status fermo a S53, perche'
+   * il passo roll-up (ADR-029) dipendeva dalla memoria di chi chiude. Il file e' accanto all'index (stessa cartella
+   * _status/). Read-only: si legge, non si scrive. Passa solo se last_session = S<n> e se date (YYYY-MM-DD) cade tra
+   * la data dell'intestazione "## <data> ... S<n>" del log e oggi (cosi' una chiusura dopo mezzanotte non e' bloccata). */
+  const stp = join(dirname(P.indexPath), `${P.slug}.yaml`);
+  const d0 = new Date(), today = `${d0.getFullYear()}-${String(d0.getMonth() + 1).padStart(2, "0")}-${String(d0.getDate()).padStart(2, "0")}`;
+  if (!existsSync(stp)) bad.push(`[CLOSE_STATUS_MISSING] ${stp} assente: crealo da _TEMPLATE.yaml (ADR-029) con last_session: ${S(n)} e date: ${today}, poi riesegui`);
+  else {
+    const st = readFileSync(stp, "utf8").replace(/^\uFEFF/, "");   /* PS 5.1 -Encoding UTF8 scrive il BOM */
+    const ls = (st.match(/^last_session:[ \t]*["']?([^\s"'#]+)/m) || [])[1];
+    const dt = (st.match(/^date:[ \t]*["']?(\d{4}-\d{2}-\d{2})(?![0-9])/m) || [])[1];
+    const tok = new RegExp("(?:^|[^A-Za-z0-9_-])" + esc + n + "(?![0-9])");
+    const hd = exists ? text.split(/\r?\n/).filter(l => /^##\s+/.test(l) && tok.test(l.replace(/^##\s+/, " "))).map(l => (l.match(/\d{4}-\d{2}-\d{2}/) || [])[0]).filter(Boolean).sort()[0] : undefined;
+    if (ls !== S(n)) bad.push(`[CLOSE_STATUS_STALE] ${stp}: last_session = ${ls || "assente"}, atteso ${S(n)}. Aggiorna il file (roll-up ADR-029) e riesegui`);
+    if (!dt) bad.push(`[CLOSE_STATUS_DATE] ${stp}: date assente o non nel formato YYYY-MM-DD`);
+    else {
+      if (hd && dt < hd) bad.push(`[CLOSE_STATUS_DATE] ${stp}: date = ${dt}, precedente all'intestazione di ${S(n)} (${hd}): e' la data di una chiusura vecchia`);
+      if (dt > today) bad.push(`[CLOSE_STATUS_DATE] ${stp}: date = ${dt}, nel futuro (oggi ${today})`);
+    }
+  }
   if (bad.length) die(2, [`CLOSE ${S(n)} NON dimostrata: la sessione NON e' dichiarabile chiusa`, ...bad]);
   console.log(`SESSION GATE: CLOSE PASS ${S(n)} — ${P.slug} (policy ${P.gate}, mode=close READ-ONLY: nessun file creato o modificato)`);
   console.log(JSON.stringify({ ...ident, closed: S(n), next: S(n + 1), source: c.source })); process.exit(0);

@@ -34,3 +34,45 @@ projects:
     session_prefix: ""
     swe_writes: true
     session_gate: enforce
+  - slug: c-ok-nostatus
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-ok-stale
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-ok-olddate
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-ok-future
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-ok-comment
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-ok-bom
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce

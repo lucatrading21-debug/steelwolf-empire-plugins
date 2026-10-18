@@ -212,6 +212,13 @@ Causa (S206): aggiornare il blocco dipendeva dalla memoria di chi chiude. DOPO e
 - **Read-only** come `check`. Passa solo se il registro appena scritto dimostra la chiusura: fonte = blocco,
   `OCCUPATO = CHIUSA = S<n>`, `PROSSIMO = S<n+1>`, briefing `S<n>_OPEN.md` presente, intestazione `## ... S<n>` nel
   log vivo, nessun blocco strutturale (sospensione inclusa).
+- **`_status/<slug>.yaml` dell'Hub (S214, A1-bis, ADR-029).** Il gate controlla anche il file di stato del progetto
+  accanto all'index: `last_session` = `S<n>` e `date` (YYYY-MM-DD) tra la data dell'intestazione `## <data> ... S<n>` e
+  oggi. Codici: `CLOSE_STATUS_MISSING` (file assente: crealo da `_TEMPLATE.yaml`), `CLOSE_STATUS_STALE`,
+  `CLOSE_STATUS_DATE`. **Ordine:** il roll-up (§0-ter, sovrascrivi `_status/<slug>.yaml`) va fatto PRIMA di questo gate,
+  e la sua pubblicazione nell'Hub resta quella di oggi (per `predator` nello stesso manifest; per gli altri progetti
+  il commit sull'Hub come prima: questa versione NON cambia chi pubblica cosa). Causa: il Journal ha chiuso S54-S56
+  con il file fermo a S53.
 - **`exit != 0` = la sessione NON e' dichiarabile chiusa.** Niente manifest, niente pubblicazione, niente
   "SESSIONE CHIUSA": si corregge il registro (mai il gate) e si riesegue. All'owner **tutti** i codici.
 - **Ordine con `cycle`:** il gate gira nella FASE 1 (questa chiusura), PRIMA che la FASE 2 scriva
