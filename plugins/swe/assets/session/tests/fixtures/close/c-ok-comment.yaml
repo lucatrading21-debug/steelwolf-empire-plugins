@@ -1,3 +1,4 @@
 project: c-ok-comment
 last_session: S45   # = ULTIMA SESSIONE CHIUSA del blocco
 date: 2026-01-02     # chiusura S45
+next: S46 prossima sessione   # commento in riga, come predator.yaml

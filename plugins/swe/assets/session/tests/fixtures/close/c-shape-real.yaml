@@ -1,0 +1,19 @@
+project: c-shape-real
+last_session: S45
+date: 2026-01-02
+done:
+  - ref: W1
+    note: "nota con: due punti e # cancelletto"
+  - ref: W2
+    note: >
+      testo a blocco
+      su due righe
+pending:
+  - "voce"
+  - altra voce
+    che continua
+next: "S46: prossimo"
+blockers: []   # vuoto
+history:
+  - session: S44
+    note: 'dell''owner'

@@ -76,3 +76,290 @@ projects:
     session_prefix: ""
     swe_writes: true
     session_gate: enforce
+  - slug: c-next-missing
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-next-stale
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-next-block
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-next-quoted
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-next-single
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-next-comment-only
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-next-trap
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-ba-ok
+    repo: c-ba
+    session_log: reg.md
+    briefings: c-ba/brief
+    session_prefix: "BA-S"
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-ba-wrong
+    repo: c-ba
+    session_log: reg.md
+    briefings: c-ba/brief
+    session_prefix: "BA-S"
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-next-s46a
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-next-dup
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-next-plainml
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-next-literal
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-next-escape
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-next-badesc
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-next-bis
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-next-tab
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-next-badind
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-next-space
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-next-colon
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-next-aftercomment
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-shape-dq
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-shape-flow
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-shape-nokey
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-shape-indent
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-shape-real
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-next-bsl-stale
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-next-bsl-ok
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-shape-indentless
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-ok-datejunk
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-ls-hash
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-dt-hash
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-key-space
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-dt-dup
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-dt-cal
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-shape-nestq
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-next-ctrl
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-next-nel
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-ls-escape
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-dt-year0
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce
+  - slug: c-dt-escape
+    repo: c-ok
+    session_log: reg.md
+    briefings: c-ok/brief
+    session_prefix: ""
+    swe_writes: true
+    session_gate: enforce

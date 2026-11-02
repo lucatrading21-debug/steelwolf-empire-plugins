@@ -1,0 +1,8 @@
+project: c-shape-indent
+last_session: S45
+date: 2026-01-02
+done:
+  - ref: W1
+    note: "a"
+   - ref: W2
+next: "S46: prossimo"

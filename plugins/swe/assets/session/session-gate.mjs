@@ -6,6 +6,7 @@
  *   --mode=verify  ricontrollo del receipt (identita completa + rilettura)
  *   --mode=close   IN CHIUSURA, read-only: prova che il registro dichiara S<n> chiusa (S209, D13)
  *                  + il file _status/<slug>.yaml dell'Hub dichiara S<n> (S214, A1-bis, ADR-029)
+ *                  + il suo campo `next` cita S<n+1> (S215, A3 / L9.17)
  *   --mode=receipt PRE-CARD, read-only: ricevuta di pubblicazione dell'ULTIMA SESSIONE CHIUSA (S211, D13 Empire-wide)
  * exit 0 PASS · 2 STOP · 3 uso errato. (c) 2026 Luke SteelWolf. */
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
@@ -17,6 +18,179 @@ import { resolveBriefings } from "./briefings.mjs";
 import { resolveProject, todayIn, EMPIRE_TZ } from "./policy.mjs";
 const A = (k, d) => { const a = process.argv.find(v => v.startsWith("--" + k + "=")); return a ? a.slice(k.length + 3) : d; };
 const sha = (s) => createHash("sha256").update(s).digest("hex");
+/* L9.17 (S215, rev. dopo revisione Codex 01a19b8c): campo di primo livello `next` di un _status/<slug>.yaml.
+ * Lettore YAML RISTRETTO, progettato fail-closed (il plugin non ha dipendenze npm): cio' che non sa leggere e' STOP.
+ * Confrontato con PyYAML 6.0.3 (scripts/fuzz-next); non e' una prova formale di equivalenza. Restituisce { kind: "ok", value } | { kind: "missing" } | { kind: "duplicate", lines } |
+ * { kind: "invalid", why }. Forme lette: scalare semplice anche su piu' righe (commento ` #` escluso), "..." con gli
+ * escape YAML (escape sconosciuto = invalid), '...' con '', blocco > | con indicatori YAML ([1-9] e +/-), `next :`.
+ * Non lette (invalid): alias/ancore/tag/flow ( * & ! [ { ), virgolette non chiuse, testo dopo la chiusura.
+ * Dopo aver letto `next`, shapeOf controlla la forma del file intero (S215, dopo il fuzzing contro PyYAML):
+ * una riga `next: S46` puo' essere il seguito di una stringa "..." o di una lista [...] di un'altra chiave, e allora
+ * per PyYAML non e' una chiave; un file con rientri incoerenti non lo legge nemmeno il roll-up. shapeOf ammette:
+ * mappa piana di primo livello, liste e mappe a blocco annidate con rientri coerenti, stringhe "..." '...' (anche su
+ * piu' righe rientrate, escape validati), blocchi | > , liste in linea semplici ([] {} [a, b]), commenti, un solo
+ * `---` iniziale e un `...` finale. Tutto il resto (tab, ancore, alias, tag, chiavi complesse, direttive %) = invalid.
+ * Non e' un validatore YAML completo: e' un sottoinsieme sicuro, confrontato con PyYAML safe_load. */
+function shapeOf(L) {
+  const at = (i, why) => `riga ${i + 1}: ${why}`;
+  const ESC = /^(x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8}|[0abtnvfre "\/\\N_LP])/;
+  const eat = (t, q) => { for (let k = 0; k < t.length; k++) {   /* indice della chiusura, -1 aperta, -2 escape non valido */
+    if (q === '"' && t[k] === "\\") { const r = t.slice(k + 1); if (r === "") return -1; const m = r.match(ESC); if (!m) return -2; k += m[0].length; continue; }
+    if (q === "'" && t[k] === "'" && t[k + 1] === "'") { k++; continue; }
+    if (t[k] === q) return k; } return -1; };
+  const tail = (r) => /^[ ]*(#.*)?$/.test(r);
+  const KEY = /^(?!(?:---|\.\.\.)(?: |$))(?![-?:](?: |$)|[&*!|>%@`'"\[\]{},#])((?:[^ :#]|:(?! |$)| (?!#)|(?<! )#)*?)[ ]*:(?=[ ]|$)/;   /* chiave semplice YAML senza virgolette */
+  let seen = false, dash = false, ended = false;
+  let q = null, qi = 0, blk = -1, bind = 0, bpre = 0, mode = null, own = 0, stack = [];
+  /* lista/mappa in linea: solo le forme semplici su una riga ([] {} [a, b]); il resto va scritto a blocco */
+  const FLOW = /^(\[ *\]|\{ *\}|\[ *[^ ,:\[\]{}#'"&*!?|>%@`-][^,:\[\]{}#'"]*?( *, *[^ ,:\[\]{}#'"&*!?|>%@`-][^,:\[\]{}#'"]*?)* *,? *\])/;
+  const fl = (t, i) => { const m = t.match(FLOW);
+    if (!m) return at(i, "lista/mappa in linea [ ] { } non semplice: scriverla in forma a blocco (una voce per riga con -)");
+    mode = "done"; return tail(t.slice(m[0].length)) ? null : at(i, "testo dopo la chiusura di una lista/mappa [ ] { }"); };
+  let ownKey = false;
+  const value = (v, i, o, isKey) => {   /* v = testo dopo "chiave:" o dopo "- " ; o = colonna del proprietario */
+    own = o; ownKey = isKey; v = v.replace(/^ +/, "");
+    if (v === "" || v.startsWith("#")) { mode = "open"; return null; }
+    const c = v[0];
+    if (c === '"' || c === "'") { const k = eat(v.slice(1), c);
+      if (k === -2) return at(i, "escape non valido fra virgolette doppie");
+      if (k < 0) { q = c; qi = i; mode = null; return null; }
+      mode = "done"; return tail(v.slice(k + 2)) ? null : at(i, "testo dopo la chiusura di una stringa fra virgolette"); }
+    if (c === "[" || c === "{") return fl(v, i);
+    if (c === "|" || c === ">") { if (!/^[>|]([1-9][+-]?|[+-][1-9]?)?([ ]+#.*)?[ ]*$/.test(v)) return at(i, `indicatore di blocco non valido: "${v}"`);
+      const dg = v.match(/^[>|][+-]?([1-9])/); blk = o; bind = dg ? o + Number(dg[1]) : 0; bpre = 0; mode = null; return null; }
+    if (/^[&*!?%@`,\]}]/.test(c) || /^-( |$)/.test(v)) return at(i, `forma YAML non supportata dal gate (inizia con "${c}")`);
+    const cm = v.search(/(^|[ ])#/), txt = cm < 0 ? v : v.slice(0, cm);
+    if (/:( |$)/.test(txt)) return at(i, "': ' in un valore senza virgolette (YAML non valido)");
+    mode = cm < 0 ? "plain" : "done"; return null;
+  };
+  for (let i = 0; i < L.length; i++) {
+    const l = L[i], blank = l.trim() === "", ind = l.match(/^ */)[0].length;
+    if (l.includes("\t")) return at(i, "tabulazione nel file: usare spazi (regola Empire; YAML vieta i tab nei rientri)");
+    if (q) {
+      if (blank) continue;
+      if (ind === 0) return at(qi, "stringa fra virgolette non chiusa prima della chiave successiva");
+      const k = eat(l, q); if (k === -2) return at(i, "escape non valido fra virgolette doppie"); if (k < 0) continue;
+      q = null; mode = "done"; if (!tail(l.slice(k + 1))) return at(i, "testo dopo la chiusura di una stringa fra virgolette"); continue;
+    }
+    if (blk >= 0) {   /* blocco | > : rientro fissato dalla prima riga non vuota (o dalla cifra), come in YAML */
+      if (blank) { if (!bind) bpre = Math.max(bpre, l.length); continue; }
+      if (!bind && ind > blk) { if (bpre > ind) return at(i, "riga vuota iniziale del blocco piu' rientrata del testo"); bind = ind; continue; }
+      if (bind && ind >= bind) continue;
+      if (ind > blk && !/^ *#/.test(l)) return at(i, "riga del blocco | > meno rientrata della prima (YAML non valido)");
+      blk = -1;
+    }
+    if (blank) continue;
+    if (/^ *#/.test(l)) { if (mode === "plain") mode = "done"; continue; }
+    if (ind > 0 || /^-( |$)/.test(l)) {   /* righe rientrate, e voci "- " a colonna 0 (lista senza rientro sotto una chiave) */
+      if (!seen) return at(i, "riga rientrata prima di ogni chiave");
+      if (mode === "plain" && ind > own) { const t = l.trim(), cm = t.search(/(^|[ ])#/), x = cm < 0 ? t : t.slice(0, cm);
+        if (/:( |$)/.test(x)) return at(i, "': ' in un valore senza virgolette (YAML non valido)");
+        if (cm >= 0) mode = "done"; continue; }
+      if (mode === "done" && ind > own) return at(i, "testo rientrato dopo un valore gia' chiuso (YAML non valido)");
+      let r = l.slice(ind), col = ind, o = ind;
+      const isDash = /^-( |$)/.test(r);
+      if (mode === "open" && ind > own && !isDash && !KEY.test(r)) { const e = value(r, i, own, false); if (e) return e; continue; }   /* valore cominciato a capo */
+      if (mode === "open" && ind > own) stack.push({ ind, seq: isDash });
+      else if (mode === "open" && ownKey && ind === own && isDash) stack.push({ ind, seq: true, il: true });   /* lista senza rientro (YAML la ammette sotto una chiave) */
+      else {
+        while (stack.length && (stack[stack.length - 1].ind > ind || (stack[stack.length - 1].il && stack[stack.length - 1].ind === ind && !isDash))) stack.pop();
+        const top = stack[stack.length - 1];
+        if (!top || top.ind !== ind) return at(i, "rientro incoerente con le righe sopra (YAML non valido)");
+        if (top.seq !== isDash) return at(i, isDash ? "voce di lista dove ci si aspetta una chiave" : "chiave o testo dove ci si aspetta una voce di lista");
+      }
+      mode = null;
+      while (/^-( |$)/.test(r)) { const sp = r.slice(1).match(/^ */)[0].length; o = col; col += 1 + sp; r = r.slice(1 + sp);
+        if (/^-( |$)/.test(r)) stack.push({ ind: col, seq: true }); }
+      const km = r.match(KEY);
+      if (km) { if (col !== ind) stack.push({ ind: col, seq: false }); o = col; r = r.slice(km[0].length); }
+      else if (col === ind) return at(i, "riga rientrata che non e' ne' una chiave semplice ne' una voce di lista");
+      const e = value(r, i, o, !!km); if (e) return e; continue;
+    }
+    if (ended) return at(i, "contenuto dopo la fine del documento (...)");
+    if (/^---([ ]+#.*)?[ ]*$/.test(l) && !seen && !dash) { dash = true; continue; }
+    if (/^\.\.\.([ ]+#.*)?[ ]*$/.test(l)) { ended = true; continue; }
+    const m = l.match(new RegExp(KEY.source + "(.*)$"));
+    if (!m) return at(i, "riga di primo livello che non e' una chiave semplice (il file deve essere una mappa YAML piana)");
+    seen = true; mode = null; blk = -1; bind = 0; stack = [{ ind: 0, seq: false }];
+    const e = value(m[2], i, 0, true); if (e) return e;
+  }
+  if (q) return at(qi, "stringa fra virgolette non chiusa a fine file");
+  return null;
+}
+function readNext(st) {   /* prima i caratteri, poi il campo next (messaggi propri), poi la forma del file intero */
+  /* caratteri che il reader di PyYAML rifiuta (ReaderError: NUL, controlli, surrogati soli; rilievo Codex giro 6 di S215) e gli
+   * a capo YAML 1.1 non standard (U+0085, U+2028, U+2029), che PyYAML tratta come fine riga; U+FEFF dentro il file (il BOM
+   * iniziale e' gia' tolto), che per JavaScript e' uno spazio e per PyYAML no */
+  const np = st.search(/[^\t\n\r\x20-\x7E\xA0-\u2027\u202A-\uD7FF\uE000-\uFEFE\uFF00-\uFFFD\u{10000}-\u{10FFFF}]/u);
+  if (np >= 0) return { kind: "invalid", why: `riga ${st.slice(0, np).split("\n").length}: carattere non ammesso in YAML (codice ${st.codePointAt(np).toString(16).toUpperCase().padStart(4, "0")})` };
+  const r = readNext0(st);
+  if (r.kind !== "ok") return r;
+  const sh = shapeOf(st.split(/\r?\n/));
+  return sh ? { kind: "invalid", why: sh } : r;
+}
+function readNext0(st) {
+  const L = st.split(/\r?\n/), at = [];
+  L.forEach((l, i) => { if (/^next[ \t]*:(?=[ \t]|$)/.test(l)) at.push(i); });
+  if (!at.length) return { kind: "missing" };
+  if (at.length > 1) return { kind: "duplicate", lines: at.map(i => i + 1) };
+  const i = at[0], raw = [];
+  for (let j = i + 1; j < L.length && (L[j].trim() === "" || /^[ \t]/.test(L[j])); j++) raw.push(L[j]);
+  const v = L[i].replace(/^next[ \t]*:[ \t]*/, ""), cont = raw.map(x => x.trim());
+  const bad = (why) => ({ kind: "invalid", why: `riga ${i + 1} (next): ${why}` });
+  const ok = (x) => ({ kind: "ok", value: x.replace(/\s+/g, " ").trim() });
+  /* il roll-up (empire_rollup.py) legge questi file con PyYAML: un tab qui lo farebbe fallire, quindi il gate si ferma */
+  if (/\t/.test(L[i]) || raw.some(x => /\t/.test(x))) return bad("tabulazione nel campo next: usa spazi");
+  if (/^[>|]/.test(v)) {
+    if (!/^[>|]([1-9][+-]?|[+-][1-9]?)?([ ]+#.*)?[ ]*$/.test(v)) return bad(`indicatore di blocco non valido: "${v}"`);
+    const dig = (v.match(/^[>|][+-]?([1-9])/) || [])[1], k0 = raw.findIndex(x => x.trim() !== "");
+    const ind = dig ? Number(dig) : (k0 < 0 ? 0 : raw[k0].match(/^ */)[0].length);   /* indicatore esplicito = rientro richiesto */
+    if (raw.slice(0, k0 < 0 ? raw.length : k0).some(x => x.length > ind)) return bad("riga vuota iniziale del blocco piu' rientrata del testo");
+    const txt = [];
+    let end = false;
+    for (const x of raw) {
+      if (x.trim() === "") continue;
+      if (!end && x.match(/^ */)[0].length >= ind) { txt.push(x.trim()); continue; }
+      if (/^ *#/.test(x)) { end = true; continue; }   /* riga meno rientrata che e' solo commento: chiude il blocco */
+      return bad("righe del blocco meno rientrate della prima");
+    }
+    return ok(txt.join(" "));
+  }
+  if (/^["']/.test(v)) {
+    /* piegatura YAML delle righe: a capo = spazio; in "..." una riga che finisce con \ (numero dispari) si unisce SENZA spazio
+     * (rilievo Codex giro 4: "S46\ + x" e' S46x per PyYAML, non "S46 x") */
+    let all = v;
+    for (const x of raw) { const y = x.replace(/^[ ]+/, "");
+      if (v[0] === '"' && /(^|[^\\])(\\\\)*\\$/.test(all)) all = all.slice(0, -1) + y;
+      else all = all.replace(/[ ]+$/, "") + " " + y; }
+    const m = v[0] === '"' ? all.match(/^"((?:[^"\\]|\\.)*)"(.*)$/s) : all.match(/^'((?:[^']|'')*)'(.*)$/s);
+    if (!m) return bad("virgolette non chiuse");
+    if (!/^ *(#.*)?$/.test(m[2])) return bad(`testo dopo la chiusura delle virgolette: "${m[2].trim().slice(0, 40)}"`);
+    if (v[0] === "'") return ok(m[1].replace(/''/g, "'"));
+    const E = { "0": "\0", a: "\x07", b: "\b", t: "\t", n: "\n", v: "\v", f: "\f", r: "\r", e: "\x1b", " ": " ", '"': '"', "/": "/", "\\": "\\", N: "\x85", _: "\xa0", L: " ", P: " " };
+    let esc = null;
+    const out = m[1].replace(/\\(x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8}|.)/gs, (_, e) => {
+      if (e.length > 1) { const cp = parseInt(e.slice(1), 16); if (cp > 0x10ffff) { esc = esc || e; return ""; } return String.fromCodePoint(cp); }
+      if (e in E) return E[e]; esc = esc || e; return "";
+    });
+    return esc === null ? ok(out) : bad(`escape non valido in YAML: \\${esc}`);
+  }
+  /* scalare semplice: puo' cominciare sulla riga dopo (riga di next vuota o solo commento) */
+  const first = /^#/.test(v) ? "" : v, parts = [];
+  let ended = false;
+  for (const x of [first, ...cont]) {
+    if (ended) { if (x !== "" && !/^#/.test(x)) return bad("testo dopo un commento: in YAML non fa parte di next"); continue; }
+    if (x === "") continue;
+    if (/^#/.test(x)) { ended = true; continue; }
+    const c = x.search(/ #/);
+    if (c >= 0) { parts.push(x.slice(0, c)); ended = true; continue; }
+    parts.push(x);
+  }
+  const val = parts.join(" ");
+  if (/^([-?:]( |$)|[*&!\[\]{}%@`|>"',])/.test(val)) return bad(`forma YAML non supportata dal gate o non valida (indicatore iniziale): "${val.slice(0, 40)}"`);
+  if (/:( |$)/.test(val)) return bad("': ' dentro uno scalare senza virgolette (YAML non valido): metti il testo fra virgolette");
+  return ok(val);
+}
 const die = (c, l) => { console.error("SESSION GATE: STOP\n" + l.map(x => "  · " + x).join("\n")); process.exit(c); };
 const mode = A("mode", "check");
 if (!["check", "commit", "verify", "close", "receipt"].includes(mode)) die(3, [`--mode="${mode}": check | commit | verify | close | receipt`]);
@@ -126,16 +300,39 @@ if (mode === "close") {
   if (!existsSync(stp)) bad.push(`[CLOSE_STATUS_MISSING] ${stp} assente: crealo da _TEMPLATE.yaml (ADR-029) con last_session: ${S(n)} e date: ${today}, poi riesegui`);
   else {
     const st = readFileSync(stp, "utf8").replace(/^\uFEFF/, "");   /* PS 5.1 -Encoding UTF8 scrive il BOM */
-    const ls = (st.match(/^last_session:[ \t]*["']?([^\s"'#]+)/m) || [])[1];
-    const dt = (st.match(/^date:[ \t]*["']?(\d{4}-\d{2}-\d{2})(?![0-9])/m) || [])[1];
+    /* chiave di primo livello: una sola volta (PyYAML terrebbe l'ultima); valore intero della riga, virgolette bilanciate, poi solo
+     * commento separato da spazio (in YAML "S45#x" e' un valore unico). Rilievi Codex giri 4-5 di S215 ("2026-01-02junk", "#junk",
+     * "date :", duplicati, 2026-02-31 che PyYAML rifiuta e fa fallire il roll-up). */
+    const top1 = (k, val) => { const re = new RegExp("^" + k + "[ \\t]*:(?=[ \\t]|$)(.*)$"), at = [];
+      st.split(/\r?\n/).forEach((l, i) => { const m = l.match(re); if (m) at.push({ i, v: m[1] }); });
+      if (at.length !== 1) return { n: at.length };
+      const m = at[0].v.match(new RegExp("^[ \\t]*([\"']?)(" + val + ")\\1([ \\t]+#.*)?[ \\t]*$"));
+      return { n: 1, v: m ? m[2] : undefined, raw: at[0].v.trim() }; };
+    const lsR = top1("last_session", "[^\\s\"'#]+"), dtR = top1("date", "\\d{4}-\\d{2}-\\d{2}");
+    const ls = lsR.v;
+    const dtOk = (d) => { const [y, mo, da] = d.split("-").map(Number), t = new Date(0); t.setUTCFullYear(y, mo - 1, da);   /* setUTCFullYear: niente 00-99 -> 1900 */
+      return y >= 1 && t.getUTCFullYear() === y && t.getUTCMonth() === mo - 1 && t.getUTCDate() === da; };   /* anno 0000: Python lo rifiuta (giro 7) */
+    const dt = dtR.v && dtOk(dtR.v) ? dtR.v : undefined;
     const tok = new RegExp("(?:^|[^A-Za-z0-9_-])" + esc + n + "(?![0-9])");
     const hd = exists ? text.split(/\r?\n/).filter(l => /^##\s+/.test(l) && tok.test(l.replace(/^##\s+/, " "))).map(l => (l.match(/\d{4}-\d{2}-\d{2}/) || [])[0]).filter(Boolean).sort()[0] : undefined;
-    if (ls !== S(n)) bad.push(`[CLOSE_STATUS_STALE] ${stp}: last_session = ${ls || "assente"}, atteso ${S(n)}. Aggiorna il file (roll-up ADR-029) e riesegui`);
-    if (!dt) bad.push(`[CLOSE_STATUS_DATE] ${stp}: date assente o non nel formato YYYY-MM-DD`);
+    if (lsR.n > 1) bad.push(`[CLOSE_STATUS_STALE] ${stp}: last_session presente ${lsR.n} volte: ne deve restare una sola (${S(n)}), poi riesegui`);
+    else if (ls !== S(n)) bad.push(`[CLOSE_STATUS_STALE] ${stp}: last_session = ${ls || (lsR.n ? `non leggibile ("${lsR.raw}")` : "assente")}, atteso ${S(n)}. Aggiorna il file (roll-up ADR-029) e riesegui`);
+    if (dtR.n > 1) bad.push(`[CLOSE_STATUS_DATE] ${stp}: date presente ${dtR.n} volte: ne deve restare una sola, poi riesegui`);
+    else if (!dt) bad.push(`[CLOSE_STATUS_DATE] ${stp}: date assente, non nel formato YYYY-MM-DD o non un giorno di calendario${dtR.n ? ` ("${dtR.raw}")` : ""}`);
     else {
       if (hd && dt < hd) bad.push(`[CLOSE_STATUS_DATE] ${stp}: date = ${dt}, precedente all'intestazione di ${S(n)} (${hd}): e' la data di una chiusura vecchia`);
       if (dt > today) bad.push(`[CLOSE_STATUS_DATE] ${stp}: date = ${dt}, nel futuro (oggi ${today})`);
     }
+    /* L9.17 / A3 (S215). `next` deve esistere e citare la sessione successiva nel designatore nativo (S<n+1>, BA-S<n+1>):
+     * in S213-S214 `predator.yaml` e' rimasto con "S213 in corso" a last_session S214 e nessun controllo lo ha visto.
+     * Letto: riga singola (senza virgolette, "..." con escape, '...'), commento finale ignorato solo fuori dalle virgolette;
+     * blocco YAML `>`/`|` (con indicatori +/-/cifra) = righe indentate fino alla prossima chiave di primo livello. */
+    const rn = readNext(st);
+    const tokNext = new RegExp("(?:^|[^A-Za-z0-9_-])" + esc + (n + 1) + "(?![0-9A-Za-z_])");   /* S46-bis vale (convenzione -bis dell'Empire); S46a, S46_, S460 no */
+    if (rn.kind === "duplicate") bad.push(`[CLOSE_STATUS_NEXT_DUPLICATE] ${stp}: next presente ${rn.lines.length} volte (righe ${rn.lines.join(", ")}): ne deve restare uno solo, poi riesegui`);
+    else if (rn.kind === "invalid") bad.push(`[CLOSE_STATUS_NEXT_INVALID] ${stp}: next non leggibile con certezza (${rn.why}): correggi la riga indicata (forma consigliata: next: "${S(n + 1)}: <prossimo passo>" su una riga) e riesegui`);
+    else if (rn.kind === "missing" || rn.value === "") bad.push(`[CLOSE_STATUS_NEXT_MISSING] ${stp}: next assente o vuoto: scrivi il prossimo passo citando ${S(n + 1)} (roll-up ADR-029) e riesegui`);
+    else if (!tokNext.test(" " + rn.value)) bad.push(`[CLOSE_STATUS_NEXT_STALE] ${stp}: next non cita ${S(n + 1)} ("${rn.value.length > 90 ? rn.value.slice(0, 90) + "..." : rn.value}"): e' il prossimo passo di una sessione vecchia? Aggiornalo (roll-up ADR-029) e riesegui`);
   }
   if (bad.length) die(2, [`CLOSE ${S(n)} NON dimostrata: la sessione NON e' dichiarabile chiusa`, ...bad]);
   console.log(`SESSION GATE: CLOSE PASS ${S(n)} — ${P.slug} (policy ${P.gate}, mode=close READ-ONLY: nessun file creato o modificato)`);

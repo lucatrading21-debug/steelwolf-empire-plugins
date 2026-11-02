@@ -1,0 +1,9 @@
+project: c-shape-indentless
+last_session: S45
+date: 2026-01-02
+done:
+- ref: W1
+  note: completato
+- ref: W2
+next: "S46: prossimo"
+blockers: []
