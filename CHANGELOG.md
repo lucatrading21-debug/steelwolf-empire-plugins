@@ -14,6 +14,92 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
   poteva fallire o cambiare senza alcun commit nel repo. Provato il 19/10: `plugin validate ./plugins/swe --strict` passa con 2.1.289 e con 2.1.303
   (l'ultima). Nessun cambio a plugin o versioni dei plugin.
 
+## [marketplace 1.22.0] - swe 1.20.0 - 2026-11-02
+
+> **S215 (Hub, PREDATOR): il gate di chiusura controlla anche il campo `next` del file `_status`.**
+> Voce L9.17 / A3 (`hub: EMPIRE_OPEN_ITEMS.md` §0). In S213-S214 `_status/predator.yaml` e' rimasto con `next: "S213 in corso..."`
+> a `last_session: S214`: il controllo A1-bis (1.19.0) guardava solo `last_session` e `date`. GO owner 02/11.
+> Revisione indipendente Codex `:read-only` (gpt-5.6-sol, sessione 01a19b8c-de14-7291-b440-f7d1923ec37f) sulla prima stesura:
+> rilievi accolti e corretti qui (lettore riscritto, confine destro, test, testo di questa voce), uno accolto solo in parte (sotto).
+> Secondo giro Codex su questa voce (giro 4 di S215, sessione 01a19be8-be14-7021-97e5-69041249566b) sulla versione corretta: un falso PASS (`"S46\` a fine riga
+> + `x`, che per PyYAML e' `S46x`), un falso STOP (lista senza rientro), messaggi senza riga, `date` con testo dopo la data.
+> Corretti qui, con test (C40-C43) e coi generatori del fuzzing estesi a questi casi.
+> Terzo giro su questa voce (giro 5 di S215, sessione 01a19bf3-0716-7692-9a85-65e5137e9704): accolti `last_session`/`date` con
+> `#` attaccato al valore, chiave scritta `date :`, chiavi doppie, date impossibili (C44-C48), test C40 piu' stretto, testo di
+> questa voce. Respinto con prova un falso PASS dichiarato (continuazione di una stringa annidata poco rientrata): PyYAML 6.0.3,
+> la versione fissata dal workflow del roll-up, legge quel file e da' lo stesso `next` del gate (test C49).
+> Quarto giro su questa voce (giro 6 di S215, sessione 01a19c01-a56c-7610-8bab-580fe5d063ec): accolti il falso PASS col NUL
+> letterale (il reader di PyYAML rifiuta i caratteri di controllo), gli anni 00-99 nel controllo di calendario, l'oracolo del
+> fuzzing che accettava una PyYAML diversa dalla 6.0.3. Il generatore esteso coi caratteri di controllo ha trovato anche U+0085,
+> U+2028/U+2029 (a capo per YAML 1.1) e U+FEFF dentro il file (spazio per JavaScript, non per PyYAML): corretti. Test C50-C52.
+> Dichiarato come limite (test C52, C54): `last_session` e `date` scritti con escape YAML non sono letti (falso STOP voluto).
+> Quinto giro (giro 7 di S215, sessione 01a19c17-cbf0-76e3-ae86-be3e083cf8cc): accolto il falso PASS con `date: 0000-01-01`
+> (anno zero, rifiutato da Python), conteggi dei file `_status` corretti, C54 per `date` con escape. Test C53-C54.
+> Giro 8 di S215 (sessione 01a19c20-5e25-7000-ac60-5680682cfb90): BLOCCANTE del giro 7 risolto, nessun falso PASS trovato su
+> `next`, `last_session`, `date`; verdetto "pronto per il commit: SI". Unico rilievo NON BLOCCANTE: C53 non isola da solo la
+> regressione (la fixture ha un'intestazione datata), gia' dichiarato sotto.
+
+### Added
+- `session-gate --mode=close`: il campo `next` di `_status/<slug>.yaml` deve esistere una sola volta e citare la sessione successiva
+  nel designatore nativo, a parola intera (`S<n+1>`, `BA-S<n+1>`). Codici nuovi:
+  - `CLOSE_STATUS_NEXT_MISSING`: chiave assente, valore vuoto o solo commento;
+  - `CLOSE_STATUS_NEXT_STALE`: il valore non cita la sessione successiva;
+  - `CLOSE_STATUS_NEXT_DUPLICATE`: due o piu' chiavi `next` di primo livello (PyYAML terrebbe l'ultima: nessuna scelta silenziosa);
+  - `CLOSE_STATUS_NEXT_INVALID`: il valore non e' leggibile con certezza (sotto). Read-only come prima, exit 2.
+- Lettore `readNext` ristretto, progettato per fermarsi su cio' che non sa leggere, confrontato con PyYAML `safe_load` 6.0.3 (il parser del roll-up `empire_rollup.py`).
+  Legge: scalare senza virgolette su una o piu' righe (anche cominciato a capo; commento finale ignorato); `"..."` anche su piu'
+  righe, con la piegatura YAML (a capo = spazio; `\` a fine riga = unione senza spazio) e la decodifica degli escape YAML (`\xHH`, `\uHHHH`, `\UHHHHHHHH`, `\"`, `\\`, `\n` e gli altri della specifica); `'...'` con `''`; blocchi `>` e `|` con
+  indicatori `+`/`-` e rientro esplicito `1-9`; chiave scritta `next :`. Respinge come INVALID: tabulazioni nel campo (regola Empire:
+  PyYAML ne accetta alcune, il gate no), escape sconosciuti, virgolette non chiuse o con testo dopo, indicatori di blocco non validi
+  (`|0`, `>+-`), righe del blocco meno rientrate della prima, `: ` dentro uno scalare senza virgolette, testo dopo un commento,
+  indicatori YAML in testa a uno scalare senza virgolette. Chiave `next` rientrata (dentro un altro blocco) = non e' il campo;
+  `next:"..."` senza spazio dopo i due punti = non e' il campo (come per YAML).
+- Controllo della forma del file intero (`shapeOf`), trovato col fuzzing dopo il giro Codex: una riga `next: S46` puo' essere il
+  seguito di una stringa `"...` o di una lista `[...` aperta da un'altra chiave, e allora per PyYAML `next` non esiste; un file con
+  rientri incoerenti non lo legge nemmeno il roll-up. Il gate ammette un sottoinsieme sicuro di YAML (mappa di primo livello; liste e
+  mappe a blocco annidate con rientri coerenti, anche la lista senza rientro sotto una chiave; stringhe fra virgolette anche su piu' righe, con escape validati; blocchi `|` `>`;
+  liste in linea semplici `[]`, `{}`, `[a, b]`; commenti; un `---` iniziale e un `...` finale). Il resto e' INVALID (tabulazioni
+  ovunque nel file, ancore, alias, tag, chiavi complesse, direttive `%`, liste in linea con virgolette, `:` o annidate).
+  Respinti anche i caratteri che il reader di PyYAML rifiuta (controlli, NUL, surrogati soli), gli a capo YAML 1.1 non standard
+  (U+0085, U+2028, U+2029) e U+FEFF dentro il file. Non e' un validatore YAML completo. I 5 file `_status` dei progetti e il `_TEMPLATE` passano.
+- Confine del designatore: a sinistra `(?:^|[^A-Za-z0-9_-])`, a destra `(?![0-9A-Za-z_])`. Non valgono come `S46`: `BA-S46`, `XS46`,
+  `_S46`, `S460`, `S46a`, `S46_`. Vale `S46-bis` (convenzione `-bis` dell'Empire): rilievo Codex accolto in parte.
+- Messaggio `CLOSE_STATUS_NEXT_INVALID`: indica sempre la riga del file da correggere.
+- `scripts/fuzz-next/` (fuori dal payload e dal MANIFEST): `fuzz_next.py` + `read_next.mjs`, confronto differenziale riproducibile
+  fra `readNext` e PyYAML (modi `synth` e `status`, seme e numero di casi da riga di comando, exit 1 su falso PASS o valore diverso).
+- `tests/run-tests.mjs`, C14-C42 e C49-C54 (35 casi) con fixture `close/c-next-*`, `c-shape-*`, `c-ba-*` e il registro `c-ba/` a prefisso `BA-S`.
+  Fixture `close/` esistenti con `next` aggiunto; TZ5-TZ6 scrivono anche `next`. Ogni fixture nuova e' stata letta anche con PyYAML:
+  gli esiti attesi concordano, salvo la tabulazione fra virgolette (C30), respinta per scelta.
+
+### Fixed
+- `session-gate --mode=close` (difetto della 1.19.0, rilievo Codex giro 4 di S215): `date: 2026-01-02junk` veniva letta come `2026-01-02`.
+  Ora `date` e `last_session` valgono solo se compaiono una volta, e se dopo il valore (eventualmente fra virgolette bilanciate) c'e'
+  soltanto un commento separato da spazio; la chiave puo' essere scritta con spazio prima dei due punti; `date` deve essere un giorno
+  di calendario con anno da 0001 (PyYAML rifiuta `2026-02-31` e `0000-01-01` e farebbe fallire il roll-up; gli anni 0001-0099 non
+  sono piu' confusi con 1901-1999). Forma letta: valore senza escape YAML (C52, C54). Test C43-C48, C53.
+
+### Verifiche (02/11, prima del commit)
+- Suite: 116 PASS / 0 FAIL / 2 SKIP (T1-T2 `[LIVE]`) su linux, con 4 fusi della macchina.
+- Prova al contrario: col gate 1.19.1 falliscono 25 test nuovi: i 24 negativi che cambiano esito (C14, C15, C19, C20, C22, C23,
+  C24, C28, C30, C31, C33, C34, C35, C36, C37, C38, C40, C43, C44, C45, C47, C48, C50, C51) piu' C46 (positivo: la 1.19.1 non
+  leggeva `last_session :` con spazio). C52, C53 e C54 passano anche con la 1.19.1 (C53
+  perche' la fixture ha un'intestazione datata; senza, la 1.19.1 accettava l'anno zero: e' il caso di Codex al giro 7).
+- Confronto con PyYAML 6.0.3 `safe_load` con `scripts/fuzz-next` (esito atteso = PyYAML legge il file come mappa, un solo `next`,
+  che cita la sessione). Riproducibile con gli stessi semi:
+  - `synth`, semi 801-803, 20.000 casi ciascuno: 0 falsi PASS, 0 valori diversi; falsi STOP 1,9% (tabulazioni, caratteri di controllo);
+  - `status` sui 5 `_status` dei progetti nell'Hub, semi 301-306, 10.000 casi ciascuno: 0 falsi PASS, 0 valori diversi; falsi STOP 1,8%,
+    su file alterati (chiavi con spazi o simboli, tab, forme rare). Un falso STOP si corregge riscrivendo la riga indicata.
+  - Ambiente, comandi e tabella in `scripts/fuzz-next/RESULTS-S215.md`. Sono esecuzioni dichiarate, non un log firmato: chi vuole
+    le ripete con gli stessi semi (il gruppo `status` dipende dal contenuto del giorno dei file `_status`).
+  - Limite: il fuzzing prova i casi che i generatori producono. Il caso `\` a fine riga e' stato trovato da Codex, non dai
+    generatori; per questo la revisione indipendente resta parte della verifica.
+
+### Note
+- **Cambia la chiusura di ogni progetto che usa il gate.** Misurato sui file `_status` reali con lo stile di oggi: Journal e Bot-Alliance
+  gia' citano la sessione successiva; Hub (`next` fermo a S213, e' il difetto che il controllo trova), Strategy-Lab (testo senza numero)
+  e Observatory (testo senza numero) devono scriverla al roll-up della prossima chiusura. Avviso alle scrivanie con note `DA_HUB_*`.
+- Forma consigliata: `next: "S<n+1>: <prossimo passo>"` su una riga, fra virgolette doppie.
+
 ## [marketplace 1.21.1] - swe 1.19.1 - 2026-11-02
 
 > **S215 (Hub, PREDATOR): il gate di chiusura usa il giorno italiano, non quello della macchina.**

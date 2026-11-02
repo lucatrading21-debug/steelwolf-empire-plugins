@@ -135,6 +135,89 @@ g = run([...cb("c-ok-comment"), "--session=S45"]);
 chk(g.code === 0 && /CLOSE PASS S45/.test(g.out), "C12", "close positivo A1-bis: commenti YAML in riga (formato reale di predator.yaml) accettati", `      exit=${g.code}`);
 g = run([...cb("c-ok-bom"), "--session=S45"]);
 chk(g.code === 0 && /CLOSE PASS S45/.test(g.out), "C13", "close positivo A1-bis: file con BOM (Windows PowerShell 5.1) accettato; fixture LF per la regola eol=lf del payload", `      exit=${g.code}`);
+/* L9.17 / A3 (S215): `next` deve citare la sessione successiva (designatore nativo, parola intera). */
+g = run([...cb("c-next-missing"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_NEXT_MISSING/.test(g.out) && !/CLOSE_STATUS_NEXT_STALE/.test(g.out), "C14", "close NEGATIVO A3: next assente", `      exit=${g.code}`);
+g = run([...cb("c-next-stale"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_NEXT_STALE/.test(g.out) && /non cita S46/.test(g.out), "C15", "close NEGATIVO A3: next fermo alla sessione che si chiude (caso predator S213/S214)", `      exit=${g.code}`);
+g = run([...cb("c-next-block"), "--session=S45"]);
+chk(g.code === 0 && /CLOSE PASS S45/.test(g.out), "C16", "close positivo A3: next su piu' righe (blocco YAML >-, formato Strategy-Lab) con S46 nella seconda riga", `      exit=${g.code}`);
+g = run([...cb("c-next-quoted"), "--session=S45"]);
+chk(g.code === 0 && /CLOSE PASS S45/.test(g.out), "C17", "close positivo A3: next fra virgolette con \\\" e # dentro, commento vero dopo", `      exit=${g.code}`);
+g = run([...cb("c-next-single"), "--session=S45"]);
+chk(g.code === 0 && /CLOSE PASS S45/.test(g.out), "C18", "close positivo A3: next fra apici singoli con '' (apostrofo YAML)", `      exit=${g.code}`);
+g = run([...cb("c-next-comment-only"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_NEXT_MISSING/.test(g.out), "C19", "close NEGATIVO A3: S46 solo nel commento = next vuoto", `      exit=${g.code}`);
+g = run([...cb("c-next-trap"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_NEXT_STALE/.test(g.out), "C20", "close NEGATIVO A3: BA-S46, S460, XS46 non valgono come S46 (parola intera)", `      exit=${g.code}`);
+g = run([...cb("c-ba-ok"), "--session=BA-S45"]);
+chk(g.code === 0 && /CLOSE PASS BA-S45/.test(g.out), "C21", "close positivo A3: prefisso nativo BA-S, next cita BA-S46", `      exit=${g.code}`);
+g = run([...cb("c-ba-wrong"), "--session=BA-S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_NEXT_STALE/.test(g.out) && (g.out.match(/CLOSE_STATUS_NEXT_/g) || []).length === 1, "C22", "close NEGATIVO A3: prefisso BA-S, next cita solo S46", `      exit=${g.code}`);
+g = run([...cb("c-next-s46a"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_NEXT_STALE/.test(g.out) && (g.out.match(/CLOSE_STATUS_NEXT_/g) || []).length === 1, "C23", "close NEGATIVO A3: S46a non vale come S46 (rilievo Codex 01a19b8c)", `      exit=${g.code}`);
+g = run([...cb("c-next-dup"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_NEXT_DUPLICATE/.test(g.out) && (g.out.match(/CLOSE_STATUS_NEXT_/g) || []).length === 1, "C24", "close NEGATIVO A3: due campi next (il primo cita S46) = STOP, non vince il primo", `      exit=${g.code}`);
+g = run([...cb("c-next-plainml"), "--session=S45"]);
+chk(g.code === 0 && /CLOSE PASS S45/.test(g.out), "C25", "close positivo A3: next senza virgolette su piu' righe, cominciato a capo", `      exit=${g.code}`);
+g = run([...cb("c-next-literal"), "--session=S45"]);
+chk(g.code === 0 && /CLOSE PASS S45/.test(g.out), "C26", "close positivo A3: blocco letterale | con S46 nella seconda riga", `      exit=${g.code}`);
+g = run([...cb("c-next-escape"), "--session=S45"]);
+chk(g.code === 0 && /CLOSE PASS S45/.test(g.out), "C27", "close positivo A3: S46 scritto con escape YAML \\x53\\x34\\x36 fra virgolette doppie", `      exit=${g.code}`);
+g = run([...cb("c-next-badesc"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_NEXT_INVALID/.test(g.out) && (g.out.match(/CLOSE_STATUS_NEXT_/g) || []).length === 1, "C28", "close NEGATIVO A3: escape non valido in YAML (\\S) = STOP, anche se il testo contiene S46", `      exit=${g.code}`);
+g = run([...cb("c-next-bis"), "--session=S45"]);
+chk(g.code === 0 && /CLOSE PASS S45/.test(g.out), "C29", "close positivo A3: S46-bis vale (convenzione -bis dell'Empire)", `      exit=${g.code}`);
+g = run([...cb("c-next-tab"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_NEXT_INVALID/.test(g.out) && (g.out.match(/CLOSE_STATUS_NEXT_/g) || []).length === 1, "C30", "close NEGATIVO A3: tabulazione nel campo next = STOP (regola fail-closed dell'Empire: usare spazi)", `      exit=${g.code}`);
+g = run([...cb("c-next-badind"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_NEXT_INVALID/.test(g.out) && (g.out.match(/CLOSE_STATUS_NEXT_/g) || []).length === 1, "C31", "close NEGATIVO A3: indicatore di blocco |0 non valido in YAML", `      exit=${g.code}`);
+g = run([...cb("c-next-space"), "--session=S45"]);
+chk(g.code === 0 && /CLOSE PASS S45/.test(g.out), "C32", "close positivo A3: chiave scritta 'next :' con spazio", `      exit=${g.code}`);
+g = run([...cb("c-next-colon"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_NEXT_INVALID/.test(g.out) && (g.out.match(/CLOSE_STATUS_NEXT_/g) || []).length === 1, "C33", "close NEGATIVO A3: ': ' in uno scalare senza virgolette (YAML non valido)", `      exit=${g.code}`);
+g = run([...cb("c-next-aftercomment"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_NEXT_INVALID/.test(g.out) && (g.out.match(/CLOSE_STATUS_NEXT_/g) || []).length === 1, "C34", "close NEGATIVO A3: S46 solo dopo un commento non fa parte di next", `      exit=${g.code}`);
+g = run([...cb("c-shape-dq"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_NEXT_INVALID/.test(g.out) && (g.out.match(/CLOSE_STATUS_NEXT_/g) || []).length === 1, "C35", "close NEGATIVO A3: next: S46 dentro una stringa aperta di un'altra chiave (per PyYAML next non esiste)", `      exit=${g.code}`);
+g = run([...cb("c-shape-flow"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_NEXT_INVALID/.test(g.out) && (g.out.match(/CLOSE_STATUS_NEXT_/g) || []).length === 1, "C36", "close NEGATIVO A3: next: S46 dentro una lista [ ] aperta di un'altra chiave", `      exit=${g.code}`);
+g = run([...cb("c-shape-nokey"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_NEXT_MISSING/.test(g.out) && (g.out.match(/CLOSE_STATUS_NEXT_/g) || []).length === 1, "C37", "close NEGATIVO A3: riconoscimento della chiave: next:\"S46...\" senza spazio dopo i due punti non e' la chiave next (per YAML e' un'altra chiave)", `      exit=${g.code}`);
+g = run([...cb("c-shape-indent"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_NEXT_INVALID/.test(g.out) && (g.out.match(/CLOSE_STATUS_NEXT_/g) || []).length === 1, "C38", "close NEGATIVO A3: rientro incoerente in un'altra chiave (il roll-up PyYAML non legge il file)", `      exit=${g.code}`);
+g = run([...cb("c-shape-real"), "--session=S45"]);
+chk(g.code === 0 && /CLOSE PASS S45/.test(g.out), "C39", "close positivo A3: file con liste, mappe annidate, blocco > e commenti (forma dei _status reali)", `      exit=${g.code}`);
+g = run([...cb("c-next-bsl-stale"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_NEXT_STALE/.test(g.out) && /"S46x: una riga/.test(g.out) && (g.out.match(/CLOSE_STATUS_NEXT_/g) || []).length === 1, "C40", "close NEGATIVO A3: \\ a fine riga fra virgolette doppie unisce senza spazio: S46x non vale (rilievo Codex giro 4)", `      exit=${g.code}`);
+g = run([...cb("c-next-bsl-ok"), "--session=S45"]);
+chk(g.code === 0 && /CLOSE PASS S45/.test(g.out), "C41", "close positivo A3: S4\\ + 6 fra virgolette doppie = S46, come PyYAML (rilievo Codex giro 4)", `      exit=${g.code}`);
+g = run([...cb("c-shape-indentless"), "--session=S45"]);
+chk(g.code === 0 && /CLOSE PASS S45/.test(g.out), "C42", "close positivo A3: lista senza rientro sotto una chiave (YAML valido, rilievo Codex giro 4)", `      exit=${g.code}`);
+g = run([...cb("c-ok-datejunk"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_DATE/.test(g.out) && !/CLOSE_STATUS_NEXT_/.test(g.out), "C43", "close NEGATIVO: date: 2026-01-02junk non e' una data (rilievo Codex giro 4, difetto della 1.19.0)", `      exit=${g.code}`);
+g = run([...cb("c-ls-hash"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_STALE/.test(g.out) && !/CLOSE_STATUS_NEXT_/.test(g.out), "C44", "close NEGATIVO: last_session: S45#junk e' un valore unico per YAML, non S45 + commento (rilievo Codex giro 5)", `      exit=${g.code}`);
+g = run([...cb("c-dt-hash"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_DATE/.test(g.out) && !/CLOSE_STATUS_NEXT_/.test(g.out), "C45", "close NEGATIVO: date: 2026-01-02#junk non e' una data (rilievo Codex giro 5)", `      exit=${g.code}`);
+g = run([...cb("c-key-space"), "--session=S45"]);
+chk(g.code === 0 && /CLOSE PASS S45/.test(g.out), "C46", "close positivo: chiavi scritte 'last_session :', 'date :' e 'next :' con spazio (YAML valido, rilievo Codex giro 5)", `      exit=${g.code}`);
+g = run([...cb("c-dt-dup"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_DATE/.test(g.out) && !/CLOSE_STATUS_NEXT_/.test(g.out), "C47", "close NEGATIVO: date presente due volte (PyYAML terrebbe l'ultima) (rilievo Codex giro 5)", `      exit=${g.code}`);
+g = run([...cb("c-dt-cal"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_DATE/.test(g.out) && !/CLOSE_STATUS_NEXT_/.test(g.out), "C48", "close NEGATIVO: date: 2026-02-31 non e' un giorno di calendario (PyYAML lo rifiuta) (rilievo Codex giro 5)", `      exit=${g.code}`);
+g = run([...cb("c-shape-nestq"), "--session=S45"]);
+chk(g.code === 0 && /CLOSE PASS S45/.test(g.out), "C49", "close positivo A3: continuazione di una stringa annidata poco rientrata: PyYAML 6.0.3 (versione del workflow del roll-up) la accetta, quindi passa (rilievo Codex giro 5 respinto con prova)", `      exit=${g.code}`);
+g = run([...cb("c-next-ctrl"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_NEXT_INVALID/.test(g.out) && (g.out.match(/CLOSE_STATUS_NEXT_/g) || []).length === 1, "C50", "close NEGATIVO A3: carattere di controllo (DEL) che il reader di PyYAML rifiuta (rilievo Codex giro 6: stesso caso del NUL)", `      exit=${g.code}`);
+g = run([...cb("c-next-nel"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_NEXT_INVALID/.test(g.out) && (g.out.match(/CLOSE_STATUS_NEXT_/g) || []).length === 1, "C51", "close NEGATIVO A3: U+0085 e' un a capo per PyYAML (YAML 1.1): il valore non e' S46x", `      exit=${g.code}`);
+g = run([...cb("c-ls-escape"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_STALE/.test(g.out) && !/CLOSE_STATUS_NEXT_/.test(g.out), "C52", "close NEGATIVO dichiarato: last_session con escape YAML non e' letto (forma canonica: S45 senza escape); falso STOP voluto", `      exit=${g.code}`);
+g = run([...cb("c-dt-year0"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_DATE/.test(g.out) && !/CLOSE_STATUS_NEXT_/.test(g.out), "C53", "close NEGATIVO: date: 0000-01-01, l'anno zero che Python/PyYAML rifiuta (rilievo Codex giro 7)", `      exit=${g.code}`);
+g = run([...cb("c-dt-escape"), "--session=S45"]);
+chk(g.code === 2 && /CLOSE_STATUS_DATE/.test(g.out) && !/CLOSE_STATUS_NEXT_/.test(g.out), "C54", "close NEGATIVO dichiarato: date con escape YAML non e' letta (forma canonica: 2026-01-02 senza escape); falso STOP voluto", `      exit=${g.code}`);
 
 /* ---------- L9.13 / D-S214-1 (S215): "oggi" = giorno civile in EMPIRE_TZ, non l'ora della macchina ----------
  * TZ1-TZ3: la funzione con istanti FISSI (deterministici a ogni ora): mezzanotte CET e CEST, i due lati dei cambi
@@ -190,7 +273,7 @@ const childTz = (tz, ms) => JSON.parse(execFileSync(process.execPath, ["--input-
 if (!RUNS) { for (const id of ["TZ5", "TZ6"]) skipped(id, "gate reale con fuso macchina agli estremi", "--runs=<dir> non indicata"); }
 else {
   const mk = (date) => { const dz = join(resolve(RUNS), "tz-" + date + "-" + new Date().toISOString().replace(/[:.]/g, "-"));
-    cpSync(CX, dz, { recursive: true }); writeFileSync(join(dz, "c-ok.yaml"), `project: c-ok\nlast_session: S45\ndate: ${date}\n`); return dz; };
+    cpSync(CX, dz, { recursive: true }); writeFileSync(join(dz, "c-ok.yaml"), `project: c-ok\nlast_session: S45\ndate: ${date}\nnext: "S46"\n`); return dz; };
   const runTz = (dz, tz) => { try { return { out: execFileSync(process.execPath, [GATE, `--root=${dz}`, `--index=${join(dz, "idx.yaml")}`, "--slug=c-ok", "--mode=close", "--session=S45"],
       { encoding: "utf8", env: { ...process.env, TZ: tz } }), code: 0 }; } catch (e) { return { out: (e.stdout || "") + (e.stderr || ""), code: e.status }; } };
   /* un giro completo; se fra inizio e fine e' scattata la mezzanotte a Roma, si ripete UNA volta (mai un PASS taciuto) */
