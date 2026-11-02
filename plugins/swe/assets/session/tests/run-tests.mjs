@@ -2,13 +2,14 @@
  * NESSUNA CANCELLAZIONE: gli artefatti restano in --runs=<dir>/<id>, conservata dall'owner.
  * Senza --runs i casi gate sono SKIP dichiarati, mai PASS taciti.
  * uso: node run-tests.mjs --root=<SteelWolf_Empire> [--runs=<dir scrivibile fuori dai repo>] */
-import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync, statSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync, statSync, cpSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, join, resolve } from "node:path";
 import { nextSession } from "../swe-next-session.mjs";
 import { resolveBriefings } from "../briefings.mjs";
+import { todayIn, EMPIRE_TZ } from "../policy.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SESSION_DIR = resolve(HERE, "..");
@@ -134,6 +135,79 @@ g = run([...cb("c-ok-comment"), "--session=S45"]);
 chk(g.code === 0 && /CLOSE PASS S45/.test(g.out), "C12", "close positivo A1-bis: commenti YAML in riga (formato reale di predator.yaml) accettati", `      exit=${g.code}`);
 g = run([...cb("c-ok-bom"), "--session=S45"]);
 chk(g.code === 0 && /CLOSE PASS S45/.test(g.out), "C13", "close positivo A1-bis: file con BOM (Windows PowerShell 5.1) accettato; fixture LF per la regola eol=lf del payload", `      exit=${g.code}`);
+
+/* ---------- L9.13 / D-S214-1 (S215): "oggi" = giorno civile in EMPIRE_TZ, non l'ora della macchina ----------
+ * TZ1-TZ3: la funzione con istanti FISSI (deterministici a ogni ora): mezzanotte CET e CEST, i due lati dei cambi
+ * d'ora (01:00 UTC del 29/03 e del 25/10), fine anno; piu' il "domani" usato da TZ6. TZ4-TZ6: processi figli con il
+ * fuso della macchina agli estremi (UTC-12, UTC, UTC+14), impostato con TZ SOLO nell'ambiente del figlio: l'orologio
+ * NON e' falsificato. Ogni figlio dichiara il proprio scarto da UTC (getTimezoneOffset) e il test lo verifica: se una
+ * piattaforma ignorasse TZ il test FALLISCE, non passa per il motivo sbagliato (rilievo Codex S215, punto 4).
+ * Col vecchio calcolo (getDate locale) TZ6 fallisce a OGNI ora (UTC-12 e UTC+14 distano 26 ore: in ogni istante almeno uno
+ * dei due ha un "oggi" diverso da Roma, quindi o accetta il domani o lo respinge col giorno sbagliato nel messaggio); TZ5
+ * solo fra mezzanotte e le 13:00 di Roma (14:00 con l'ora legale), perche' il vecchio gate respinge solo date successive al
+ * suo "oggi" (rilievo Codex S215, secondo giro). Il gate non legge alcuna variabile per forzare l'ora. */
+const TZX = [["Etc/GMT+12", 720, "UTC-12"], ["UTC", 0, "UTC"], ["Etc/GMT-14", -840, "UTC+14"]];   /* Etc/GMT: segno invertito, nessuna ora legale */
+const nextDay = (ymd) => { const [y, m, d] = ymd.split("-").map(Number); return new Date(Date.UTC(y, m - 1, d + 1)).toISOString().slice(0, 10); };
+const POLICY_URL = JSON.stringify(pathToFileURL(join(SESSION_DIR, "policy.mjs")).href);
+const childTz = (tz, ms) => JSON.parse(execFileSync(process.execPath, ["--input-type=module", "-e",
+  `import { todayIn } from ${POLICY_URL}; const d = new Date(${ms}); console.log(JSON.stringify({ off: d.getTimezoneOffset(), today: todayIn(d) }))`],
+  { encoding: "utf8", env: { ...process.env, TZ: tz } }));
+{
+  const cases = [["2026-10-18T23:30:17Z", "2026-10-19", "caso S214: 01:30 CEST"],
+    ["2026-10-18T21:59:59Z", "2026-10-18", "23:59:59 CEST"], ["2026-10-18T22:00:00Z", "2026-10-19", "00:00:00 CEST"],
+    ["2026-11-01T22:59:59Z", "2026-11-01", "23:59:59 CET"], ["2026-11-01T23:00:00Z", "2026-11-02", "00:00:00 CET"],
+    ["2026-03-29T00:59:59Z", "2026-03-29", "01:59:59 CET, un secondo prima del passaggio all'ora legale"],
+    ["2026-03-29T01:00:00Z", "2026-03-29", "03:00:00 CEST, subito dopo il passaggio"],
+    ["2026-03-28T22:59:59Z", "2026-03-28", "23:59:59 CET del 28/03"], ["2026-03-28T23:00:00Z", "2026-03-29", "00:00:00 CET del 29/03"],
+    ["2026-10-25T00:59:59Z", "2026-10-25", "02:59:59 CEST, un secondo prima del ritorno all'ora solare"],
+    ["2026-10-25T01:00:00Z", "2026-10-25", "02:00:00 CET, subito dopo il ritorno"],
+    ["2026-10-24T21:59:59Z", "2026-10-24", "23:59:59 CEST del 24/10"], ["2026-10-24T22:00:00Z", "2026-10-25", "00:00:00 CEST del 25/10"],
+    ["2026-12-31T22:59:59Z", "2026-12-31", "fine anno, 23:59:59 CET"], ["2026-12-31T23:00:00Z", "2027-01-01", "capodanno, 00:00:00 CET"]];
+  const bad = cases.map(([t, want, why]) => [t, want, todayIn(new Date(t)), why]).filter(([, want, d]) => d !== want);
+  chk(EMPIRE_TZ === "Europe/Rome" && !bad.length, "TZ1", `todayIn: ${cases.length} istanti fissi -> giorno civile di Roma (mezzanotte CET/CEST, i due lati dei cambi d'ora, fine anno)`,
+    bad.length ? bad.map(([t, w, d, why]) => `      ${t} (${why}): atteso ${w}, ottenuto ${d}`).join("\n") : undefined);
+  const nd = [["2026-12-31", "2027-01-01"], ["2026-02-28", "2026-03-01"], ["2028-02-28", "2028-02-29"], ["2026-03-28", "2026-03-29"], ["2026-10-24", "2026-10-25"], ["2026-04-30", "2026-05-01"]];
+  const ndBad = nd.filter(([a, b]) => nextDay(a) !== b);
+  chk(!ndBad.length, "TZ1b", `"domani" dei test (nextDay): ${nd.length} casi (fine anno, febbraio normale e bisestile, notti dei cambi d'ora, fine mese)`,
+    ndBad.length ? ndBad.map(([a, b]) => `      ${a}: atteso ${b}, ottenuto ${nextDay(a)}`).join("\n") : undefined);
+  let e1 = null; try { todayIn(new Date(), "Mars/Base"); } catch (e) { e1 = e; }
+  chk(e1 instanceof RangeError, "TZ2", "todayIn NEGATIVO: fuso inesistente -> errore, nessun ripiego sull'ora della macchina", `      ${e1 ? e1.constructor.name + ": " + e1.message : "nessun errore"}`);
+  const fmt = todayIn();
+  chk(/^\d{4}-\d{2}-\d{2}$/.test(fmt), "TZ3", "todayIn: formato YYYY-MM-DD con cifre latine", `      ${fmt}`);
+  const s0 = Date.now(), w0 = todayIn(new Date(s0));
+  const r4 = TZX.map(([tz, off, lab]) => { const c = childTz(tz, s0); return [lab, off, c, c.off === off && c.today === w0]; });
+  chk(r4.every(x => x[3]), "TZ4", "todayIn indipendente dal fuso della macchina: figli a UTC-12, UTC, UTC+14 (scarto verificato) danno lo stesso giorno di Roma",
+    r4.map(([lab, off, c, ok]) => `      ${lab}: scarto ${c.off} (atteso ${off}), oggi ${c.today} (atteso ${w0})${ok ? "" : "  <-- KO"}`).join("\n"));
+  /* TZ7-TZ8: ambiente Intl degradato SIMULATO con un modulo precaricato (--import data:), sul gate reale e su fixture
+   * statiche in sola lettura. Prova il ramo fail-closed della riga del gate: STOP con exit 2 (non 3, non 0). */
+  const degr = (pre) => { try { return { out: execFileSync(process.execPath, ["--import", "data:text/javascript," + pre, GATE, ...cb("c-ok"), "--session=S45"], { encoding: "utf8" }), code: 0 }; }
+    catch (e) { return { out: (e.stdout || "") + (e.stderr || ""), code: e.status }; } };
+  const g7 = degr("delete Intl.DateTimeFormat");
+  chk(g7.code === 2 && /oggi non calcolabile in Europe\/Rome: .*DateTimeFormat/.test(g7.out), "TZ7", "close NEGATIVO: Intl.DateTimeFormat assente -> STOP exit 2, nessun ripiego", `      exit=${g7.code}`);
+  const g8 = degr('const F=Intl.DateTimeFormat;Intl.DateTimeFormat=function(l,o){const f=new F(l,o);const r=f.resolvedOptions.bind(f);f.resolvedOptions=()=>({...r(),timeZone:"Etc/UTC"});return f}');
+  chk(g8.code === 2 && /risolto come Etc\/UTC/.test(g8.out), "TZ8", "close NEGATIVO: fuso risolto diverso da Europe/Rome (come con dati di fuso ridotti) -> STOP exit 2", `      exit=${g8.code}`);
+}
+if (!RUNS) { for (const id of ["TZ5", "TZ6"]) skipped(id, "gate reale con fuso macchina agli estremi", "--runs=<dir> non indicata"); }
+else {
+  const mk = (date) => { const dz = join(resolve(RUNS), "tz-" + date + "-" + new Date().toISOString().replace(/[:.]/g, "-"));
+    cpSync(CX, dz, { recursive: true }); writeFileSync(join(dz, "c-ok.yaml"), `project: c-ok\nlast_session: S45\ndate: ${date}\n`); return dz; };
+  const runTz = (dz, tz) => { try { return { out: execFileSync(process.execPath, [GATE, `--root=${dz}`, `--index=${join(dz, "idx.yaml")}`, "--slug=c-ok", "--mode=close", "--session=S45"],
+      { encoding: "utf8", env: { ...process.env, TZ: tz } }), code: 0 }; } catch (e) { return { out: (e.stdout || "") + (e.stderr || ""), code: e.status }; } };
+  /* un giro completo; se fra inizio e fine e' scattata la mezzanotte a Roma, si ripete UNA volta (mai un PASS taciuto) */
+  const round = () => {
+    const today = todayIn(), tomorrow = nextDay(today), d5 = mk(today), d6 = mk(tomorrow);
+    const res = TZX.map(([tz, off, lab]) => { const c = childTz(tz, Date.now()); return { lab, off, seen: c.off, r5: runTz(d5, tz), r6: runTz(d6, tz) }; });
+    return { today, tomorrow, d5, d6, res, crossed: todayIn() !== today };
+  };
+  let R = round(); if (R.crossed) { console.log("      mezzanotte di Roma attraversata durante TZ5-TZ6: giro ripetuto"); R = round(); }
+  const offOk = R.res.every(x => x.seen === x.off);
+  const line = (x, r) => `      ${x.lab}: scarto ${x.seen} (atteso ${x.off}), exit=${r.code}`;
+  chk(!R.crossed && offOk && R.res.every(x => x.r5.code === 0 && /CLOSE PASS S45/.test(x.r5.out)), "TZ5",
+    `close positivo: date = oggi a Roma (${R.today}) accettata con la macchina a UTC-12, UTC e UTC+14 (scarto verificato)`, R.res.map(x => line(x, x.r5)).join("\n"));
+  chk(!R.crossed && offOk && R.res.every(x => x.r6.code === 2 && /CLOSE_STATUS_DATE/.test(x.r6.out) && /nel futuro/.test(x.r6.out) && x.r6.out.includes(`(oggi ${R.today})`)), "TZ6",
+    `close NEGATIVO: date = domani a Roma (${R.tomorrow}) rifiutata come futuro, con "oggi ${R.today}" nel messaggio, a UTC-12, UTC e UTC+14`, R.res.map(x => line(x, x.r6)).join("\n"));
+  console.log(`  artefatti TZ conservati: ${R.d5} · ${R.d6}`);
+}
 
 /* R9 (statico): progetto bootstrap senza registro e senza cartella receipts -> CHAIN_WITHOUT_RECEIPTS, exit 0 (F3: prima della policy) */
 {

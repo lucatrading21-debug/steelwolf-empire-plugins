@@ -14,7 +14,7 @@ import { join, dirname, resolve as resolvePath } from "node:path";
 import { createHash } from "node:crypto";
 import { nextSession, headingNumbers } from "./swe-next-session.mjs";
 import { resolveBriefings } from "./briefings.mjs";
-import { resolveProject } from "./policy.mjs";
+import { resolveProject, todayIn, EMPIRE_TZ } from "./policy.mjs";
 const A = (k, d) => { const a = process.argv.find(v => v.startsWith("--" + k + "=")); return a ? a.slice(k.length + 3) : d; };
 const sha = (s) => createHash("sha256").update(s).digest("hex");
 const die = (c, l) => { console.error("SESSION GATE: STOP\n" + l.map(x => "  · " + x).join("\n")); process.exit(c); };
@@ -118,9 +118,11 @@ if (mode === "close") {
   /* A1-bis (S214, DA_PROGETTI §2 b). Causa: il Journal ha chiuso S54, S55 e S56 con _status fermo a S53, perche'
    * il passo roll-up (ADR-029) dipendeva dalla memoria di chi chiude. Il file e' accanto all'index (stessa cartella
    * _status/). Read-only: si legge, non si scrive. Passa solo se last_session = S<n> e se date (YYYY-MM-DD) cade tra
-   * la data dell'intestazione "## <data> ... S<n>" del log e oggi (cosi' una chiusura dopo mezzanotte non e' bloccata). */
+   * la data dell'intestazione "## <data> ... S<n>" del log e oggi (cosi' una chiusura dopo mezzanotte non e' bloccata).
+   * 'Oggi' = giorno civile in EMPIRE_TZ (Europe/Rome), non l'ora della macchina (L9.13 / D-S214-1, S215). */
   const stp = join(dirname(P.indexPath), `${P.slug}.yaml`);
-  const d0 = new Date(), today = `${d0.getFullYear()}-${String(d0.getMonth() + 1).padStart(2, "0")}-${String(d0.getDate()).padStart(2, "0")}`;
+  /* exit 2, non 3: il 3 e' riservato all'uso errato del comando; un ambiente senza dati di fuso e' uno STOP (rilievo Codex S215) */
+  let today; try { today = todayIn(); } catch (e) { die(2, [`oggi non calcolabile in ${EMPIRE_TZ}: ${e.message}`]); }
   if (!existsSync(stp)) bad.push(`[CLOSE_STATUS_MISSING] ${stp} assente: crealo da _TEMPLATE.yaml (ADR-029) con last_session: ${S(n)} e date: ${today}, poi riesegui`);
   else {
     const st = readFileSync(stp, "utf8").replace(/^\uFEFF/, "");   /* PS 5.1 -Encoding UTF8 scrive il BOM */

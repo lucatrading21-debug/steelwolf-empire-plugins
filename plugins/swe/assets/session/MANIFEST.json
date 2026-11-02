@@ -6,8 +6,8 @@
   "briefings.mjs": "69c8a1c6bafffe31200a564b9dc59d59856a00a051579cfa12f4d7fc7a2acdd5",
   "census.mjs": "4182934047bd02648ba434eb994f3519fef5b7ce6738ab05f7233841eb41a8a9",
   "hub-untracked-check.mjs": "6bde2ef9b6255b30b7b2b78fb85358178a673fbf3ca17a3b8e1cffe28224404e",
-  "policy.mjs": "ff5ddcb1d8dcf9f8bfabd44c842d4a04a247bf3a2eb7e68cb97ce24b50a8c1f4",
-  "session-gate.mjs": "f1ca314e5a8ba39f588723109b6f2d656eb999688d49b8a6e2c7ab91f6042807",
+  "policy.mjs": "93ca91b1d41a71e933fc7069f9dc82de09e07694bfdd8a4a85247c6c9348f353",
+  "session-gate.mjs": "437ace687780c727ea81d11eee058bd42d365defd4fe312cb5acbaf15c5defa5",
   "swe-next-session.mjs": "d335b6538f47cc41d203a8aa69812a6de4026e60bf0da2dea6fcdc00e7b2888f",
   "swe-publish.ps1": "e49640bf1db2ea2f813c49dfbc60ab525266c9785666b9b30fd72066e5d28d6d",
   "tests/fixtures/b_S1_prenotata/S1_OPEN.md": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -58,7 +58,7 @@
   "tests/fixtures/root/fixtures-brief/.keep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "tests/fixtures/root/fixtures-repo/reg.md": "fa9e2796dea9d64600b58a8b447641bd9528c38cd539ad42bfddf52324cc1b39",
   "tests/publish/run-publish-tests.ps1": "ef3161b5c07dfa64f4268177f251c8b1ad78f99a4730da1f768fb2103af72be0",
-  "tests/run-tests.mjs": "c747ba513de6ee91fda5f7da34bb5572f9441c92fc6948f3f874ec3fd6571c51",
+  "tests/run-tests.mjs": "647df8bd7753a34bb2a3a0c7fa0f2961171d50c7289b5a9587f5560dbfa75d36",
   "verify-manifest.mjs": "10131be53628f07bb4f19b17fb53eefbd408b3154348c7c857ecf403c17956ab"
  },
  "version": 2
