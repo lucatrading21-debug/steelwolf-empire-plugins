@@ -14,6 +14,49 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
   poteva fallire o cambiare senza alcun commit nel repo. Provato il 19/10: `plugin validate ./plugins/swe --strict` passa con 2.1.289 e con 2.1.303
   (l'ultima). Nessun cambio a plugin o versioni dei plugin.
 
+## [marketplace 1.21.1] - swe 1.19.1 - 2026-11-02
+
+> **S215 (Hub, PREDATOR): il gate di chiusura usa il giorno italiano, non quello della macchina.**
+> Difetto D-S214-1 / voce L9.13 (`hub: EMPIRE_OPEN_ITEMS.md` §0). In S214 il primo uso reale di `--mode=close` ha respinto
+> `_status/predator.yaml` con `date: 2026-10-19` come "nel futuro": in Cowork la VM e' in UTC e all'01:25 CEST per lei era ancora
+> il 18/10. GO owner 02/11. Revisione indipendente Codex `:read-only` (gpt-5.6-sol, sessione 01a19b4e-2345-74b2-b717-73b72b355894):
+> rilievi accolti e corretti in questa stessa versione, uno respinto con prova (sotto).
+
+### Fixed
+- `session-gate --mode=close`: "oggi" per il controllo `CLOSE_STATUS_DATE` (e per il rimedio di `CLOSE_STATUS_MISSING`) e' il giorno
+  civile in `Europe/Rome`, qualunque sia il fuso della macchina. Prima: `getFullYear/getMonth/getDate` dell'ora locale, quindi in
+  Cowork (UTC) dopo mezzanotte italiana, fino all'01:00 con l'ora solare e alle 02:00 con l'ora legale, una chiusura valida veniva
+  respinta. Se il giorno non e' calcolabile il gate si ferma con **exit 2** (STOP, come gli altri problemi di stato e di ambiente;
+  il 3 resta per l'uso errato del comando): mai un ripiego sull'ora della macchina.
+
+### Added
+- `policy.mjs`: `EMPIRE_TZ = "Europe/Rome"` e `todayIn(now, timeZone)` (Intl.DateTimeFormat + `formatToParts`, cifre latine).
+  Fail-closed: fuso non risolto esattamente o risultato non `YYYY-MM-DD` => errore.
+- `tests/run-tests.mjs`, 9 casi:
+  - TZ1: 15 istanti fissi (caso S214; mezzanotte CET e CEST; i due lati dei cambi d'ora, 01:00 UTC del 29/03 e del 25/10; fine anno).
+  - TZ1b: il "domani" usato dai test (fine anno, febbraio normale e bisestile, notti dei cambi d'ora, fine mese).
+  - TZ2-TZ3: fuso inesistente -> errore; formato `YYYY-MM-DD`.
+  - TZ4: processi figli con il fuso della macchina a UTC-12, UTC e UTC+14 danno lo stesso giorno di Roma.
+  - TZ5-TZ6: il gate reale a UTC-12, UTC e UTC+14: oggi a Roma accettato; domani respinto come futuro, con "oggi" giusto nel messaggio.
+  - TZ7-TZ8: ambiente Intl degradato simulato (DateTimeFormat assente; fuso risolto diverso da Europe/Rome): STOP exit 2.
+  Il fuso della macchina si simula impostando `TZ` solo nel processo figlio; l'orologio NON e' falsificato: gate e test leggono
+  l'ora reale. Ogni figlio dichiara il proprio scarto da UTC e il test lo verifica, cosi' una piattaforma che ignorasse `TZ` fa
+  fallire TZ4-TZ6 invece di farli passare (provato). Il gate non accetta alcuna variabile per forzare l'ora.
+  Prova al contrario: col gate 1.19.0 TZ6, TZ7 e TZ8 falliscono a ogni ora; TZ5 solo fra mezzanotte e le 13:00 di Roma (14:00 con
+  l'ora legale), perche' il gate vecchio respinge solo date successive al suo "oggi". Il gate vecchio e' quindi sempre scoperto,
+  grazie a TZ6 (verificato minuto per minuto su tutto il 2026: 0 minuti in cui TZ6 passerebbe).
+
+### Note
+- Intl e non `Temporal`: Temporal e' nativo solo da Node 26; la CI usa Node 22, Cowork e il PC Node 24.
+- Limiti dichiarati (fuori dal modello di fiducia del gate): con dati di fuso (tzdata/ICU) superati `Europe/Rome` viene riconosciuto
+  ma con regole vecchie e il controllo non lo rileva (rischio basso: regole italiane invariate da decenni). Chi controlla l'orologio
+  di sistema o i moduli precaricati di Node (`NODE_OPTIONS`, `--import`) puo' alterare il risultato: e' lo stesso meccanismo che
+  TZ7-TZ8 usano per simulare un ambiente degradato.
+- Rilievo Codex accolto al secondo giro (sessione 01a19b5e-2ab4-7bd1-819a-2b2647e17ead): la prima stesura diceva che anche TZ5
+  falliva a ogni ora col gate vecchio; falso (es. 2026-11-02T13:00Z), vedi la prova sopra.
+- Fuori da questa versione (voce aperta L9.14): `skills/start` e `skills/end` dicono di leggere l'ora con `date`, che in Cowork
+  e' UTC. Fino alla correzione: `TZ=Europe/Rome date`.
+
 ## [marketplace 1.21.0] - swe 1.19.0 - 2026-10-18
 
 > **S214 (Hub, PREDATOR): il file `_status/` dei progetti non si dimentica piu' + niente bypass degli hook git.**

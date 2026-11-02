@@ -7,6 +7,22 @@
 import { readFileSync, existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 export const POLICIES = ["enforce", "bootstrap", "hold-migration"];
+/* L9.13 / D-S214-1 (S215). "Oggi" per i controlli di chiusura e' il giorno civile dell'Empire (Italia), non quello
+ * della macchina: in Cowork la VM e' in UTC e dopo mezzanotte italiana (fino all'01:00 con l'ora solare, alle 02:00 con
+ * l'ora legale) dava ieri, cosi' una chiusura valida veniva respinta come "data nel futuro". Intl e non Temporal:
+ * Temporal e' nativo solo da Node 26, la CI gira su Node 22.
+ * Fail-closed: fuso non risolto esattamente o risultato non YYYY-MM-DD => eccezione, mai un ripiego sull'ora della macchina.
+ * Limite dichiarato: con dati di fuso (tzdata/ICU) superati Europe/Rome viene riconosciuto ma con regole vecchie; il
+ * controllo non lo rileva. Rischio basso (regole italiane invariate da decenni), coperto dai test sugli istanti fissi. */
+export const EMPIRE_TZ = "Europe/Rome";
+export function todayIn(now = new Date(), timeZone = EMPIRE_TZ) {
+  const f = new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit", numberingSystem: "latn" });
+  if (f.resolvedOptions().timeZone !== timeZone) throw new Error(`fuso ${timeZone} risolto come ${f.resolvedOptions().timeZone}`);
+  const p = Object.fromEntries(f.formatToParts(now).map(x => [x.type, x.value]));
+  const d = `${p.year}-${p.month}-${p.day}`;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) throw new Error(`data non calcolabile in ${timeZone}: "${d}"`);
+  return d;
+}
 export function loadProjects(indexPath) {
   const out = []; let cur = null;
   for (const line of readFileSync(indexPath, "utf8").split(/\r?\n/)) {
