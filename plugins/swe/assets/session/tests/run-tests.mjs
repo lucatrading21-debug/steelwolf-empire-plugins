@@ -301,7 +301,7 @@ else {
   chk(g9b.code === 0 && /CHAIN_WITHOUT_RECEIPTS/.test(g9b.out), "R9b", "hold-migration senza ricevute: receipt risponde (informativo) e non applica la policy di apertura", `      exit=${g9b.code}`);
 }
 
-if (!RUNS) { for (const id of ["G1","G2","G3","G4","G5","O1","O2","O3","O4","O5","R1","R2","R3","R4","R5","R6","R7","R8","GP1","GP2","GP3","GP4","GP5","GP6","GP7","GP8","GP9","GP10","GP11","GP12","GP13","GP14","GP15","GP16","GP17","GP18","GP19","GP20","GP21","GP22","GP23","GP24","GP25"]) skipped(id, "caso receipt", "--runs=<dir> non indicata"); }
+if (!RUNS) { for (const id of ["G1","G2","G3","G4","G5","O1","O2","O3","O4","O5","R1","R2","R3","R4","R5","R6","R7","R8","GP1","GP2","GP3","GP4","GP5","GP6","GP7","GP8","GP9","GP10","GP11","GP12","GP13","GP14","GP15","GP16","GP17","GP18","GP19","GP20","GP21","GP22","GP23","GP24","GP25","GP26"]) skipped(id, "caso receipt", "--runs=<dir> non indicata"); }
 else {
   const dir = join(resolve(RUNS), "run-" + new Date().toISOString().replace(/[:.]/g, "-"));
   mkdirSync(join(dir, "repo", "_session", "receipts"), { recursive: true });
@@ -523,6 +523,14 @@ else {
   const g25c = run([...P.a, "--mode=commit", "--session=S46"]);
   g = run([...P.a, "--mode=check"]);
   chk(g25c.code === 2 && /un numero, un receipt/.test(g25c.out) && /p-p_S46_pc-ace\.JSON/.test(g25c.out) && g.code === 0 && /OPEN S46/.test(g.out), "GP25", "GATE-01 (Codex bloccante 3): receipt di apertura con estensione .JSON -> commit lo vede e rifiuta il secondo; check = OPEN", `      commit=${g25c.code} check=${g.code}`);
+  /* GP26: verifica Codex S217 (sessione 01a1e516-01e2-7a51-89bb-cef7f8b87aa0): file S46 introdotto SOLO nella risoluzione
+   * di un merge, albero finale pulito. `git log` senza -m non lo mostra. */
+  P = mkPrep("P26");
+  gitq(P.rp, ["checkout", "-q", "-b", "lato"]); writeFileSync(join(P.rp, "altro.txt"), "x\n"); gitq(P.rp, ["add", "altro.txt"]); gitq(P.rp, ["commit", "-q", "-m", "innocuo"]);
+  gitq(P.rp, ["checkout", "-q", "dev"]); gitq(P.rp, ["merge", "--no-ff", "--no-commit", "-q", "lato"]);
+  writeFileSync(join(P.rp, "brief", "S46-STATO.md"), "stato\n"); gitq(P.rp, ["add", "brief/S46-STATO.md"]); gitq(P.rp, ["commit", "-q", "-m", "merge con lavoro S46"]);
+  g = run([...P.a, "--mode=check"]);
+  chk(g.code === 2 && !/PASS S46/.test(g.out), "GP26", "GATE-01 NEGATIVO (verifica Codex): S46-STATO.md introdotto solo nella risoluzione di un merge -> STOP", `      exit=${g.code}`);
   /* P10 [LIVE] caso reale: ST-Journal all'apertura di S65 (commit d7af1864 = chiusura S64 7c43839c + ricevuta). Clone
    * --shared in --runs: il repo del journal NON viene toccato (oggetti in sola lettura via alternates). */
   if (!existsSync(join(J, ".git"))) { skipped("GP10", "[LIVE] ST-Journal S65", `repo assente: ${J}`); skipped("GP14", "[LIVE] ST-Journal S66 in corso", `repo assente: ${J}`); }

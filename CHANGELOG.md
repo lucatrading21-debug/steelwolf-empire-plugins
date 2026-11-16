@@ -40,8 +40,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
   `session-number` per la sessione proposta (es. `_CLOSE.json`) = `NEXT_ALREADY_RECORDED`, STOP; (2) il lavoro dopo la chiusura si
   cerca in tutta la storia (`git log --no-renames --name-only <chiusura>..HEAD`), non solo fra i due estremi: aggiunto-e-tolto e
   cambiato-e-ripristinato restano visibili; (3) `--mode=commit` riconosce anche `.JSON` (difetto preesistente).
-- `assets/session/tests/run-tests.mjs`: GP1-GP25 (23 sintetici su repo git reali, 2 LIVE sul clone `--shared` del journal: S65 a `d7af1864`
-  = PASS, S66 in corso senza receipt a `37e7f31e` = STOP). 141 PASS / 0 FAIL / 2 SKIP su linux; le 116 prove precedenti, non modificate,
+  Verifica mirata Codex (sessione 01a1e516-01e2-7a51-89bb-cef7f8b87aa0): 1-3 CHIUSI, ma il passaggio a `git log` aveva tolto la
+  vista sui commit di merge (file introdotto solo nella risoluzione di un merge = falso PASS, che il vecchio `git diff` fermava).
+  Ora l'UNIONE dei due controlli: `git log -m` (merge confrontati con ogni genitore) piu' il confronto fra gli estremi; l'unione
+  puo' solo fermare di piu'. Prova GP26 + controprova merge-poi-tolto (STOP).
+- `assets/session/tests/run-tests.mjs`: GP1-GP26 (24 sintetici su repo git reali, 2 LIVE sul clone `--shared` del journal: S65 a `d7af1864`
+  = PASS, S66 in corso senza receipt a `37e7f31e` = STOP). 142 PASS / 0 FAIL / 2 SKIP su linux; le 116 prove precedenti, non modificate,
   passano anche sul gate nuovo con esito identico.
 - `MANIFEST.json`: hash di `session-gate.mjs` e `tests/run-tests.mjs`.
 

@@ -392,9 +392,14 @@ const prepared = (() => {
   if (st === null || st.trim() !== "") return null;
   /* Storia COMPLETA dopo la chiusura, non solo i due estremi (revisione Codex S217, bloccante 2): un file col numero
    * <prossimo> aggiunto e poi tolto, o il briefing cambiato e poi ripristinato, in commit separati, non compare in
-   * `git diff head HEAD` ma resta nella storia. --no-renames: un rinomino si vede come due percorsi. */
-  const changed = out(["log", "--no-renames", "--name-only", "--format=", `${rec.head}..HEAD`, "--", bdir]);
-  if (changed === null) return null;
+   * `git diff head HEAD` ma resta nella storia. --no-renames: un rinomino si vede come due percorsi.
+   * -m: anche i commit di merge, confrontati con ciascun genitore (verifica Codex S217: un file introdotto solo nella
+   * risoluzione di un merge non compare in `git log` senza -m). Piu' il confronto fra gli estremi, che resta: l'UNIONE
+   * dei due controlli puo' solo fermare di piu', mai far passare cio' che uno dei due fermerebbe. */
+  const hist = out(["log", "-m", "--no-renames", "--name-only", "--format=", `${rec.head}..HEAD`, "--", bdir]);
+  const ends = out(["diff", "--no-renames", "--name-only", rec.head, "HEAD", "--", bdir]);
+  if (hist === null || ends === null) return null;
+  const changed = hist + "\n" + ends;
   const numRe = new RegExp("(^|[^0-9])" + String(r.proposed).replace(/[.*+?^${}()|[\]\\-]/g, "\\$&") + "(?![0-9])", "i");
   if (changed.split("\n").map(x => x.trim()).filter(Boolean).some(x => numRe.test(x.split("/").pop()) || numRe.test(x))) return null;
   return { briefing: beyond[0], file: rel, closeReceipt: want, closeHead: rec.head, companions: mates.filter(x => x !== beyond[0]) };
