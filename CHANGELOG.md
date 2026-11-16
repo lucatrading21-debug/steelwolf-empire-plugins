@@ -35,9 +35,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
 - Revisione indipendente (Codex fuori uso fino alle 15:30: revisore Claude Opus a contesto pulito, sola lettura, criterio BLOCCANTE):
   verdetto NO con 2 falsi PASS dimostrati (cartella compagna `S46_*` che nascondeva un mandato aggiunto dopo; receipt di apertura con
   nome non canonico ignorato dal check). Corretti qui, con gli attacchi del revisore rieseguiti (tutti STOP/OPEN) e prove GP15-GP21.
-  Seconda revisione Codex (gpt-5.6-sol, effort medio) prevista prima della fusione.
-- `assets/session/tests/run-tests.mjs`: GP1-GP21 (19 sintetici su repo git reali, 2 LIVE sul clone `--shared` del journal: S65 a `d7af1864`
-  = PASS, S66 in corso senza receipt a `37e7f31e` = STOP). 137 PASS / 0 FAIL / 2 SKIP su linux; le 116 prove precedenti, non modificate,
+  Seconda revisione Codex (gpt-5.6-sol, effort medio, `-c shell_environment_policy.ignore_default_excludes=false`, sessione
+  01a1e4ef-b522-7022-a18b-b0a5c611f51e): verdetto NO con 3 falsi PASS, corretti: (1) una ricevuta di qualunque tipo diverso da
+  `session-number` per la sessione proposta (es. `_CLOSE.json`) = `NEXT_ALREADY_RECORDED`, STOP; (2) il lavoro dopo la chiusura si
+  cerca in tutta la storia (`git log --no-renames --name-only <chiusura>..HEAD`), non solo fra i due estremi: aggiunto-e-tolto e
+  cambiato-e-ripristinato restano visibili; (3) `--mode=commit` riconosce anche `.JSON` (difetto preesistente).
+- `assets/session/tests/run-tests.mjs`: GP1-GP25 (23 sintetici su repo git reali, 2 LIVE sul clone `--shared` del journal: S65 a `d7af1864`
+  = PASS, S66 in corso senza receipt a `37e7f31e` = STOP). 141 PASS / 0 FAIL / 2 SKIP su linux; le 116 prove precedenti, non modificate,
   passano anche sul gate nuovo con esito identico.
 - `MANIFEST.json`: hash di `session-gate.mjs` e `tests/run-tests.mjs`.
 

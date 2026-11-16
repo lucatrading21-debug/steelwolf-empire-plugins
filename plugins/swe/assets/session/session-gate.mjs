@@ -390,7 +390,10 @@ const prepared = (() => {
   }
   const st = out(["status", "--porcelain", "--untracked-files=all", "--", bdir]);
   if (st === null || st.trim() !== "") return null;
-  const changed = out(["diff", "--name-only", rec.head, "HEAD", "--", bdir]);
+  /* Storia COMPLETA dopo la chiusura, non solo i due estremi (revisione Codex S217, bloccante 2): un file col numero
+   * <prossimo> aggiunto e poi tolto, o il briefing cambiato e poi ripristinato, in commit separati, non compare in
+   * `git diff head HEAD` ma resta nella storia. --no-renames: un rinomino si vede come due percorsi. */
+  const changed = out(["log", "--no-renames", "--name-only", "--format=", `${rec.head}..HEAD`, "--", bdir]);
   if (changed === null) return null;
   const numRe = new RegExp("(^|[^0-9])" + String(r.proposed).replace(/[.*+?^${}()|[\]\\-]/g, "\\$&") + "(?![0-9])", "i");
   if (changed.split("\n").map(x => x.trim()).filter(Boolean).some(x => numRe.test(x.split("/").pop()) || numRe.test(x))) return null;
@@ -443,7 +446,12 @@ if (prepared && mode === "check") {
   for (const f of (existsSync(odir) ? readdirSync(odir) : [])) {
     if (!f.toLowerCase().endsWith(".json")) continue;
     let e; try { e = JSON.parse(readFileSync(join(odir, f), "utf8")); } catch { die(2, [`[OPEN_RECEIPT_UNREADABLE] ${f}: JSON illeggibile nella cartella receipts; non posso escludere che ${r.next} sia gia' aperta. Decide l'owner.`]); }
-    if (e && e.project === P.slug && e.session === r.next && e.kind !== "session-close") { if (orp) die(2, [`[OPEN_RECEIPT_INCOHERENT] ${r.next}: piu' receipt di apertura (${orp.split(/[\\/]/).pop()}, ${f}). Decide l'owner.`]); orp = join(odir, f); }
+    if (!e || e.project !== P.slug || e.session !== r.next) continue;
+    /* revisione Codex S217, bloccante 1: una ricevuta di CHIUSURA (o di qualunque altro tipo) della sessione proposta
+     * dimostra che quella sessione e' gia' esistita: mai PASS, mai OPEN. */
+    if (e.kind !== "session-number") die(2, [`[NEXT_ALREADY_RECORDED] ${r.next}: in ${f} c'e' una ricevuta di tipo "${e.kind}" per la sessione proposta: ${r.next} risulta gia' esistita. Nessuna apertura: decide l'owner.`]);
+    if (orp) die(2, [`[OPEN_RECEIPT_INCOHERENT] ${r.next}: piu' receipt di apertura (${orp.split(/[\\/]/).pop()}, ${f}). Decide l'owner.`]);
+    orp = join(odir, f);
   }
   if (orp) {
     let rec = null; try { rec = JSON.parse(readFileSync(orp, "utf8")); } catch { rec = null; }
@@ -466,7 +474,7 @@ if (!existsSync(dir)) die(2, [`cartella receipts assente: ${dir} — creala prim
 const given = A("receipt", null);
 if (given && resolvePath(given) !== out) die(3, [`--receipt="${given}" non e' il percorso canonico. Il gate scrive SOLO in ${out}`]);
 for (const f of readdirSync(dir)) {
-  if (!f.endsWith(".json")) continue;
+  if (!f.toLowerCase().endsWith(".json")) continue;   /* .JSON incluso (revisione Codex S217, bloccante 3) */
   let e; try { e = JSON.parse(readFileSync(join(dir, f), "utf8")); } catch { continue; }
   if (e.project === P.slug && e.session === r.next)
     die(2, [`esiste gia un receipt per ${P.slug}/${r.next}: ${f} — un numero, un receipt. Rimuoverlo e' decisione owner.`]);

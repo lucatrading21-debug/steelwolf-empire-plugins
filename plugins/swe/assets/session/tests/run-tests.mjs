@@ -301,7 +301,7 @@ else {
   chk(g9b.code === 0 && /CHAIN_WITHOUT_RECEIPTS/.test(g9b.out), "R9b", "hold-migration senza ricevute: receipt risponde (informativo) e non applica la policy di apertura", `      exit=${g9b.code}`);
 }
 
-if (!RUNS) { for (const id of ["G1","G2","G3","G4","G5","O1","O2","O3","O4","O5","R1","R2","R3","R4","R5","R6","R7","R8","GP1","GP2","GP3","GP4","GP5","GP6","GP7","GP8","GP9","GP10","GP11","GP12","GP13","GP14","GP15","GP16","GP17","GP18","GP19","GP20","GP21"]) skipped(id, "caso receipt", "--runs=<dir> non indicata"); }
+if (!RUNS) { for (const id of ["G1","G2","G3","G4","G5","O1","O2","O3","O4","O5","R1","R2","R3","R4","R5","R6","R7","R8","GP1","GP2","GP3","GP4","GP5","GP6","GP7","GP8","GP9","GP10","GP11","GP12","GP13","GP14","GP15","GP16","GP17","GP18","GP19","GP20","GP21","GP22","GP23","GP24","GP25"]) skipped(id, "caso receipt", "--runs=<dir> non indicata"); }
 else {
   const dir = join(resolve(RUNS), "run-" + new Date().toISOString().replace(/[:.]/g, "-"));
   mkdirSync(join(dir, "repo", "_session", "receipts"), { recursive: true });
@@ -505,6 +505,24 @@ else {
   P = mkPrep("P21"); g = run([...P.a, "--mode=commit", "--session=S46"]); writeFileSync(join(P.rp, "brief", "S46_CODE_x_mandato.md"), "m\n");
   g = run([...P.a, "--mode=check"]);
   chk(g.code === 2 && !/PASS S46/.test(g.out), "GP21", "GATE-01 (rev. S217 non bloccante 2, documentato): S46 aperta con receipt e poi un mandato -> STOP prudente, non OPEN e mai PASS", `      exit=${g.code}`);
+  /* GP22-GP25: revisione Codex S217 (gpt-5.6-sol medio, sessione 01a1e4ef-b522-7022-a18b-b0a5c611f51e), 3 bloccanti */
+  P = mkPrep("P22"); writeFileSync(join(P.rp, "_session", "receipts", "p-p_S46_CLOSE.json"), JSON.stringify({ kind: "session-close", project: "p-p", session: "S46" }));
+  g = run([...P.a, "--mode=check"]);
+  chk(g.code === 2 && /NEXT_ALREADY_RECORDED/.test(g.out) && !/PASS S46/.test(g.out), "GP22", "GATE-01 NEGATIVO (Codex bloccante 1): ricevuta di CHIUSURA della sessione proposta presente -> STOP, mai PASS", `      exit=${g.code}`);
+  P = mkPrep("P23"); writeFileSync(join(P.rp, "brief", "S46_CODE_x.md"), "m\n"); gitq(P.rp, ["add", "brief/S46_CODE_x.md"]); gitq(P.rp, ["commit", "-q", "-m", "mandato S46"]);
+  gitq(P.rp, ["rm", "-q", "brief/S46_CODE_x.md"]); gitq(P.rp, ["commit", "-q", "-m", "tolto"]);
+  g = run([...P.a, "--mode=check"]);
+  chk(g.code === 2 && !/PASS S46/.test(g.out), "GP23", "GATE-01 NEGATIVO (Codex bloccante 2): mandato S46 aggiunto e poi tolto in due commit (estremi identici) -> la storia lo vede -> STOP", `      exit=${g.code}`);
+  P = mkPrep("P24"); const orig24 = readFileSync(join(P.rp, "brief", "S46_OPEN.md"));
+  writeFileSync(join(P.rp, "brief", "S46_OPEN.md"), "# lavoro S46\n"); gitq(P.rp, ["commit", "-q", "-am", "S46 cominciata"]);
+  writeFileSync(join(P.rp, "brief", "S46_OPEN.md"), orig24); gitq(P.rp, ["commit", "-q", "-am", "ripristinato"]);
+  g = run([...P.a, "--mode=check"]);
+  chk(g.code === 2 && !/PASS S46/.test(g.out), "GP24", "GATE-01 NEGATIVO (Codex bloccante 2): briefing S46 cambiato e poi ripristinato identico -> la storia lo vede -> STOP", `      exit=${g.code}`);
+  P = mkPrep("P25"); g = run([...P.a, "--mode=commit", "--session=S46"]);
+  { const rd = join(P.rp, "_session", "receipts"); writeFileSync(join(rd, "p-p_S46_pc-ace.JSON"), readFileSync(join(rd, "p-p_S46.json"))); execFileSync(process.execPath, ["-e", `require("fs").unlinkSync(${JSON.stringify(join(rd, "p-p_S46.json"))})`]); }
+  const g25c = run([...P.a, "--mode=commit", "--session=S46"]);
+  g = run([...P.a, "--mode=check"]);
+  chk(g25c.code === 2 && /un numero, un receipt/.test(g25c.out) && /p-p_S46_pc-ace\.JSON/.test(g25c.out) && g.code === 0 && /OPEN S46/.test(g.out), "GP25", "GATE-01 (Codex bloccante 3): receipt di apertura con estensione .JSON -> commit lo vede e rifiuta il secondo; check = OPEN", `      commit=${g25c.code} check=${g.code}`);
   /* P10 [LIVE] caso reale: ST-Journal all'apertura di S65 (commit d7af1864 = chiusura S64 7c43839c + ricevuta). Clone
    * --shared in --runs: il repo del journal NON viene toccato (oggetti in sola lettura via alternates). */
   if (!existsSync(join(J, ".git"))) { skipped("GP10", "[LIVE] ST-Journal S65", `repo assente: ${J}`); skipped("GP14", "[LIVE] ST-Journal S66 in corso", `repo assente: ${J}`); }
