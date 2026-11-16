@@ -14,6 +14,41 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) • [Semantic V
   poteva fallire o cambiare senza alcun commit nel repo. Provato il 19/10: `plugin validate ./plugins/swe --strict` passa con 2.1.289 e con 2.1.303
   (l'ultima). Nessun cambio a plugin o versioni dei plugin.
 
+## [marketplace 1.22.1] - swe 1.20.1 - 2026-11-16
+
+> **S217 (Hub, PREDATOR): GATE-01 — il briefing di apertura preparato dalla chiusura non prenota piu' la sessione.**
+> Origine: `hub: SESSION_BRIEFINGS/DA_PROGETTI_steelwolf-trading-journal_2026-11-12_sessioni_parallele_e_gate.md` §2. GO owner 16/11.
+> Il contratto CARD fa scrivere a `swe:end`/`cycle` il `S<n+1>_OPEN.md` (con `swe-model`) dentro il commit di chiusura; `--mode=check`
+> lo contava come prenotazione e ogni apertura di quella catena finiva in `SESSION_ALREADY_BOOKED` + `BRIEFINGS_REGISTRY_MISMATCH`
+> (ST-Journal, quattro aperture di fila). Riprodotto sul caso reale S65 (journal `d7af1864`) prima della correzione.
+
+### Changed
+- `assets/session/session-gate.mjs`: un `S<n+1>_OPEN.md` e' **preparato** (non prenota) solo se, tutte insieme: gli unici blocchi sono
+  `SESSION_ALREADY_BOOKED`/`BRIEFINGS_REGISTRY_MISMATCH` con registro OCCUPATO = CHIUSA; e' l'unico briefing oltre l'occupato; la ricevuta
+  `<slug>_<chiusa>_CLOSE.json` lo elenca in `files`; il commit di chiusura e' nella storia locale e **ogni** file `S<n+1>_*` della cartella
+  briefing e' un FILE tracciato, presente in quel commit e identico ad esso; nella cartella briefing nulla di non tracciato o modificato
+  (sottocartelle comprese) e nessun file col numero `S<n+1>` aggiunto o cambiato dopo la chiusura. Qualunque segno di lavoro dopo la
+  chiusura (mandati, stato, cartelle) = sessione gia' cominciata = STOP come prima. In `check`, preparato + receipt di apertura coerente
+  (cercato con la stessa scansione di `commit`, qualunque nome) = `OPEN S<n+1>`; receipt incoerente o duplicato = `OPEN_RECEIPT_INCOHERENT`,
+  JSON illeggibile = `OPEN_RECEIPT_UNREADABLE` (STOP). Nessun altro comportamento cambia: un briefing scritto a mano prima del gate resta
+  STOP (JT-D, O3).
+- Revisione indipendente (Codex fuori uso fino alle 15:30: revisore Claude Opus a contesto pulito, sola lettura, criterio BLOCCANTE):
+  verdetto NO con 2 falsi PASS dimostrati (cartella compagna `S46_*` che nascondeva un mandato aggiunto dopo; receipt di apertura con
+  nome non canonico ignorato dal check). Corretti qui, con gli attacchi del revisore rieseguiti (tutti STOP/OPEN) e prove GP15-GP21.
+  Seconda revisione Codex (gpt-5.6-sol, effort medio, `-c shell_environment_policy.ignore_default_excludes=false`, sessione
+  01a1e4ef-b522-7022-a18b-b0a5c611f51e): verdetto NO con 3 falsi PASS, corretti: (1) una ricevuta di qualunque tipo diverso da
+  `session-number` per la sessione proposta (es. `_CLOSE.json`) = `NEXT_ALREADY_RECORDED`, STOP; (2) il lavoro dopo la chiusura si
+  cerca in tutta la storia (`git log --no-renames --name-only <chiusura>..HEAD`), non solo fra i due estremi: aggiunto-e-tolto e
+  cambiato-e-ripristinato restano visibili; (3) `--mode=commit` riconosce anche `.JSON` (difetto preesistente).
+  Verifica mirata Codex (sessione 01a1e516-01e2-7a51-89bb-cef7f8b87aa0): 1-3 CHIUSI, ma il passaggio a `git log` aveva tolto la
+  vista sui commit di merge (file introdotto solo nella risoluzione di un merge = falso PASS, che il vecchio `git diff` fermava).
+  Ora l'UNIONE dei due controlli: `git log -m` (merge confrontati con ogni genitore) piu' il confronto fra gli estremi; l'unione
+  puo' solo fermare di piu'. Prova GP26 + controprova merge-poi-tolto (STOP).
+- `assets/session/tests/run-tests.mjs`: GP1-GP26 (24 sintetici su repo git reali, 2 LIVE sul clone `--shared` del journal: S65 a `d7af1864`
+  = PASS, S66 in corso senza receipt a `37e7f31e` = STOP). 142 PASS / 0 FAIL / 2 SKIP su linux; le 116 prove precedenti, non modificate,
+  passano anche sul gate nuovo con esito identico.
+- `MANIFEST.json`: hash di `session-gate.mjs` e `tests/run-tests.mjs`.
+
 ## [marketplace 1.22.0] - swe 1.20.0 - 2026-11-02
 
 > **S215 (Hub, PREDATOR): il gate di chiusura controlla anche il campo `next` del file `_status`.**

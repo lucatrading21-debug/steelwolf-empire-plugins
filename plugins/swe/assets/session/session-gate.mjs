@@ -2,6 +2,7 @@
 /* session-gate — ENTRYPOINT UNICO. Legge index + slug, applica la policy, esegue il gate.
  * L'istanza passa root e slug: non risolve percorsi, non sceglie la policy, non compone la decisione.
  *   --mode=check   PRE-CARD, read-only assoluto (a sessione gia aperta con prova: OPEN S<n>, S209)
+ *                  briefing S<n>_OPEN.md PREPARATO dalla chiusura di S<n-1> e pubblicato con essa = non prenota (GATE-01, S217)
  *   --mode=commit  POST-CONFERMA, receipt esclusivo
  *   --mode=verify  ricontrollo del receipt (identita completa + rilettura)
  *   --mode=close   IN CHIUSURA, read-only: prova che il registro dichiara S<n> chiusa (S209, D13)
@@ -9,9 +10,9 @@
  *                  + il suo campo `next` cita S<n+1> (S215, A3 / L9.17)
  *   --mode=receipt PRE-CARD, read-only: ricevuta di pubblicazione dell'ULTIMA SESSIONE CHIUSA (S211, D13 Empire-wide)
  * exit 0 PASS · 2 STOP · 3 uso errato. (c) 2026 Luke SteelWolf. */
-import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, readdirSync, statSync } from "node:fs";
 import { execFileSync } from "node:child_process";
-import { join, dirname, resolve as resolvePath } from "node:path";
+import { join, dirname, resolve as resolvePath, relative } from "node:path";
 import { createHash } from "node:crypto";
 import { nextSession, headingNumbers } from "./swe-next-session.mjs";
 import { resolveBriefings } from "./briefings.mjs";
@@ -338,7 +339,72 @@ if (mode === "close") {
   console.log(`SESSION GATE: CLOSE PASS ${S(n)} — ${P.slug} (policy ${P.gate}, mode=close READ-ONLY: nessun file creato o modificato)`);
   console.log(JSON.stringify({ ...ident, closed: S(n), next: S(n + 1), source: c.source })); process.exit(0);
 }
-const r = nextSession(text, { prefix: P.prefix, requested: session, briefings: br, registryExists: exists, bootstrap: P.bootstrap });
+let r = nextSession(text, { prefix: P.prefix, requested: session, briefings: br, registryExists: exists, bootstrap: P.bootstrap });
+const OPEN_OK = new Set(["SESSION_ALREADY_BOOKED", "BRIEFINGS_REGISTRY_MISMATCH"]);
+/* GATE-01 (S217, da DA_PROGETTI ST-Journal 12/11). Il contratto CARD fa scrivere a swe:end/cycle il briefing della
+ * sessione SUCCESSIVA (S<n>_OPEN.md, con il modello swe-model) dentro il commit di chiusura; qui quel file contava
+ * come "prenotazione" e ogni apertura normale di quella catena finiva in STOP (misurato: ST-Journal S62-S65; caso
+ * reale S65 riprodotto dal commit d7af1864). Distinzione MECCANICA, mai per contenuto o per nome:
+ * il file e' PREPARATO (non prenota) solo se TUTTE insieme
+ *   1. gli unici blocchi sono ALREADY_BOOKED / REGISTRY_MISMATCH, e il registro dichiara OCCUPATO = CHIUSA;
+ *   2. e' l'UNICO briefing S<k>_(OPEN|CLOSE).md oltre l'occupato ed e' esattamente <prossimo>_OPEN.md;
+ *   3. la ricevuta di chiusura <slug>_<chiusa>_CLOSE.json (session-close, stesso progetto e numero) lo elenca in "files";
+ *   4. git (read-only, senza lock): il commit di chiusura (head della ricevuta) e' nella storia locale, e OGNI voce
+ *      <prossimo>_* della cartella briefing (il briefing E i suoi compagni, es. S65_OPEN_regia_opus.md) e' un FILE
+ *      tracciato, presente in quel commit e identico ad esso (una cartella compagna = STOP: nasconderebbe file nuovi);
+ *   5. la cartella briefing non ha NULLA di non tracciato o modificato (sottocartelle comprese), e nessun file il cui nome
+ *      contiene il numero <prossimo> (S66_x, S66-STATO, mandati/S66_y) e' stato aggiunto o cambiato dopo il commit di chiusura.
+ *   Un solo segno di lavoro dopo la chiusura = la sessione e' gia' cominciata senza receipt -> STOP (misurato: ST-Journal
+ *   S66 @ 37e7f31e; revisione indipendente S217: cartella compagna, nomi col trattino, sottocartelle).
+ * Qualunque condizione mancante, o git non eseguibile: il caso resta quello di prima (STOP). Un briefing scritto a mano
+ * prima del gate continua a bloccare (JT-D, O3). La prenotazione vera resta UNA: il receipt di apertura del gate. */
+const prepared = (() => {
+  if (r.status === "OK" || !r.proposed || !r.lastOccupied || r.lastClosed !== r.lastOccupied || !br.exists) return null;
+  if (!r.codes.length || !r.codes.every(c => OPEN_OK.has(c))) return null;
+  const esc = P.prefix.replace(/[.*+?^${}()|[\]\\-]/g, "\\$&");
+  const occ = parseInt(String(r.lastOccupied).slice(P.prefix.length), 10);
+  const re = new RegExp("^" + esc + "(\\d+)_(OPEN|CLOSE)\\.md$", "i");
+  const beyond = br.names.filter(x => { const m = x.match(re); return m && parseInt(m[1], 10) > occ; });
+  if (beyond.length !== 1 || beyond[0] !== `${r.proposed}_OPEN.md`) return null;
+  const rel = relative(P.repoPath, join(P.briefings, beyond[0])).split("\\").join("/");
+  if (!rel || rel.startsWith("../") || rel === ".." || /^[a-zA-Z]:/.test(rel) || rel.startsWith("/")) return null;
+  const rdir = join(P.repoPath, "_session", "receipts");
+  const want = `${P.slug}_${r.lastClosed}_CLOSE.json`;
+  if (!existsSync(join(rdir, want))) return null;
+  let rec; try { rec = JSON.parse(readFileSync(join(rdir, want), "utf8")); } catch { return null; }
+  if (!rec || rec.kind !== "session-close" || rec.project !== P.slug || rec.session !== r.lastClosed) return null;
+  if (!/^[0-9a-f]{40}$/.test(String(rec.head || "")) || !Array.isArray(rec.files) || !rec.files.includes(rel)) return null;
+  const env = { ...process.env, GIT_OPTIONAL_LOCKS: "0" };
+  const ok = (args) => { try { execFileSync("git", ["-C", P.repoPath, ...args], { stdio: "ignore", env }); return true; } catch { return false; } };
+  if (!ok(["merge-base", "--is-ancestor", rec.head, "HEAD"])) return null;
+  const out = (args) => { try { return execFileSync("git", ["-C", P.repoPath, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], env }); } catch { return null; } };
+  const bdir = relative(P.repoPath, P.briefings).split("\\").join("/") || ".";
+  const pfx = `${r.proposed}_`.toLowerCase();
+  const mates = br.names.filter(x => x.toLowerCase().startsWith(pfx));
+  for (const x of mates) {
+    try { if (!statSync(join(P.briefings, x)).isFile()) return null; } catch { return null; }
+    const rx = relative(P.repoPath, join(P.briefings, x)).split("\\").join("/");
+    if (!ok(["ls-files", "--error-unmatch", "--", rx])) return null;
+    if (!ok(["cat-file", "-e", `${rec.head}:${rx}`])) return null;
+    if (!ok(["diff", "--quiet", rec.head, "--", rx])) return null;
+  }
+  const st = out(["status", "--porcelain", "--untracked-files=all", "--", bdir]);
+  if (st === null || st.trim() !== "") return null;
+  /* Storia COMPLETA dopo la chiusura, non solo i due estremi (revisione Codex S217, bloccante 2): un file col numero
+   * <prossimo> aggiunto e poi tolto, o il briefing cambiato e poi ripristinato, in commit separati, non compare in
+   * `git diff head HEAD` ma resta nella storia. --no-renames: un rinomino si vede come due percorsi.
+   * -m: anche i commit di merge, confrontati con ciascun genitore (verifica Codex S217: un file introdotto solo nella
+   * risoluzione di un merge non compare in `git log` senza -m). Piu' il confronto fra gli estremi, che resta: l'UNIONE
+   * dei due controlli puo' solo fermare di piu', mai far passare cio' che uno dei due fermerebbe. */
+  const hist = out(["log", "-m", "--no-renames", "--name-only", "--format=", `${rec.head}..HEAD`, "--", bdir]);
+  const ends = out(["diff", "--no-renames", "--name-only", rec.head, "HEAD", "--", bdir]);
+  if (hist === null || ends === null) return null;
+  const changed = hist + "\n" + ends;
+  const numRe = new RegExp("(^|[^0-9])" + String(r.proposed).replace(/[.*+?^${}()|[\]\\-]/g, "\\$&") + "(?![0-9])", "i");
+  if (changed.split("\n").map(x => x.trim()).filter(Boolean).some(x => numRe.test(x.split("/").pop()) || numRe.test(x))) return null;
+  return { briefing: beyond[0], file: rel, closeReceipt: want, closeHead: rec.head, companions: mates.filter(x => x !== beyond[0]) };
+})();
+if (prepared) r = { ...r, status: "OK", next: r.proposed, codes: [], blockers: [] };
 
 if (mode === "verify") {
   const rp = A("receipt"); if (!rp) die(3, ["--receipt mancante in verify"]);
@@ -356,7 +422,6 @@ if (mode === "verify") {
  * esiste ed e' coerente: stessa identita', stesso registro, e impronta briefing = quella di PRIMA del
  * briefing (il receipt certifica lo stato pre-booking). Qualunque altro caso resta STOP come prima.
  * Non e' un via libera: la sessione e' GIA aperta, nessuna nuova apertura. */
-const OPEN_OK = new Set(["SESSION_ALREADY_BOOKED", "BRIEFINGS_REGISTRY_MISMATCH"]);
 if (mode === "check" && r.status !== "OK" && r.proposed && r.lastOccupied && r.codes.every(c => OPEN_OK.has(c)) && br.exists) {
   const esc = P.prefix.replace(/[.*+?^${}()|[\]\\-]/g, "\\$&");
   const occ = parseInt(String(r.lastOccupied).slice(P.prefix.length), 10);
@@ -375,9 +440,36 @@ if (mode === "check" && r.status !== "OK" && r.proposed && r.lastOccupied && r.c
   }
 }
 if (r.status !== "OK") die(2, r.blockers.map(b => `[${b.code}] ${b.message}`));
+/* GATE-01: briefing preparato + receipt di apertura gia' scritto = la sessione e' GIA' APERTA. Mai PASS due volte.
+ * Coerenza = stessa identita' e stesso registro (l'impronta dei briefing cambia legittimamente durante la sessione:
+ * mandati, handoff). Receipt presente ma incoerente = STOP: decide l'owner. */
+if (prepared && mode === "check") {
+  /* Stessa scansione di --mode=commit: QUALUNQUE *.json con lo stesso progetto e sessione (nome non canonico, copia
+   * di conflitto del sync, receipt pre-S204). Un JSON illeggibile nella cartella = STOP: non si puo' escludere. */
+  const odir = join(P.repoPath, "_session", "receipts");
+  let orp = null;
+  for (const f of (existsSync(odir) ? readdirSync(odir) : [])) {
+    if (!f.toLowerCase().endsWith(".json")) continue;
+    let e; try { e = JSON.parse(readFileSync(join(odir, f), "utf8")); } catch { die(2, [`[OPEN_RECEIPT_UNREADABLE] ${f}: JSON illeggibile nella cartella receipts; non posso escludere che ${r.next} sia gia' aperta. Decide l'owner.`]); }
+    if (!e || e.project !== P.slug || e.session !== r.next) continue;
+    /* revisione Codex S217, bloccante 1: una ricevuta di CHIUSURA (o di qualunque altro tipo) della sessione proposta
+     * dimostra che quella sessione e' gia' esistita: mai PASS, mai OPEN. */
+    if (e.kind !== "session-number") die(2, [`[NEXT_ALREADY_RECORDED] ${r.next}: in ${f} c'e' una ricevuta di tipo "${e.kind}" per la sessione proposta: ${r.next} risulta gia' esistita. Nessuna apertura: decide l'owner.`]);
+    if (orp) die(2, [`[OPEN_RECEIPT_INCOHERENT] ${r.next}: piu' receipt di apertura (${orp.split(/[\\/]/).pop()}, ${f}). Decide l'owner.`]);
+    orp = join(odir, f);
+  }
+  if (orp) {
+    let rec = null; try { rec = JSON.parse(readFileSync(orp, "utf8")); } catch { rec = null; }
+    const same = rec && rec.kind === "session-number" &&
+      ["project", "prefix", "session", "policy", "bootstrap", "registryPath", "briefingsPath", "registrySha256"].every(k => rec[k] === ident[k]);
+    if (!same) die(2, [`[OPEN_RECEIPT_INCOHERENT] ${r.next}: briefing preparato dalla chiusura, ma il receipt di apertura ${orp} esiste e non e' coerente (identita' o registro diversi). Nessuna nuova apertura: decide l'owner.`]);
+    console.log(`SESSION GATE: OPEN ${r.next} — ${P.slug} (sessione GIA APERTA: ${prepared.briefing} preparato dalla chiusura + receipt di apertura coerente; informativo, mode=check READ-ONLY, NESSUNA nuova apertura)`);
+    console.log(JSON.stringify({ ...ident, status: "open", session: r.next, receipt: orp, prepared, source: r.source })); process.exit(0);
+  }
+}
 if (mode === "check") {
-  console.log(`SESSION GATE: PASS ${r.next} — ${P.slug} (policy ${P.gate}, mode=check READ-ONLY: nessun file creato o modificato)`);
-  console.log(JSON.stringify({ ...ident, session: r.next, source: r.source })); process.exit(0);
+  console.log(`SESSION GATE: PASS ${r.next} — ${P.slug} (policy ${P.gate}, mode=check READ-ONLY: nessun file creato o modificato)${prepared ? `\n  briefing ${prepared.briefing} PREPARATO dalla chiusura (${prepared.closeReceipt}, ${prepared.closeHead.slice(0, 7)}): non prenota; si apre con il suo modello` : ""}`);
+  console.log(JSON.stringify({ ...ident, session: r.next, source: r.source, ...(prepared ? { prepared } : {}) })); process.exit(0);
 }
 /* Il percorso del receipt lo DERIVA il gate: accettarlo dal chiamante permetteva N receipt
  * validi e concorrenti per lo stesso numero, su path diversi (misurato in S204). */
@@ -387,7 +479,7 @@ if (!existsSync(dir)) die(2, [`cartella receipts assente: ${dir} — creala prim
 const given = A("receipt", null);
 if (given && resolvePath(given) !== out) die(3, [`--receipt="${given}" non e' il percorso canonico. Il gate scrive SOLO in ${out}`]);
 for (const f of readdirSync(dir)) {
-  if (!f.endsWith(".json")) continue;
+  if (!f.toLowerCase().endsWith(".json")) continue;   /* .JSON incluso (revisione Codex S217, bloccante 3) */
   let e; try { e = JSON.parse(readFileSync(join(dir, f), "utf8")); } catch { continue; }
   if (e.project === P.slug && e.session === r.next)
     die(2, [`esiste gia un receipt per ${P.slug}/${r.next}: ${f} — un numero, un receipt. Rimuoverlo e' decisione owner.`]);

@@ -301,7 +301,7 @@ else {
   chk(g9b.code === 0 && /CHAIN_WITHOUT_RECEIPTS/.test(g9b.out), "R9b", "hold-migration senza ricevute: receipt risponde (informativo) e non applica la policy di apertura", `      exit=${g9b.code}`);
 }
 
-if (!RUNS) { for (const id of ["G1","G2","G3","G4","G5","O1","O2","O3","O4","O5","R1","R2","R3","R4","R5","R6","R7","R8"]) skipped(id, "caso receipt", "--runs=<dir> non indicata"); }
+if (!RUNS) { for (const id of ["G1","G2","G3","G4","G5","O1","O2","O3","O4","O5","R1","R2","R3","R4","R5","R6","R7","R8","GP1","GP2","GP3","GP4","GP5","GP6","GP7","GP8","GP9","GP10","GP11","GP12","GP13","GP14","GP15","GP16","GP17","GP18","GP19","GP20","GP21","GP22","GP23","GP24","GP25","GP26"]) skipped(id, "caso receipt", "--runs=<dir> non indicata"); }
 else {
   const dir = join(resolve(RUNS), "run-" + new Date().toISOString().replace(/[:.]/g, "-"));
   mkdirSync(join(dir, "repo", "_session", "receipts"), { recursive: true });
@@ -415,6 +415,146 @@ else {
   g = rr(dR, "p-r");
   chk(g.code === 2 && /NOT_PULLED S45/.test(g.out) && /pull-first/.test(g.out), "R8", "receipt NEGATIVO: chiusura pubblicata ma non nella storia locale -> NOT_PULLED (rimedio pull, non ripubblicare)", `      exit=${g.code}`);
   console.log(`  artefatti receipt conservati sotto: ${resolve(RUNS)}/rcpt-*`);
+
+  /* ---------- GATE-01 (S217): briefing S<n>_OPEN.md PREPARATO dalla chiusura di S<n-1> ----------
+   * Repo git REALI con i briefing DENTRO il repo (come Hub e Journal). Il registro dichiara S45 occupata e chiusa. */
+  const IDXP = (slug) => `projects:\n  - slug: ${slug}\n    repo: repo\n    session_log: reg.md\n    briefings: repo/brief\n    session_prefix: ""\n    branch: dev\n    swe_writes: true\n    session_gate: enforce\n`;
+  /* mkPrep: chiusura S45 = commit con reg.md + brief/S46_OPEN.md (+ extra); ricevuta di chiusura che elenca `files` */
+  const mkPrep = (tag, { files = ["reg.md", "brief/S46_OPEN.md"], extra = [], session = "S45", headOverride = null } = {}) => {
+    const d = join(resolve(RUNS), "prep-" + tag + "-" + stamp()), rp = join(d, "repo");
+    mkdirSync(join(rp, "_session", "receipts"), { recursive: true }); mkdirSync(join(rp, "brief"), { recursive: true });
+    writeFileSync(join(d, "idx.yaml"), IDXP("p-p"));
+    gitq(rp, ["init", "-q", "-b", "dev"]);
+    writeFileSync(join(rp, "reg.md"), REG("S"));
+    writeFileSync(join(rp, "brief", "S46_OPEN.md"), "# S46 apertura\n\n```swe-model\n{}\n```\n");
+    for (const x of extra) writeFileSync(join(rp, "brief", x), "");
+    gitq(rp, ["add", "-A"]); gitq(rp, ["commit", "-q", "-m", "chiusura S45"]);
+    const h = gitq(rp, ["rev-parse", "HEAD"]);
+    writeFileSync(join(rp, "_session", "receipts", "p-p_S45_CLOSE.json"), JSON.stringify({ kind: "session-close", project: "p-p", session, branch: "dev", head: headOverride || h, remote: headOverride || h, message: "chiusura", files, pc: "TEST", publishedAt: "2026-01-02T00:00:00+00:00", tool: "test" }, null, 1));
+    gitq(rp, ["add", "-A", "_session"]); gitq(rp, ["commit", "-q", "-m", "ricevuta S45"]);
+    return { d, rp, a: [`--root=${d}`, `--index=${join(d, "idx.yaml")}`, "--slug=p-p"] };
+  };
+  let P = mkPrep("P1"); const iP = inv(join(P.rp, "_session", "receipts"));
+  g = run([...P.a, "--mode=check"]);
+  chk(g.code === 0 && /PASS S46/.test(g.out) && /PREPARATO dalla chiusura/.test(g.out) && /"prepared":\{"briefing":"S46_OPEN.md"/.test(g.out) && inv(join(P.rp, "_session", "receipts")) === iP, "GP1", "GATE-01: S46_OPEN.md elencato nella ricevuta di chiusura S45 e identico al commit -> PASS S46 (preparato, non prenota); receipts invariati", `      exit=${g.code}`);
+  g = run([...P.a, "--mode=commit", "--session=S46"]);
+  const gv = run([...P.a, "--mode=verify", "--session=S46", `--receipt=${join(P.rp, "_session", "receipts", "p-p_S46.json")}`]);
+  const go = run([...P.a, "--mode=check"]);
+  const g2 = run([...P.a, "--mode=commit", "--session=S46"]);
+  chk(g.code === 0 && gv.code === 0 && /VALIDO/.test(gv.out) && go.code === 0 && /OPEN S46/.test(go.out) && !/PASS S46/.test(go.out) && g2.code === 2 && /un numero, un receipt/.test(g2.out), "GP2", "GATE-01: commit + verify VALIDO; poi check = OPEN S46 (mai PASS due volte); secondo commit rifiutato", `      commit=${g.code} verify=${gv.code} check=${go.code} commit2=${g2.code}`);
+  P = mkPrep("P3", { files: ["reg.md"] });
+  g = run([...P.a, "--mode=check"]);
+  chk(g.code === 2 && /SESSION_ALREADY_BOOKED/.test(g.out) && !/PASS S46/.test(g.out), "GP3", "GATE-01 NEGATIVO: briefing NON elencato nella ricevuta di chiusura -> STOP come prima", `      exit=${g.code}`);
+  P = mkPrep("P4"); writeFileSync(join(P.rp, "brief", "S46_OPEN.md"), "# modificato a mano dopo la chiusura\n");
+  g = run([...P.a, "--mode=check"]);
+  chk(g.code === 2 && /SESSION_ALREADY_BOOKED/.test(g.out), "GP4", "GATE-01 NEGATIVO: briefing elencato ma MODIFICATO dopo il commit di chiusura -> STOP", `      exit=${g.code}`);
+  P = mkPrep("P5", { files: ["reg.md", "brief/S46_OPEN.md", "brief/S47_OPEN.md"], extra: ["S47_OPEN.md"] });
+  g = run([...P.a, "--mode=check"]);
+  chk(g.code === 2 && /BRIEFINGS_REGISTRY_MISMATCH/.test(g.out), "GP5", "GATE-01 NEGATIVO: due briefing oltre l'occupato (S46 e S47), anche se elencati -> STOP", `      exit=${g.code}`);
+  P = mkPrep("P6", { session: "S44" });
+  g = run([...P.a, "--mode=check"]);
+  chk(g.code === 2 && /SESSION_ALREADY_BOOKED/.test(g.out), "GP6", "GATE-01 NEGATIVO: ricevuta di chiusura di un'ALTRA sessione (S44 nel file S45) -> STOP", `      exit=${g.code}`);
+  P = mkPrep("P7", { headOverride: "e".repeat(40) });
+  g = run([...P.a, "--mode=check"]);
+  chk(g.code === 2 && /SESSION_ALREADY_BOOKED/.test(g.out), "GP7", "GATE-01 NEGATIVO: head della ricevuta non nella storia locale -> STOP (mai PASS non verificato)", `      exit=${g.code}`);
+  P = mkPrep("P8"); writeFileSync(join(P.rp, "brief", "S46_OPEN.md"), ""); gitq(P.rp, ["add", "brief/S46_OPEN.md"]); gitq(P.rp, ["commit", "-q", "-m", "riscritto dopo la chiusura"]);
+  g = run([...P.a, "--mode=check"]);
+  chk(g.code === 2 && /SESSION_ALREADY_BOOKED/.test(g.out), "GP8", "GATE-01 NEGATIVO: briefing riscritto e COMMITTATO dopo la chiusura -> diverso dal commit della ricevuta -> STOP", `      exit=${g.code}`);
+  P = mkPrep("P9"); writeFileSync(join(P.rp, "_session", "receipts", "p-p_S46.json"), JSON.stringify({ kind: "session-number", project: "p-p", session: "S46", registrySha256: "0".repeat(64) }));
+  g = run([...P.a, "--mode=check"]);
+  chk(g.code === 2 && /OPEN_RECEIPT_INCOHERENT/.test(g.out) && !/PASS S46/.test(g.out), "GP9", "GATE-01 NEGATIVO: preparato ma receipt di apertura incoerente gia' presente -> STOP, decide l'owner", `      exit=${g.code}`);
+  P = mkPrep("P11", { extra: ["S46_OPEN_regia.md"] });
+  g = run([...P.a, "--mode=check"]);
+  chk(g.code === 0 && /PASS S46/.test(g.out) && /"companions":\["S46_OPEN_regia.md"\]/.test(g.out), "GP11", "GATE-01: compagno S46_* gia' nel commit di chiusura (anche se non elencato nella ricevuta) -> PASS S46", `      exit=${g.code}`);
+  P = mkPrep("P12"); writeFileSync(join(P.rp, "brief", "S46_CODE_x_mandato.md"), "mandato\n");
+  g = run([...P.a, "--mode=check"]);
+  chk(g.code === 2 && /SESSION_ALREADY_BOOKED/.test(g.out), "GP12", "GATE-01 NEGATIVO: mandato S46_* scritto DOPO la chiusura (non tracciato) -> sessione gia' cominciata -> STOP", `      exit=${g.code}`);
+  P = mkPrep("P13"); writeFileSync(join(P.rp, "brief", "S46_STATO.md"), "stato\n"); gitq(P.rp, ["add", "brief/S46_STATO.md"]); gitq(P.rp, ["commit", "-q", "-m", "lavoro S46"]);
+  g = run([...P.a, "--mode=check"]);
+  chk(g.code === 2 && /SESSION_ALREADY_BOOKED/.test(g.out), "GP13", "GATE-01 NEGATIVO: S46_STATO.md committato DOPO la chiusura -> sessione gia' cominciata -> STOP", `      exit=${g.code}`);
+  /* GP15-GP21: revisione indipendente S217 (revisore Claude a contesto pulito, Codex fuori uso): due falsi PASS + casi di confine */
+  /* GP15: la cartella compagna sta NEL commit di chiusura; il mandato viene aggiunto dentro dopo */
+  {
+    const d = join(resolve(RUNS), "prep-P15c-" + stamp()), rp = join(d, "repo");
+    mkdirSync(join(rp, "_session", "receipts"), { recursive: true }); mkdirSync(join(rp, "brief", "S46_mandati"), { recursive: true });
+    writeFileSync(join(d, "idx.yaml"), IDXP("p-p")); gitq(rp, ["init", "-q", "-b", "dev"]);
+    writeFileSync(join(rp, "reg.md"), REG("S")); writeFileSync(join(rp, "brief", "S46_OPEN.md"), "# S46\n"); writeFileSync(join(rp, "brief", "S46_mandati", ".keep"), "x\n");
+    gitq(rp, ["add", "-A"]); gitq(rp, ["commit", "-q", "-m", "chiusura S45"]); const h = gitq(rp, ["rev-parse", "HEAD"]);
+    writeFileSync(join(rp, "_session", "receipts", "p-p_S45_CLOSE.json"), JSON.stringify({ kind: "session-close", project: "p-p", session: "S45", branch: "dev", head: h, remote: h, files: ["reg.md", "brief/S46_OPEN.md"] }));
+    gitq(rp, ["add", "-A", "_session"]); gitq(rp, ["commit", "-q", "-m", "ricevuta"]);
+    writeFileSync(join(rp, "brief", "S46_mandati", "S46_CODE_x.md"), "mandato\n");
+    g = run([`--root=${d}`, `--index=${join(d, "idx.yaml")}`, "--slug=p-p", "--mode=check"]);
+    chk(g.code === 2 && !/PASS S46/.test(g.out), "GP15", "GATE-01 NEGATIVO (rev. S217 bloccante 1): cartella compagna S46_* gia' nel commit di chiusura con un mandato aggiunto dentro dopo -> STOP", `      exit=${g.code}`);
+  }
+  P = mkPrep("P16"); g = run([...P.a, "--mode=commit", "--session=S46"]);
+  { const rd = join(P.rp, "_session", "receipts"); writeFileSync(join(rd, "p-p_S46_pc-ace.json"), readFileSync(join(rd, "p-p_S46.json"))); execFileSync(process.execPath, ["-e", `require("fs").unlinkSync(${JSON.stringify(join(rd, "p-p_S46.json"))})`]); }
+  g = run([...P.a, "--mode=check"]);
+  chk(g.code === 0 && /OPEN S46/.test(g.out) && /p-p_S46_pc-ace.json/.test(g.out) && !/PASS S46/.test(g.out), "GP16", "GATE-01 (rev. S217 bloccante 2): receipt di apertura con nome NON canonico (copia di sync) -> trovato con la scansione del commit -> OPEN, mai PASS", `      exit=${g.code}`);
+  P = mkPrep("P17"); writeFileSync(join(P.rp, "brief", "S46-STATO.md"), "stato\n");
+  g = run([...P.a, "--mode=check"]);
+  chk(g.code === 2 && !/PASS S46/.test(g.out), "GP17", "GATE-01 NEGATIVO: S46-STATO.md (trattino) non tracciato dopo la chiusura -> STOP", `      exit=${g.code}`);
+  P = mkPrep("P18"); mkdirSync(join(P.rp, "brief", "mandati")); writeFileSync(join(P.rp, "brief", "mandati", "S46_CODE_x.md"), "m\n");
+  g = run([...P.a, "--mode=check"]);
+  chk(g.code === 2 && !/PASS S46/.test(g.out), "GP18", "GATE-01 NEGATIVO: sottocartella nuova con mandato S46 non tracciato -> STOP", `      exit=${g.code}`);
+  P = mkPrep("P19"); mkdirSync(join(P.rp, "brief", "mandati")); writeFileSync(join(P.rp, "brief", "mandati", "S46_CODE_x.md"), "m\n"); gitq(P.rp, ["add", "-A", "brief"]); gitq(P.rp, ["commit", "-q", "-m", "mandato S46"]);
+  g = run([...P.a, "--mode=check"]);
+  chk(g.code === 2 && !/PASS S46/.test(g.out), "GP19", "GATE-01 NEGATIVO: mandato S46 in sottocartella COMMITTATO dopo la chiusura -> STOP", `      exit=${g.code}`);
+  P = mkPrep("P20"); writeFileSync(join(P.rp, "brief", "DA_HUB_nota.md"), "nota\n"); gitq(P.rp, ["add", "brief/DA_HUB_nota.md"]); gitq(P.rp, ["commit", "-q", "-m", "nota dall'Hub"]);
+  g = run([...P.a, "--mode=check"]);
+  chk(g.code === 0 && /PASS S46/.test(g.out), "GP20", "GATE-01: nota DA_* (senza il numero S46) committata dopo la chiusura -> resta PASS S46 (nessun falso STOP)", `      exit=${g.code}`);
+  P = mkPrep("P21"); g = run([...P.a, "--mode=commit", "--session=S46"]); writeFileSync(join(P.rp, "brief", "S46_CODE_x_mandato.md"), "m\n");
+  g = run([...P.a, "--mode=check"]);
+  chk(g.code === 2 && !/PASS S46/.test(g.out), "GP21", "GATE-01 (rev. S217 non bloccante 2, documentato): S46 aperta con receipt e poi un mandato -> STOP prudente, non OPEN e mai PASS", `      exit=${g.code}`);
+  /* GP22-GP25: revisione Codex S217 (gpt-5.6-sol medio, sessione 01a1e4ef-b522-7022-a18b-b0a5c611f51e), 3 bloccanti */
+  P = mkPrep("P22"); writeFileSync(join(P.rp, "_session", "receipts", "p-p_S46_CLOSE.json"), JSON.stringify({ kind: "session-close", project: "p-p", session: "S46" }));
+  g = run([...P.a, "--mode=check"]);
+  chk(g.code === 2 && /NEXT_ALREADY_RECORDED/.test(g.out) && !/PASS S46/.test(g.out), "GP22", "GATE-01 NEGATIVO (Codex bloccante 1): ricevuta di CHIUSURA della sessione proposta presente -> STOP, mai PASS", `      exit=${g.code}`);
+  P = mkPrep("P23"); writeFileSync(join(P.rp, "brief", "S46_CODE_x.md"), "m\n"); gitq(P.rp, ["add", "brief/S46_CODE_x.md"]); gitq(P.rp, ["commit", "-q", "-m", "mandato S46"]);
+  gitq(P.rp, ["rm", "-q", "brief/S46_CODE_x.md"]); gitq(P.rp, ["commit", "-q", "-m", "tolto"]);
+  g = run([...P.a, "--mode=check"]);
+  chk(g.code === 2 && !/PASS S46/.test(g.out), "GP23", "GATE-01 NEGATIVO (Codex bloccante 2): mandato S46 aggiunto e poi tolto in due commit (estremi identici) -> la storia lo vede -> STOP", `      exit=${g.code}`);
+  P = mkPrep("P24"); const orig24 = readFileSync(join(P.rp, "brief", "S46_OPEN.md"));
+  writeFileSync(join(P.rp, "brief", "S46_OPEN.md"), "# lavoro S46\n"); gitq(P.rp, ["commit", "-q", "-am", "S46 cominciata"]);
+  writeFileSync(join(P.rp, "brief", "S46_OPEN.md"), orig24); gitq(P.rp, ["commit", "-q", "-am", "ripristinato"]);
+  g = run([...P.a, "--mode=check"]);
+  chk(g.code === 2 && !/PASS S46/.test(g.out), "GP24", "GATE-01 NEGATIVO (Codex bloccante 2): briefing S46 cambiato e poi ripristinato identico -> la storia lo vede -> STOP", `      exit=${g.code}`);
+  P = mkPrep("P25"); g = run([...P.a, "--mode=commit", "--session=S46"]);
+  { const rd = join(P.rp, "_session", "receipts"); writeFileSync(join(rd, "p-p_S46_pc-ace.JSON"), readFileSync(join(rd, "p-p_S46.json"))); execFileSync(process.execPath, ["-e", `require("fs").unlinkSync(${JSON.stringify(join(rd, "p-p_S46.json"))})`]); }
+  const g25c = run([...P.a, "--mode=commit", "--session=S46"]);
+  g = run([...P.a, "--mode=check"]);
+  chk(g25c.code === 2 && /un numero, un receipt/.test(g25c.out) && /p-p_S46_pc-ace\.JSON/.test(g25c.out) && g.code === 0 && /OPEN S46/.test(g.out), "GP25", "GATE-01 (Codex bloccante 3): receipt di apertura con estensione .JSON -> commit lo vede e rifiuta il secondo; check = OPEN", `      commit=${g25c.code} check=${g.code}`);
+  /* GP26: verifica Codex S217 (sessione 01a1e516-01e2-7a51-89bb-cef7f8b87aa0): file S46 introdotto SOLO nella risoluzione
+   * di un merge, albero finale pulito. `git log` senza -m non lo mostra. */
+  P = mkPrep("P26");
+  gitq(P.rp, ["checkout", "-q", "-b", "lato"]); writeFileSync(join(P.rp, "altro.txt"), "x\n"); gitq(P.rp, ["add", "altro.txt"]); gitq(P.rp, ["commit", "-q", "-m", "innocuo"]);
+  gitq(P.rp, ["checkout", "-q", "dev"]); gitq(P.rp, ["merge", "--no-ff", "--no-commit", "-q", "lato"]);
+  writeFileSync(join(P.rp, "brief", "S46-STATO.md"), "stato\n"); gitq(P.rp, ["add", "brief/S46-STATO.md"]); gitq(P.rp, ["commit", "-q", "-m", "merge con lavoro S46"]);
+  g = run([...P.a, "--mode=check"]);
+  chk(g.code === 2 && !/PASS S46/.test(g.out), "GP26", "GATE-01 NEGATIVO (verifica Codex): S46-STATO.md introdotto solo nella risoluzione di un merge -> STOP", `      exit=${g.code}`);
+  /* P10 [LIVE] caso reale: ST-Journal all'apertura di S65 (commit d7af1864 = chiusura S64 7c43839c + ricevuta). Clone
+   * --shared in --runs: il repo del journal NON viene toccato (oggetti in sola lettura via alternates). */
+  if (!existsSync(join(J, ".git"))) { skipped("GP10", "[LIVE] ST-Journal S65", `repo assente: ${J}`); skipped("GP14", "[LIVE] ST-Journal S66 in corso", `repo assente: ${J}`); }
+  else {
+    const dL = join(resolve(RUNS), "prep-P10-" + stamp()), cl = join(dL, "stj");
+    mkdirSync(dL, { recursive: true });
+    let okClone = true;
+    try { execFileSync("git", ["clone", "-q", "--shared", "--no-checkout", J, cl], { stdio: "ignore" }); gitq(cl, ["checkout", "-q", "d7af1864"]); } catch { okClone = false; }
+    if (!okClone) { skipped("GP10", "[LIVE] ST-Journal S65", "commit d7af1864 non disponibile in questo clone"); skipped("GP14", "[LIVE] ST-Journal S66 in corso", "clone non riuscito"); }
+    else {
+      writeFileSync(join(dL, "idx.yaml"), `projects:\n  - slug: steelwolf-trading-journal\n    repo: stj\n    session_log: docs/SESSION_LOG.md\n    briefings: stj/SESSION_BRIEFINGS\n    session_prefix: ""\n    branch: dev\n    swe_writes: true\n    session_gate: enforce\n`);
+      g = run([`--root=${dL}`, `--index=${join(dL, "idx.yaml")}`, "--slug=steelwolf-trading-journal", "--mode=check"]);
+      chk(g.code === 0 && /PASS S65/.test(g.out) && /"closeReceipt":"steelwolf-trading-journal_S64_CLOSE.json"/.test(g.out), "GP10", "[LIVE] GATE-01 caso reale: ST-Journal all'apertura di S65 (d7af1864) -> PASS S65, briefing preparato dalla chiusura S64", `      exit=${g.code}`);
+      /* GP14 [LIVE] stesso clone, commit 37e7f31e: S66 cominciata SENZA receipt (13 file S66_*, registro fermo a S65) */
+      let ok14 = true; try { gitq(cl, ["checkout", "-q", "37e7f31e"]); } catch { ok14 = false; }
+      if (!ok14) skipped("GP14", "[LIVE] ST-Journal S66 in corso", "commit 37e7f31e non disponibile");
+      else {
+        g = run([`--root=${dL}`, `--index=${join(dL, "idx.yaml")}`, "--slug=steelwolf-trading-journal", "--mode=check"]);
+        chk(g.code === 2 && /SESSION_ALREADY_BOOKED/.test(g.out) && !/PASS S66/.test(g.out), "GP14", "[LIVE] GATE-01 NEGATIVO caso reale: ST-Journal S66 gia' in corso senza receipt (37e7f31e) -> STOP, non PASS S66", `      exit=${g.code}`);
+      }
+      console.log(`  artefatti P10 conservati: ${dL}`);
+    }
+  }
+  console.log(`  artefatti GATE-01 conservati sotto: ${resolve(RUNS)}/prep-*`);
   console.log(`\n  artefatti conservati: ${dir}`);
 }
 console.log(`\nRISULTATO: ${pass} PASS / ${fail} FAIL / ${skip} SKIP su ${pass + fail + skip}  ·  ${process.platform}`);
